@@ -1,3 +1,6 @@
+## v.21.2.0
+- Upgrade to MC 1.21.2
+
 ## v21.1.5
 - Remove spawn logging in debug log by default to reduce potential wear on storage drives on both fabric and neoforge. \
   \
