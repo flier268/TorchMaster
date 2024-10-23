@@ -2,6 +2,7 @@ package net.xalcon.torchmaster;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -54,7 +55,8 @@ public class ModRegistry
                         .mapColor(MapColor.COLOR_YELLOW)
                         .sound(SoundType.WOOD)
                         .strength(1.0f, 1.0f)
-                        .lightLevel(state -> 15),
+                        .lightLevel(state -> 15)
+                        .setId(ResourceKey.create(Registries.BLOCK, Torchmaster.modLoc("megatorch"))),
                 LightType.MegaTorch));
         itemMegaTorch = fromBlock(blockMegaTorch);
         creativeTabItems.add(itemMegaTorch);
@@ -67,7 +69,8 @@ public class ModRegistry
                         .mapColor(MapColor.COLOR_BLACK)
                         .sound(SoundType.WOOD)
                         .strength(1.0f, 1.0f)
-                        .lightLevel(state -> 15),
+                        .lightLevel(state -> 15)
+                        .setId(ResourceKey.create(Registries.BLOCK, Torchmaster.modLoc("dreadlamp"))),
                 LightType.DreadLamp));
         itemDreadLamp = fromBlock(blockDreadLamp);
         creativeTabItems.add(itemDreadLamp);
@@ -81,6 +84,7 @@ public class ModRegistry
                         .sound(SoundType.LANTERN)
                         .strength(1.0f, 1.0f)
                         .lightLevel(state -> 15)
+                        .setId(ResourceKey.create(Registries.BLOCK, Torchmaster.modLoc("feral_flare_lantern")))
                 )
         );
         tileFeralFlareLantern = BLOCK_ENTITIES.register(blockFeralFlareLantern.getId().getPath(),
@@ -94,6 +98,7 @@ public class ModRegistry
                         .noCollission()
                         .replaceable()
                         .air()
+                        .setId(ResourceKey.create(Registries.BLOCK, Torchmaster.modLoc("invisible_light")))
                 )
         );
 
@@ -108,7 +113,7 @@ public class ModRegistry
     }
 
     private static <B extends Block> RegistryObject<Item> fromBlock(RegistryObject<B> block, Consumer<Item.Properties> propertiesConfig) {
-        var properties = new Item.Properties();
+        var properties = new Item.Properties().setId(ResourceKey.create(Registries.ITEM, block.getId()));
         propertiesConfig.accept(properties);
         return ITEMS.register(block.getId().getPath(), () -> new TMItemBlock(block.get(), properties));
     }

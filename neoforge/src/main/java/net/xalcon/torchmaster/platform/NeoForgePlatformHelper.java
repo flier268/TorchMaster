@@ -51,7 +51,8 @@ public class NeoForgePlatformHelper implements IPlatformHelper
     @Override
     public <T extends BlockEntity> BlockEntityType<T> createBlockEntityType(BlockEntitySupplier<T> supplier, Block... blocks)
     {
-        return BlockEntityType.Builder.of(supplier::create, blocks).build(null);
+        return new BlockEntityType<>(supplier::create, blocks);
+        // return BlockEntityType.Builder.of(supplier::create, blocks).build(null);
     }
 
     @Override

@@ -4,7 +4,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.xalcon.torchmaster.Torchmaster;
@@ -14,7 +14,7 @@ import java.util.function.BooleanSupplier;
 
 public class TorchmasterEventHandler
 {
-    private static boolean isIntentionalSpawn(MobSpawnType spawnType)
+    private static boolean isPlayerTriggered(EntitySpawnReason spawnType)
     {
         switch(spawnType)
         {
@@ -22,10 +22,13 @@ public class TorchmasterEventHandler
             case DISPENSER:
             case BUCKET:
             case CONVERSION:
-            case SPAWN_EGG:
+            case SPAWN_ITEM_USE:
             case TRIGGERED:
             case COMMAND:
             case EVENT:
+            case TRIAL_SPAWNER:
+            case LOAD:
+            case DIMENSION_TRAVEL:
                 return true;
             case NATURAL:
             case CHUNK_GENERATION:
@@ -40,7 +43,7 @@ public class TorchmasterEventHandler
         }
     }
 
-    private static boolean isNaturalSpawn(MobSpawnType spawnType)
+    private static boolean isNaturalSpawn(EntitySpawnReason spawnType)
     {
         switch(spawnType)
         {
@@ -59,20 +62,23 @@ public class TorchmasterEventHandler
             case JOCKEY:
             case REINFORCEMENT:
             case TRIGGERED:
-            case SPAWN_EGG:
+            case SPAWN_ITEM_USE:
             case COMMAND:
             case EVENT:
+            case LOAD:
+            case TRIAL_SPAWNER:
+            case DIMENSION_TRAVEL:
                 return false;
         }
     }
 
-    public static void onCheckSpawn(final MobSpawnType spawnType, final Entity entity, final Vec3 location, final EventResultContainer container)
+    public static void onCheckSpawn(final EntitySpawnReason spawnType, final Entity entity, final Vec3 location, final EventResultContainer container)
     {
         var config = Services.PLATFORM.getConfig();
         Torchmaster.LOG.debug("CheckSpawn - Reason: {}, Type: {}, Pos: {}/{}/{}", spawnType, EntityType.getKey(entity.getType()), location.x, location.y, location.z);
 
         // Check if the spawn was intentional (i.e. player invoked), we dont block those
-        if(isIntentionalSpawn(spawnType))
+        if(isPlayerTriggered(spawnType))
             return;
 
         // If aggressive spawn checks are disabled, check if other mods already explicitly allowed the spawn

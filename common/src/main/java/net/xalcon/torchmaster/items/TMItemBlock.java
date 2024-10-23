@@ -22,6 +22,6 @@ public class TMItemBlock extends BlockItem
     public void appendHoverText(ItemStack pStack, TooltipContext pContext, List<Component> pTooltipComponents, TooltipFlag pTooltipFlag)
     {
         super.appendHoverText(pStack, pContext, pTooltipComponents, pTooltipFlag);
-        pTooltipComponents.add(Component.translatable(this.getDescriptionId(pStack) + ".tooltip"));
+        pTooltipComponents.add(Component.translatable(this.getDescriptionId() + ".tooltip"));
     }
 }

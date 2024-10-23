@@ -1,5 +1,6 @@
 package net.xalcon.torchmaster;
 
+import com.mojang.datafixers.kinds.Const;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
@@ -69,5 +70,10 @@ public class Torchmaster
 
         DreadLampFilterRegistry.applyListOverrides(Torchmaster.getConfig().getDreadLampEntityBlockListOverrides());
         MegaTorchFilterRegistry.applyListOverrides(Torchmaster.getConfig().getMegaTorchEntityBlockListOverrides());
+    }
+
+    public static ResourceLocation modLoc(String path)
+    {
+        return ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, path);
     }
 }

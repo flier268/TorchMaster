@@ -3,7 +3,7 @@ package net.xalcon.torchmaster.logic.entityblocking.dreadlamp;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec3;
@@ -25,7 +25,7 @@ public class DreadLampEntityBlockingLight implements IEntityBlockingLight
     }
 
     @Override
-    public boolean shouldBlockEntity(Entity entity, Level level, MobSpawnType spawnType)
+    public boolean shouldBlockEntity(Entity entity, Level level, EntitySpawnReason spawnType)
     {
         return Torchmaster.DreadLampFilterRegistry.containsEntity(EntityType.getKey(entity.getType()))
             && IDistanceLogic.Cubic.isPositionInRange(entity.getX(), entity.getY(), entity.getZ(), this.pos, Services.PLATFORM.getConfig().getDreadLampRadius());

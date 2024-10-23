@@ -1,6 +1,7 @@
 package net.xalcon.torchmaster.platform;
 
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -48,7 +49,8 @@ public class FabricPlatformHelper implements IPlatformHelper {
     @Override
     public <T extends BlockEntity> BlockEntityType<T> createBlockEntityType(BlockEntitySupplier<T> supplier, Block... blocks)
     {
-        return BlockEntityType.Builder.of(supplier::create, blocks).build(null);
+        return FabricBlockEntityTypeBuilder.create(supplier::create, blocks).build();
+        // return new BlockEntityType(supplier::create, blocks).build(null);
     }
 
     @Override

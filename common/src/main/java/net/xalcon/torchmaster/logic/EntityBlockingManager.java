@@ -6,7 +6,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.xalcon.torchmaster.Torchmaster;
@@ -30,7 +30,7 @@ public class EntityBlockingManager extends SavedData
         setDirty();
     }
 
-    public boolean shouldBlockEntitySpawn(Entity entity, Level level, MobSpawnType spawnType)
+    public boolean shouldBlockEntitySpawn(Entity entity, Level level, EntitySpawnReason spawnType)
     {
         for(var blocker: entityBlockers.values())
         {

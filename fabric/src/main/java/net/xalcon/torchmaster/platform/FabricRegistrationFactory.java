@@ -36,10 +36,10 @@ public class FabricRegistrationFactory implements RegistrationProvider.Factory {
             this.modId = modId;
 
             final var reg = BuiltInRegistries.REGISTRY.get(key.location());
-            if (reg == null) {
+            if (reg.isEmpty()) {
                 throw new RuntimeException("Registry with name " + key.location() + " was not found!");
             }
-            registry = (Registry<T>) reg;
+            registry = (Registry<T>) reg.get();
         }
 
         private Provider(String modId, Registry<T> registry) {
@@ -70,10 +70,11 @@ public class FabricRegistrationFactory implements RegistrationProvider.Factory {
                     return obj;
                 }
 
-                @Override
-                public Holder<I> asHolder() {
-                    return (Holder<I>) registry.getHolder((ResourceKey<T>) this.key).orElseThrow();
-                }
+                // @Override
+                // public Holder<I> asHolder() {
+                //
+                //     return (Holder<I>) registry.getHolder((ResourceKey<T>) this.key).orElseThrow();
+                // }
             };
             entries.add((RegistryObject<T>) ro);
             return ro;

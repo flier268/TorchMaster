@@ -2,7 +2,7 @@ package net.xalcon.torchmaster.utils;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.level.LevelAccessor;
 import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
@@ -10,7 +10,7 @@ import net.xalcon.torchmaster.events.TorchmasterEventHandler;
 
 public abstract class MobWrapper
 {
-    public static boolean checkSpawnRules(Mob mob, LevelAccessor level, MobSpawnType mobSpawnType, Operation<Boolean> original)
+    public static boolean checkSpawnRules(Mob mob, LevelAccessor level, EntitySpawnReason mobSpawnType, Operation<Boolean> original)
     {
         var container = new EventResultContainer(EventResult.DEFAULT);
         TorchmasterEventHandler.onCheckSpawn(mobSpawnType, mob, mob.position(), container);

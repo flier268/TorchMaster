@@ -45,7 +45,8 @@ public class EntityBlockingLightBlock extends Block
     }
 
     @Override
-    public boolean propagatesSkylightDown(BlockState state, BlockGetter getter, BlockPos pos) {
+    protected boolean propagatesSkylightDown(BlockState p_320652_)
+    {
         return true;
     }
 
