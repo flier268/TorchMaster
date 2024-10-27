@@ -1,5 +1,6 @@
 ## v20.1.9
 - Add explicit compatibility with MCA Reborn. MCA Zombie Villager should no longer spawn in Mega Torch Volumes.
+  Known Issues: MCA Zombie Villagers will always be blocked inside torch volumes, even when spawned from spawners, villager eggs or admin commands.
 
 ## v20.1.8
 - Show a message to the player when enabling a volume renderer
