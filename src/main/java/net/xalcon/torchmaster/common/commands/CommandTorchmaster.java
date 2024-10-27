@@ -9,9 +9,14 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.ai.village.VillageSiege;
+import net.minecraft.world.level.CustomSpawner;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.xalcon.torchmaster.Torchmaster;
 import net.xalcon.torchmaster.common.ModCaps;
+
+import java.util.List;
 
 public class CommandTorchmaster
 {
@@ -69,6 +74,41 @@ public class CommandTorchmaster
                     Torchmaster.Log.info("#################################");
 
                     source.sendSuccess(() -> Component.translatable(Torchmaster.MODID + ".command.entity_dump.completed"), false);
+                    return 0;
+                }
+            },
+        TRY_SETUP_SIEGE("try_setup_siege")
+            {
+                @Override
+                public int execute(CommandContext<CommandSourceStack> ctx)
+                {
+                    var level = ctx.getSource().getLevel();
+                    try
+                    {
+                        var field = ServerLevel.class.getDeclaredField("customSpawners");
+                        field.setAccessible(true);
+                        var customSpawnersList = (List<CustomSpawner>)field.get(level);
+                        for(var customSpawner : customSpawnersList)
+                        {
+                            if(customSpawner instanceof VillageSiege siege)
+                            {
+                                var siegeStateField = VillageSiege.class.getDeclaredField("siegeState");
+                                siegeStateField.setAccessible(true);
+                                siegeStateField.set(siege, siegeStateField.getType().getEnumConstants()[1]);
+
+                                var hasSetupSiegeField = VillageSiege.class.getDeclaredField("hasSetupSiege");
+                                hasSetupSiegeField.setAccessible(true);
+                                hasSetupSiegeField.setBoolean(siege, false);
+
+                                ctx.getSource().sendSystemMessage(Component.literal("Attempting village siege"));
+                            }
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+                        ctx.getSource().sendSystemMessage(Component.literal("Exception during siege setup"));
+                        Torchmaster.Log.error("Error while setting up siege", ex);
+                    }
                     return 0;
                 }
             };

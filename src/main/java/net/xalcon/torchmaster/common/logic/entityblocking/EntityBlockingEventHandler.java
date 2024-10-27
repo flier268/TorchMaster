@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
@@ -77,7 +78,7 @@ public class EntityBlockingEventHandler
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGH)
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onFinalizeSpawn(MobSpawnEvent.FinalizeSpawn event)
     {
         boolean log = TorchmasterConfig.GENERAL.logSpawnChecks.get();
@@ -95,25 +96,25 @@ public class EntityBlockingEventHandler
         }
 
         var entity = event.getEntity();
-        var world = entity.getCommandSenderWorld();
-
         var pos = new BlockPos((int)event.getX(), (int)event.getY(), (int)event.getZ());
 
-        world.getCapability(ModCaps.TEB_REGISTRY).ifPresent(reg ->
+        if(shouldBlockEntity(entity, pos))
         {
-            if(reg.shouldBlockEntity(entity, pos))
-            {
-                event.setResult(Event.Result.DENY);
-                event.setSpawnCancelled(true);
-                event.setCanceled(true);
-                if (log) Torchmaster.Log.debug("Blocking spawn of {}", EntityType.getKey(event.getEntity().getType()));
-                //event.getEntity().addTag("torchmaster_removed_spawn");
-            }
-            else
-            {
-                if (log) Torchmaster.Log.debug("Allowed spawn of {}", EntityType.getKey(event.getEntity().getType()));
-            }
-        });
+            event.setResult(Event.Result.DENY);
+            event.setSpawnCancelled(true);
+            event.setCanceled(true);
+            if (log) Torchmaster.Log.debug("Blocking spawn of {}", EntityType.getKey(event.getEntity().getType()));
+        }
+        else
+        {
+            if (log) Torchmaster.Log.debug("Allowed spawn of {}", EntityType.getKey(event.getEntity().getType()));
+        }
+    }
+
+    public static boolean shouldBlockEntity(Entity entity, BlockPos pos)
+    {
+        var world = entity.getCommandSenderWorld();
+        return world.getCapability(ModCaps.TEB_REGISTRY).map(reg -> reg.shouldBlockEntity(entity, pos)).orElse(false);
     }
 
     @SubscribeEvent(priority = EventPriority.NORMAL)

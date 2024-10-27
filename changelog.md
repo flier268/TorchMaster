@@ -1,3 +1,6 @@
+## v20.1.9
+- Add explicit compatibility with MCA Reborn. MCA Zombie Villager should no longer spawn in Mega Torch Volumes.
+
 ## v20.1.8
 - Show a message to the player when enabling a volume renderer
 
