@@ -10,6 +10,9 @@
     "command.torchmaster.entity_dump.completed": "Entities have been dumped to the log file",
     "itemGroup.torchmaster": "Torchmaster",
 
+    "item.torchmaster.frozen_pearl": "Frozen Pearl",
+    "item.torchmaster.frozen_pearl.tooltip": "Clears residual lights from a Feral Flare Lantern",
+
     "text.config.torchmaster-config.option.feralFlareLanternTickRate": "Feral Flare Lantern Tick Rate",
     "text.config.torchmaster-config.option.feralFlareLanternTickRate.tooltip": "How often the lantern should attempt to place lights",
     "text.config.torchmaster-config.option.feralFlareLanternLightHardcap": "Feral Flare Lantern Light hard cap",

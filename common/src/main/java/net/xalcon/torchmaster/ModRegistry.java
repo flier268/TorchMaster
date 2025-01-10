@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.xalcon.torchmaster.blocks.*;
+import net.xalcon.torchmaster.items.FrozenPearlItem;
 import net.xalcon.torchmaster.items.TMItemBlock;
 import net.xalcon.torchmaster.platform.RegistrationProvider;
 import net.xalcon.torchmaster.platform.RegistryObject;
@@ -38,6 +39,7 @@ public class ModRegistry
     public static RegistryObject<Item> itemMegaTorch;
     public static RegistryObject<Item> itemDreadLamp;
     public static RegistryObject<Item> itemFeralFlareLantern;
+    public static RegistryObject<Item> itemFrozenPearl;
 
     private ModRegistry() { }
     private static CreativeModeTab tab;
@@ -87,6 +89,9 @@ public class ModRegistry
                 () -> Services.PLATFORM.createBlockEntityType(FeralFlareLanternBlockEntity::new, blockFeralFlareLantern.get()));
         itemFeralFlareLantern = fromBlock(blockFeralFlareLantern);
         creativeTabItems.add(itemFeralFlareLantern);
+
+        itemFrozenPearl = ITEMS.register("frozen_pearl", () -> new FrozenPearlItem(new Item.Properties()));
+        creativeTabItems.add(itemFrozenPearl);
 
         blockInvisibleLight = BLOCKS.register("invisible_light", () -> new InvisibleLightBlock(
                 BlockBehaviour.Properties.of()
