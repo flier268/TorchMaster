@@ -29,6 +29,8 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
     private boolean useLineOfSight;
     private List<BlockPos> childLights = new ArrayList<>();
 
+    private int checkIndex;
+
     public FeralFlareLanternBlockEntity(BlockPos pos, BlockState state)
     {
         super(ModRegistry.tileFeralFlareLantern.get(), pos, state);
@@ -83,6 +85,19 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
             {
                 this.childLights.add(targetPos);
                 this.setChanged();
+            }
+        }
+
+        if(!this.childLights.isEmpty())
+        {
+            this.checkIndex = (this.checkIndex + 1) % this.childLights.size();
+            var pos = this.childLights.get(this.checkIndex);
+            var block = level.getBlockState(pos);
+            if(!(block.getBlock() instanceof InvisibleLightBlock))
+            {
+                // Pos in light list no longer points to an invisible light.
+                // it may have gotten removed by some means (replaced by block, removed, etc)
+                this.childLights.remove(checkIndex);
             }
         }
     }

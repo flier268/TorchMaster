@@ -1,3 +1,6 @@
+## v21.1.6
+- Re-Added Frozen Pearl to remove residual lights from the Feral Flare Lantern
+
 ## v21.1.5
 - Remove spawn logging in debug log by default to reduce potential wear on storage drives on both fabric and neoforge. \
   \
