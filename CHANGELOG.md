@@ -1,3 +1,6 @@
+## v21.0.4
+- Backport fix for a "IncorrectArgumentCountException" crash during setup of a village siege 
+
 ## v21.0.3
 - Fix crash when spawning a warden in an ancient city on fabric mod loader
 - Improve compatibility with other fabric mods
