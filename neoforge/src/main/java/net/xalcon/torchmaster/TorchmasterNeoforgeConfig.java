@@ -2,7 +2,6 @@ package net.xalcon.torchmaster;
 
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.ModConfigSpec;
-import net.neoforged.neoforge.common.NeoForgeConfig;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
 import org.apache.commons.lang3.tuple.Pair;
 

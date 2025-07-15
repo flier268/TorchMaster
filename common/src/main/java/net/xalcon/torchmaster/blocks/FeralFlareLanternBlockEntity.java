@@ -5,6 +5,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntArrayTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.TagTypes;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
@@ -32,6 +33,13 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
     public FeralFlareLanternBlockEntity(BlockPos pos, BlockState state)
     {
         super(ModRegistry.tileFeralFlareLantern.get(), pos, state);
+    }
+
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+
+        this.removeChildLights();
     }
 
     // @Override
@@ -120,9 +128,10 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
     protected void saveAdditional(CompoundTag nbt, HolderLookup.Provider pRegistries)
     {
         super.saveAdditional(nbt, pRegistries);
-        List<Integer> childLightsEncoded = new ArrayList<>(this.childLights.size());
+        var childLightsEncoded = new int[this.childLights.size()];
+        var i = 0;
         for(BlockPos child : this.childLights)
-            childLightsEncoded.add(encodePosition(this.worldPosition, child));
+            childLightsEncoded[i++] = (encodePosition(this.worldPosition, child));
 
         nbt.put("lights", new IntArrayTag(childLightsEncoded));
         nbt.putInt("ticks", this.ticks);
@@ -133,15 +142,26 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
     public void loadAdditional(CompoundTag nbt, HolderLookup.Provider pRegistries)
     {
         this.childLights.clear();
-        if(nbt.getTagType("lights") == Tag.TAG_INT_ARRAY)
+
+        var x = nbt.getInt("x");
+        var y = nbt.getInt("y");
+        var z = nbt.getInt("z");
+        var lightsTag = nbt.get("lights");
+
+
+        if(x.isPresent() && y.isPresent() && z.isPresent() && lightsTag != null)
         {
-            BlockPos origin = new BlockPos(nbt.getInt("x"), nbt.getInt("y"),nbt.getInt("z"));
-            int[] lightsEncoded = ((IntArrayTag) nbt.get("lights")).getAsIntArray();
-            for(int encodedLight : lightsEncoded)
-                this.childLights.add(decodePosition(origin, encodedLight));
+            BlockPos origin = new BlockPos(x.get(), y.get(), z.get());
+            var lightsEncoded = lightsTag.asIntArray();
+            lightsEncoded.ifPresentOrElse(le -> {
+                for(int encodedLight : le)
+                    this.childLights.add(decodePosition(origin, encodedLight));
+            }, () -> Torchmaster.LOG.error("Error while loading lantern at {}, failed to decode internal light list", origin));
         }
-        this.ticks = nbt.getInt("ticks");
-        this.useLineOfSight = nbt.getBoolean("useLoS");
+
+
+        this.ticks = nbt.getInt("ticks").orElse(0);
+        this.useLineOfSight = nbt.getBoolean("useLoS").orElse(false);
         super.loadAdditional(nbt, pRegistries);
     }
 

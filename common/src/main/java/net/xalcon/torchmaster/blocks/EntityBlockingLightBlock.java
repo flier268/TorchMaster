@@ -2,6 +2,7 @@ package net.xalcon.torchmaster.blocks;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -51,10 +52,10 @@ public class EntityBlockingLightBlock extends Block
     }
 
     @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moving) {
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
         Torchmaster.getRegistryForLevel(level)
-            .ifPresent(reg ->
-                    reg.unregisterLight(lightType.KeyFactory.apply(pos)));
-        super.onRemove(state, level, pos, oldState, moving);
+                .ifPresent(reg ->
+                        reg.unregisterLight(lightType.KeyFactory.apply(pos)));
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 }

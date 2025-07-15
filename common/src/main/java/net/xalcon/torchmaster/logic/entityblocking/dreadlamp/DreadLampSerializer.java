@@ -1,9 +1,11 @@
 package net.xalcon.torchmaster.logic.entityblocking.dreadlamp;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.xalcon.torchmaster.logic.entityblocking.IEntityBlockingLight;
 import net.xalcon.torchmaster.logic.entityblocking.ILightSerializer;
+import net.xalcon.torchmaster.logic.entityblocking.megatorch.MegatorchEntityBlockingLight;
 
 import java.util.Optional;
 
@@ -20,11 +22,13 @@ public class DreadLampSerializer implements ILightSerializer
         if(light == null)
             throw new IllegalArgumentException("Unable to serialize null");
 
-        if(!(light instanceof DreadLampEntityBlockingLight dreadLampLight))
-            throw new IllegalArgumentException("Unable to serialize '" + light.getClass().getCanonicalName() + "', expected '"+ DreadLampEntityBlockingLight.class.getCanonicalName() +"'");
+        if(!(light instanceof DreadLampEntityBlockingLight dreadLampEntityBlockingLight))
+            throw new IllegalArgumentException("Unable to serialize '" + light.getClass().getCanonicalName() + "', expected '"+DreadLampEntityBlockingLight.class.getCanonicalName()+"'");
 
         var nbt = new CompoundTag();
-        nbt.put("pos", NbtUtils.writeBlockPos(dreadLampLight.getPos()));
+
+        var pos = light.getPos();
+        nbt.putIntArray("pos", new int[] { pos.getX(), pos.getY(), pos.getZ() });
 
         return nbt;
     }
@@ -32,8 +36,14 @@ public class DreadLampSerializer implements ILightSerializer
     @Override
     public Optional<IEntityBlockingLight> deserializeLight(CompoundTag nbt)
     {
-        var pos = NbtUtils.readBlockPos(nbt, "pos");
-        return pos.map(DreadLampEntityBlockingLight::new);
+        var posTag = nbt.getIntArray("pos");
+        if(posTag.isPresent() && posTag.get().length == 3)
+        {
+            var posArray = posTag.get();
+            var blockPos = new BlockPos(posArray[0], posArray[1], posArray[2]);
+            return Optional.of(new DreadLampEntityBlockingLight(blockPos));
+        }
+        return Optional.empty();
     }
 
     @Override

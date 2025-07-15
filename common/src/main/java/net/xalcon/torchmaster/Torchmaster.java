@@ -55,7 +55,7 @@ public class Torchmaster
         if(level instanceof ServerLevel serverLevel)
         {
             var dimensionIdentifier = level.dimension().location().toDebugFileName();
-            return Optional.of(serverLevel.getDataStorage().computeIfAbsent(FilteredLightManager.Factory, "torchmaster_lights_" + dimensionIdentifier));
+            return Optional.of(serverLevel.getDataStorage().computeIfAbsent(FilteredLightManager.typeFor("lights_" + dimensionIdentifier)));
         }
         return Optional.empty();
     }

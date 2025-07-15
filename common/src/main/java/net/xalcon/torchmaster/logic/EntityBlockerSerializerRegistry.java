@@ -34,7 +34,7 @@ public class EntityBlockerSerializerRegistry
             return null;
         }
 
-        var type = ResourceLocation.tryParse(typeStr);
+        var type = ResourceLocation.tryParse(typeStr.get());
         if(type == null)
         {
             Torchmaster.LOG.error("Unable to deserialize EntityBlocker, can't parse type '{}'", typeStr);

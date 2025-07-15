@@ -24,9 +24,9 @@ neoForge {
             client()
             programArgument("Xalcon")
         }
-        data {
-            data()
-        }
+        //data {
+        //    data()
+        //}
         server {
             server()
         }

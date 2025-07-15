@@ -52,14 +52,14 @@ public class FeralFlareLanternBlock extends DirectionalBlock implements EntityBl
         builder.add(FACING);
     }
 
-    @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moving)
-    {
-        if(level.getBlockEntity(pos) instanceof FeralFlareLanternBlockEntity te)
-            te.removeChildLights();
-
-        super.onRemove(state, level, pos, oldState, moving);
-    }
+    // This logic moved into the tile entity class
+    //@Override
+    //public void onRemove(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moving)
+    //{
+    //    if(level.getBlockEntity(pos) instanceof FeralFlareLanternBlockEntity te)
+    //        te.removeChildLights();
+    //    super.onRemove(state, level, pos, oldState, moving);
+    //}
 
     @Override
     public void destroy(LevelAccessor level, BlockPos pos, BlockState state)

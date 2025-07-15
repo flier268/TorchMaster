@@ -1,3 +1,6 @@
+## v21.5.0
+- Upgrade to MC 1.21.5 (Fabric + Neoforge)
+
 ## v21.4.0
 - Upgrade to MC 1.21.4 (Fabric + Neoforge)
 
