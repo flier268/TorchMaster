@@ -133,6 +133,10 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
         for(BlockPos child : this.childLights)
             childLightsEncoded[i++] = (encodePosition(this.worldPosition, child));
 
+        nbt.putInt("x", this.worldPosition.getX());
+        nbt.putInt("y", this.worldPosition.getY());
+        nbt.putInt("z", this.worldPosition.getZ());
+
         nbt.put("lights", new IntArrayTag(childLightsEncoded));
         nbt.putInt("ticks", this.ticks);
         nbt.putBoolean("useLoS", this.useLineOfSight);
