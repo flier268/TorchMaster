@@ -3,8 +3,8 @@ package net.xalcon.torchmaster.logic.entityblocking;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
@@ -64,24 +64,11 @@ public class FilteredLightManager extends SavedData implements IBlockingLightMan
     }
 
     @Override
-    public boolean shouldBlockEntity(Entity entity, Level level, EntitySpawnReason spawnType)
+    public boolean shouldBlockEntityType(EntityType<?> entityType, Level level, Vec3 pos, EntitySpawnReason spawnType)
     {
         for(var light: lights.values())
         {
-            if(light.shouldBlockEntity(entity, level, spawnType))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public boolean shouldBlockVillagePillagerSiege(Vec3 pos)
-    {
-        for(var light: lights.values())
-        {
-            if(light.shouldBlockVillagePillagerSiege(pos))
+            if(light.shouldBlockEntityType(entityType, level, pos, spawnType))
             {
                 return true;
             }

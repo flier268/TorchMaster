@@ -3,13 +3,14 @@ package net.xalcon.torchmaster.logic.entityblocking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 public interface IEntityBlockingLight
 {
-    boolean shouldBlockEntity(Entity entity, Level level, EntitySpawnReason spawnType);
-    boolean shouldBlockVillagePillagerSiege(Vec3 pos);
+    //boolean shouldBlockEntity(Entity entity, Level level, EntitySpawnReason spawnType);
+    boolean shouldBlockEntityType(EntityType<?> entityType, Level level, Vec3 pos, EntitySpawnReason spawnType);
     boolean shouldBlockVillageZombieRaid(Vec3 pos);
 
     String getLightSerializerType();

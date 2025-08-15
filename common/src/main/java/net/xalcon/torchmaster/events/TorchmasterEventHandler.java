@@ -5,6 +5,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.xalcon.torchmaster.Torchmaster;
@@ -90,18 +91,43 @@ public class TorchmasterEventHandler
             return;
 
         var level = entity.getCommandSenderWorld();
+        var entityType = entity.getType();
 
         Torchmaster.getRegistryForLevel(level).ifPresent(reg ->
         {
-            if(reg.shouldBlockEntity(entity, entity.getCommandSenderWorld(), spawnType))
+            if(reg.shouldBlockEntityType(entityType, entity.getCommandSenderWorld(), location, spawnType))
             {
                 container.setResult(EventResult.DENY);
-                Torchmaster.LOG.debug("Blocking spawn of {}", EntityType.getKey(entity.getType()));
-                //event.getEntity().addTag("torchmaster_removed_spawn");
+                Torchmaster.LOG.debug("Blocking spawn of {}", EntityType.getKey(entityType));
             }
             else
             {
-                Torchmaster.LOG.debug("Allowed spawn of {}", EntityType.getKey(entity.getType()));
+                Torchmaster.LOG.debug("Allowed spawn of {}", EntityType.getKey(entityType));
+            }
+        });
+    }
+
+    public static void onPlayerSpawnPhantoms(Player player, final Vec3 location, final EventResultContainer container)
+    {
+        var config = Services.PLATFORM.getConfig();
+        Torchmaster.LOG.debug("PlayerSpawnPhantoms - Pos: {}/{}/{}", location.x, location.y, location.z);
+
+        // If aggressive spawn checks are disabled, check if other mods already explicitly allowed the spawn
+        if(!config.getAggressiveSpawnChecks() && container.getResult() == EventResult.ALLOW)
+            return;
+
+        var level = player.getCommandSenderWorld();
+
+        Torchmaster.getRegistryForLevel(level).ifPresent(reg ->
+        {
+            if(reg.shouldBlockEntityType(EntityType.PHANTOM, level, player.position(), EntitySpawnReason.NATURAL))
+            {
+                container.setResult(EventResult.DENY);
+                Torchmaster.LOG.debug("Blocking spawn of {}", EntityType.getKey(EntityType.PHANTOM));
+            }
+            else
+            {
+                Torchmaster.LOG.debug("Allowed spawn of {}", EntityType.getKey(EntityType.PHANTOM));
             }
         });
     }
@@ -115,7 +141,7 @@ public class TorchmasterEventHandler
 
         Torchmaster.getRegistryForLevel(level).ifPresent(reg ->
         {
-            if(reg.shouldBlockVillagePillagerSiege(attemptedSpawnPos))
+            if(reg.shouldBlockVillageZombieRaid(attemptedSpawnPos))
             {
                 container.setResult(EventResult.DENY);
                 Torchmaster.LOG.debug("Blocking village siege @ {}", attemptedSpawnPos);

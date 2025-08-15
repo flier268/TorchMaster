@@ -1,3 +1,6 @@
+## v21.5.2
+- Allow Torchmaster to block Phantoms from Spawning via Minecrafts Insomnia Based Spawning System (Fabric + Neoforge)
+
 ## v21.5.1
 - Fix Feral Flare Lantern misremembering invisible light positions on world save/load
 

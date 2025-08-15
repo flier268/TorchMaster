@@ -25,16 +25,10 @@ public class DreadLampEntityBlockingLight implements IEntityBlockingLight
     }
 
     @Override
-    public boolean shouldBlockEntity(Entity entity, Level level, EntitySpawnReason spawnType)
+    public boolean shouldBlockEntityType(EntityType<?> entityType, Level level, Vec3 pos, EntitySpawnReason spawnType)
     {
-        return Torchmaster.DreadLampFilterRegistry.containsEntity(EntityType.getKey(entity.getType()))
-            && IDistanceLogic.Cubic.isPositionInRange(entity.getX(), entity.getY(), entity.getZ(), this.pos, Services.PLATFORM.getConfig().getDreadLampRadius());
-    }
-
-    @Override
-    public boolean shouldBlockVillagePillagerSiege(Vec3 pos)
-    {
-        return false;
+        return Torchmaster.DreadLampFilterRegistry.containsEntity(EntityType.getKey(entityType))
+            && IDistanceLogic.Cubic.isPositionInRange(pos.x, pos.y, pos.z, this.pos, Services.PLATFORM.getConfig().getDreadLampRadius());
     }
 
     @Override
