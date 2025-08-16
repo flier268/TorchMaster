@@ -1,4 +1,4 @@
-## v21.5.3
+## v21.5.4
 - Allow Torchmaster to block Pillager Patrols from Spawning (Fabric + Neoforge)
 - Fix missing translation strings (Fabric + Neoforge)
 

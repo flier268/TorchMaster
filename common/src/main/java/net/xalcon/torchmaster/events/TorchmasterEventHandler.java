@@ -169,7 +169,7 @@ public class TorchmasterEventHandler
 
         Torchmaster.getRegistryForLevel(level).ifPresent(reg ->
         {
-            if(reg.shouldBlockEntityType(EntityType.PHANTOM, level, location, EntitySpawnReason.NATURAL))
+            if(reg.shouldBlockEntityType(entityType, level, location, EntitySpawnReason.NATURAL))
             {
                 container.setResult(EventResult.DENY);
                 Torchmaster.LOG.debug("Blocking spawn of {}, (Leader: {})", EntityType.getKey(entityType), leader);
