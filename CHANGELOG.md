@@ -1,3 +1,7 @@
+## v21.5.3
+- Allow Torchmaster to block Pillager Patrols from Spawning (Fabric + Neoforge)
+- Fix missing translation strings (Fabric + Neoforge)
+
 ## v21.5.2
 - Allow Torchmaster to block Phantoms from Spawning via Minecrafts Insomnia Based Spawning System (Fabric + Neoforge)
 

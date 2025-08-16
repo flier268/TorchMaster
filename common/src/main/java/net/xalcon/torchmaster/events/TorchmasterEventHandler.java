@@ -1,10 +1,13 @@
 package net.xalcon.torchmaster.events;
 
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.monster.PatrollingMonster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -149,6 +152,31 @@ public class TorchmasterEventHandler
             else
             {
                 Torchmaster.LOG.debug("Allowed village siege @ {}", attemptedSpawnPos);
+            }
+        });
+    }
+
+    public static void onPatrolMemberSpawn(ServerLevel level, Vec3 location, boolean leader, Entity entity, EventResultContainer container) {
+
+        var config = Services.PLATFORM.getConfig();
+        Torchmaster.LOG.debug("PatrolMemberSpawn - Pos: {}/{}/{}", location.x, location.y, location.z);
+
+        // If aggressive spawn checks are disabled, check if other mods already explicitly allowed the spawn
+        if(!config.getAggressiveSpawnChecks() && container.getResult() == EventResult.ALLOW)
+            return;
+
+        var entityType = entity.getType();
+
+        Torchmaster.getRegistryForLevel(level).ifPresent(reg ->
+        {
+            if(reg.shouldBlockEntityType(EntityType.PHANTOM, level, location, EntitySpawnReason.NATURAL))
+            {
+                container.setResult(EventResult.DENY);
+                Torchmaster.LOG.debug("Blocking spawn of {}, (Leader: {})", EntityType.getKey(entityType), leader);
+            }
+            else
+            {
+                Torchmaster.LOG.debug("Allowed spawn of {}, (Leader: {})", EntityType.getKey(entityType), leader);
             }
         });
     }
