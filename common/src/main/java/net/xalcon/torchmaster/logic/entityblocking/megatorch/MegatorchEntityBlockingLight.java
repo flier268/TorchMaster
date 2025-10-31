@@ -25,16 +25,10 @@ public class MegatorchEntityBlockingLight implements IEntityBlockingLight
     }
 
     @Override
-    public boolean shouldBlockEntity(Entity entity, Level level, MobSpawnType spawnType)
+    public boolean shouldBlockEntityType(EntityType<?> entityType, Level level, Vec3 pos, MobSpawnType spawnType)
     {
-        return Torchmaster.MegaTorchFilterRegistry.containsEntity(EntityType.getKey(entity.getType()))
-            && IDistanceLogic.Cubic.isPositionInRange(entity.getX(), entity.getY(), entity.getZ(), this.pos, Services.PLATFORM.getConfig().getMegaTorchRadius());
-    }
-
-    @Override
-    public boolean shouldBlockVillagePillagerSiege(Vec3 pos)
-    {
-        return IDistanceLogic.Cubic.isPositionInRange(pos.x(), pos.y(), pos.z(), this.pos, Services.PLATFORM.getConfig().getMegaTorchRadius());
+        return Torchmaster.MegaTorchFilterRegistry.containsEntity(EntityType.getKey(entityType))
+                && IDistanceLogic.Cubic.isPositionInRange(pos.x, pos.y, pos.z, this.pos, Services.PLATFORM.getConfig().getMegaTorchRadius());
     }
 
     @Override

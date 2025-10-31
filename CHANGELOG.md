@@ -1,3 +1,6 @@
+## v21.1.7
+- Add support to prevent phantoms from spawning from player insomnia mechanics
+
 ## v21.1.6
 - Re-Added Frozen Pearl to remove residual lights from the Feral Flare Lantern
 

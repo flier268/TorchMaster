@@ -3,6 +3,7 @@ package net.xalcon.torchmaster.logic.entityblocking.dreadlamp;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -25,16 +26,10 @@ public class DreadLampEntityBlockingLight implements IEntityBlockingLight
     }
 
     @Override
-    public boolean shouldBlockEntity(Entity entity, Level level, MobSpawnType spawnType)
+    public boolean shouldBlockEntityType(EntityType<?> entityType, Level level, Vec3 pos, MobSpawnType spawnType)
     {
-        return Torchmaster.DreadLampFilterRegistry.containsEntity(EntityType.getKey(entity.getType()))
-            && IDistanceLogic.Cubic.isPositionInRange(entity.getX(), entity.getY(), entity.getZ(), this.pos, Services.PLATFORM.getConfig().getDreadLampRadius());
-    }
-
-    @Override
-    public boolean shouldBlockVillagePillagerSiege(Vec3 pos)
-    {
-        return false;
+        return Torchmaster.DreadLampFilterRegistry.containsEntity(EntityType.getKey(entityType))
+                && IDistanceLogic.Cubic.isPositionInRange(pos.x, pos.y, pos.z, this.pos, Services.PLATFORM.getConfig().getDreadLampRadius());
     }
 
     @Override

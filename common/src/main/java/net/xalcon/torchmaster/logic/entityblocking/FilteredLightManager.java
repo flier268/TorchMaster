@@ -5,6 +5,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
@@ -20,24 +21,11 @@ public class FilteredLightManager extends SavedData implements IBlockingLightMan
     private final Map<String, IEntityBlockingLight> lights = new HashMap<>();
 
     @Override
-    public boolean shouldBlockEntity(Entity entity, Level level, MobSpawnType spawnType)
+    public boolean shouldBlockEntityType(EntityType<?> entityType, Level level, Vec3 pos, MobSpawnType spawnType)
     {
         for(var light: lights.values())
         {
-            if(light.shouldBlockEntity(entity, level, spawnType))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public boolean shouldBlockVillagePillagerSiege(Vec3 pos)
-    {
-        for(var light: lights.values())
-        {
-            if(light.shouldBlockVillagePillagerSiege(pos))
+            if(light.shouldBlockEntityType(entityType, level, pos, spawnType))
             {
                 return true;
             }

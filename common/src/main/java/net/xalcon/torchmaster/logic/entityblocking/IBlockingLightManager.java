@@ -2,6 +2,7 @@ package net.xalcon.torchmaster.logic.entityblocking;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -10,8 +11,7 @@ import java.util.Optional;
 
 public interface IBlockingLightManager
 {
-    boolean shouldBlockEntity(Entity entity, Level level, MobSpawnType spawnType);
-    boolean shouldBlockVillagePillagerSiege(Vec3 pos);
+    boolean shouldBlockEntityType(EntityType<?> entityType, Level level, Vec3 pos, MobSpawnType spawnType);
     boolean shouldBlockVillageZombieRaid(Vec3 pos);
 
     /**

@@ -5,6 +5,7 @@ import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerSpawnPhantomsEvent;
 import net.neoforged.neoforge.event.village.VillageSiegeEvent;
 import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
@@ -56,6 +57,28 @@ public class NeoforgeEventHandler
             case DEFAULT -> MobSpawnEvent.PositionCheck.Result.DEFAULT;
             case ALLOW -> MobSpawnEvent.PositionCheck.Result.SUCCEED;
             case DENY -> MobSpawnEvent.PositionCheck.Result.FAIL;
+        });
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void onPlayerSpawnPhantomsEvent(PlayerSpawnPhantomsEvent event)
+    {
+        var container = new EventResultContainer(switch(event.getResult())
+        {
+            case DEFAULT -> EventResult.DEFAULT;
+            case ALLOW -> EventResult.ALLOW;
+            case DENY -> EventResult.DENY;
+        });
+
+        var player = event.getEntity();
+        var pos = player.position();
+        TorchmasterEventHandler.onPlayerSpawnPhantoms(player, pos, container);
+
+        event.setResult(switch(container.getResult())
+        {
+            case DEFAULT -> PlayerSpawnPhantomsEvent.Result.DEFAULT;
+            case ALLOW -> PlayerSpawnPhantomsEvent.Result.ALLOW;
+            case DENY -> PlayerSpawnPhantomsEvent.Result.DENY;
         });
     }
 
