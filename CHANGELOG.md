@@ -1,3 +1,6 @@
+## v21.1.8
+- Fix Frozen Pearl Recipe (PR by SrNadien)
+
 ## v21.1.7
 - Add support to prevent phantoms from spawning from player insomnia mechanics
 
