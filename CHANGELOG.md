@@ -1,3 +1,9 @@
+## v21.9.1-alpha
+- fix crash on world join for fabric
+
+## v21.9.0-alpha
+- initial port to 1.21.9 + 1.21.10
+
 ## v21.5.4
 - Allow Torchmaster to block Pillager Patrols from Spawning (Fabric + Neoforge)
 - Fix missing translation strings (Fabric + Neoforge)

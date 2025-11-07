@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.At;
 public abstract class PhantomSpawnerMixin {
 
     @WrapOperation(
-            method = "tick(Lnet/minecraft/server/level/ServerLevel;ZZ)V",
+            method = "tick(Lnet/minecraft/server/level/ServerLevel;Z)V",
             at = @At(
                     value = "INVOKE",
                     target = "net/minecraft/world/level/NaturalSpawner.isValidEmptySpawnBlock(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;Lnet/minecraft/world/entity/EntityType;)Z"
