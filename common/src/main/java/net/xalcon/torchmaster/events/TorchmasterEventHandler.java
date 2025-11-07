@@ -93,12 +93,12 @@ public class TorchmasterEventHandler
         if(config.getBlockOnlyNaturalSpawns() && !isNaturalSpawn(spawnType))
             return;
 
-        var level = entity.getCommandSenderWorld();
+        var level = entity.level();
         var entityType = entity.getType();
 
         Torchmaster.getRegistryForLevel(level).ifPresent(reg ->
         {
-            if(reg.shouldBlockEntityType(entityType, entity.getCommandSenderWorld(), location, spawnType))
+            if(reg.shouldBlockEntityType(entityType, entity.level(), location, spawnType))
             {
                 container.setResult(EventResult.DENY);
                 Torchmaster.LOG.debug("Blocking spawn of {}", EntityType.getKey(entityType));
@@ -119,7 +119,7 @@ public class TorchmasterEventHandler
         if(!config.getAggressiveSpawnChecks() && container.getResult() == EventResult.ALLOW)
             return;
 
-        var level = player.getCommandSenderWorld();
+        var level = player.level();
 
         Torchmaster.getRegistryForLevel(level).ifPresent(reg ->
         {

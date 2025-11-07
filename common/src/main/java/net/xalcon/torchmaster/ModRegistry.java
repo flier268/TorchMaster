@@ -95,7 +95,7 @@ public class ModRegistry
         blockInvisibleLight = BLOCKS.register("invisible_light", () -> new InvisibleLightBlock(
                 BlockBehaviour.Properties.of()
                         .lightLevel(state -> 15)
-                        .noCollission()
+                        .noCollision()
                         .replaceable()
                         .air()
                         .setId(ResourceKey.create(Registries.BLOCK, Torchmaster.modLoc("invisible_light")))

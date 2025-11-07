@@ -13,6 +13,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -46,7 +48,7 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
     public void tick()
     {
         var config = Services.PLATFORM.getConfig();
-        if(this.level.isClientSide || ++this.ticks % config.getFeralFlareTickRate() != 0) return;
+        if(this.level.isClientSide() || ++this.ticks % config.getFeralFlareTickRate() != 0) return;
         if(this.childLights.size() > config.getFeralFlareLanternLightCountHardcap()) return;
         ticks = 0;
 
@@ -125,48 +127,34 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
     //}
 
     @Override
-    protected void saveAdditional(CompoundTag nbt, HolderLookup.Provider pRegistries)
+    protected void saveAdditional(ValueOutput output)
     {
-        super.saveAdditional(nbt, pRegistries);
+        super.saveAdditional(output);
         var childLightsEncoded = new int[this.childLights.size()];
         var i = 0;
         for(BlockPos child : this.childLights)
             childLightsEncoded[i++] = (encodePosition(this.worldPosition, child));
 
-        nbt.putInt("x", this.worldPosition.getX());
-        nbt.putInt("y", this.worldPosition.getY());
-        nbt.putInt("z", this.worldPosition.getZ());
-
-        nbt.put("lights", new IntArrayTag(childLightsEncoded));
-        nbt.putInt("ticks", this.ticks);
-        nbt.putBoolean("useLoS", this.useLineOfSight);
+        output.putIntArray("lights", childLightsEncoded);
+        output.putInt("ticks", this.ticks);
+        output.putBoolean("useLoS", this.useLineOfSight);
     }
 
     @Override
-    public void loadAdditional(CompoundTag nbt, HolderLookup.Provider pRegistries)
+    public void loadAdditional(ValueInput input)
     {
         this.childLights.clear();
 
-        var x = nbt.getInt("x");
-        var y = nbt.getInt("y");
-        var z = nbt.getInt("z");
-        var lightsTag = nbt.get("lights");
+        var lightsEncoded = input.getIntArray("lights");
 
+        lightsEncoded.ifPresentOrElse(le -> {
+            for(int encodedLight : le)
+                this.childLights.add(decodePosition(this.worldPosition, encodedLight));
+        }, () -> Torchmaster.LOG.error("Error while loading lantern at {}, failed to decode internal light list", this.worldPosition));
 
-        if(x.isPresent() && y.isPresent() && z.isPresent() && lightsTag != null)
-        {
-            BlockPos origin = new BlockPos(x.get(), y.get(), z.get());
-            var lightsEncoded = lightsTag.asIntArray();
-            lightsEncoded.ifPresentOrElse(le -> {
-                for(int encodedLight : le)
-                    this.childLights.add(decodePosition(origin, encodedLight));
-            }, () -> Torchmaster.LOG.error("Error while loading lantern at {}, failed to decode internal light list", origin));
-        }
-
-
-        this.ticks = nbt.getInt("ticks").orElse(0);
-        this.useLineOfSight = nbt.getBoolean("useLoS").orElse(false);
-        super.loadAdditional(nbt, pRegistries);
+        this.ticks = input.getInt("ticks").orElse(0);
+        this.useLineOfSight = input.getBooleanOr("useLoS", false);
+        super.loadAdditional(input);
     }
 
     // @Override
@@ -197,7 +185,7 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
 
     public void removeChildLights()
     {
-        if(this.level.isClientSide) return;
+        if(this.level.isClientSide()) return;
         for(var pos : this.childLights)
         {
             if (this.level.getBlockState(pos).getBlock() == ModRegistry.blockInvisibleLight.get())
