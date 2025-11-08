@@ -1,3 +1,6 @@
+## v21.1.9
+- Fix crash on fabric when joining a world
+
 ## v21.1.8
 - Fix Frozen Pearl Recipe (PR by SrNadien)
 
