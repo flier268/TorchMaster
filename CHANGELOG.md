@@ -1,3 +1,6 @@
+## v21.9.2-alpha
+- Fix Crash on pillager spawn #267
+
 ## v21.9.1-alpha
 - fix crash on world join for fabric
 

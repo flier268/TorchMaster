@@ -21,7 +21,8 @@ public abstract class PatrolSpawnerMixin {
             at = @At(
                     value = "INVOKE",
                     target = "net/minecraft/world/entity/monster/PatrollingMonster.setPos (DDD)V"
-            )
+            ),
+            cancellable = true
     )
     private void torchmaster_spawnPatrolMember_afterPillagerCreate(ServerLevel level, BlockPos pos, RandomSource random, boolean leader, CallbackInfoReturnable<Boolean> cir, @Local LocalRef<PatrollingMonster> patrollingMonster)
     {

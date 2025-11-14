@@ -18,6 +18,7 @@ public class PatrolSpawnerWrapper {
         TorchmasterEventHandler.onPatrolMemberSpawn(level, pos.getBottomCenter(), leader, patrollingMonster.get(), container);
         if(container.getResult() == EventResult.DENY)
         {
+            cir.setReturnValue(false);
             cir.cancel();
         }
     }
