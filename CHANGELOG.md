@@ -1,3 +1,6 @@
+## v21.8.2-alpha
+- add owo-lib to dependency definition for fabric to improve install experience
+
 ## v21.8.1-alpha
 - fix crash when pillagers try to spawn near a torch [fabric, neoforge] 
 
