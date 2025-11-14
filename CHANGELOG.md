@@ -1,3 +1,6 @@
+## v21.9.3-alpha
+- Include owo-lib in fabric dependency definition to improve install experience
+
 ## v21.9.2-alpha
 - Fix Crash on pillager spawn #267
 
