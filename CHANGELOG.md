@@ -1,3 +1,6 @@
+## v21.11.0
+- Upgrade to MC 1.21.11 (Fabric + Neoforge)
+
 ## v21.9.3-alpha
 - Include owo-lib in fabric dependency definition to improve install experience
 

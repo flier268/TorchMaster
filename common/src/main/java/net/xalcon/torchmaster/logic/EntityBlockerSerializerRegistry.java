@@ -1,7 +1,7 @@
 package net.xalcon.torchmaster.logic;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.xalcon.torchmaster.Torchmaster;
 
@@ -11,9 +11,9 @@ import java.util.Map;
 
 public class EntityBlockerSerializerRegistry
 {
-    private static final Map<ResourceLocation, EntityBlockerSerializer<?>> serializers = new HashMap<>();
+    private static final Map<Identifier, EntityBlockerSerializer<?>> serializers = new HashMap<>();
 
-    public static void RegisterSerializer(ResourceLocation type, EntityBlockerSerializer<?> serializer)
+    public static void RegisterSerializer(Identifier type, EntityBlockerSerializer<?> serializer)
     {
         if(serializers.containsKey(type))
         {
@@ -34,7 +34,7 @@ public class EntityBlockerSerializerRegistry
             return null;
         }
 
-        var type = ResourceLocation.tryParse(typeStr.get());
+        var type = Identifier.tryParse(typeStr.get());
         if(type == null)
         {
             Torchmaster.LOG.error("Unable to deserialize EntityBlocker, can't parse type '{}'", typeStr);

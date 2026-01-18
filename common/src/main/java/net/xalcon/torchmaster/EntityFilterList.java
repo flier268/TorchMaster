@@ -1,7 +1,7 @@
 package net.xalcon.torchmaster;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.HashSet;
 import java.util.List;
@@ -10,20 +10,20 @@ import java.util.regex.Pattern;
 
 public class EntityFilterList
 {
-	private final ResourceLocation filterListId;
-	private final Set<ResourceLocation> list = new HashSet<>();
+	private final Identifier filterListId;
+	private final Set<Identifier> list = new HashSet<>();
 
-    public EntityFilterList(ResourceLocation identifier)
+    public EntityFilterList(Identifier identifier)
     {
         this.filterListId = identifier;
     }
 
-    public boolean containsEntity(ResourceLocation entityName)
+    public boolean containsEntity(Identifier entityName)
 	{
 		return this.list.contains(entityName);
 	}
 
-	public void registerEntity(ResourceLocation entityName)
+	public void registerEntity(Identifier entityName)
 	{
 		this.list.add(entityName);
 	}
@@ -47,7 +47,7 @@ public class EntityFilterList
 			}
 
 			char prefix = override.charAt(0);
-			var rl = ResourceLocation.parse(override.substring(1));
+			var rl = Identifier.parse(override.substring(1));
 
 			switch (prefix)
 			{
@@ -76,9 +76,9 @@ public class EntityFilterList
 		}
 	}
 
-	public ResourceLocation[] getEntities()
+	public Identifier[] getEntities()
 	{
-		return this.list.toArray(new ResourceLocation[0]);
+		return this.list.toArray(new Identifier[0]);
 	}
 
 	public void clear()

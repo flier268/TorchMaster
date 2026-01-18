@@ -1,7 +1,6 @@
 package net.xalcon.torchmaster;
 
-import com.mojang.datafixers.kinds.Const;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.xalcon.torchmaster.compat.VanillaCompat;
@@ -21,8 +20,8 @@ import java.util.Optional;
 // however it will be compatible with all supported mod loaders.
 public class Torchmaster
 {
-    public static final EntityFilterList MegaTorchFilterRegistry = new EntityFilterList(ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, "entity_filter/mega_torch"));
-    public static final EntityFilterList DreadLampFilterRegistry = new EntityFilterList(ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, "entity_filter/dread_lamp"));
+    public static final EntityFilterList MegaTorchFilterRegistry = new EntityFilterList(Identifier.fromNamespaceAndPath(Constants.MOD_ID, "entity_filter/mega_torch"));
+    public static final EntityFilterList DreadLampFilterRegistry = new EntityFilterList(Identifier.fromNamespaceAndPath(Constants.MOD_ID, "entity_filter/dread_lamp"));
 
     public static final Logger LOG = LoggerFactory.getLogger(Constants.MOD_NAME);
 
@@ -54,7 +53,7 @@ public class Torchmaster
     {
         if(level instanceof ServerLevel serverLevel)
         {
-            var dimensionIdentifier = level.dimension().location().toDebugFileName();
+            var dimensionIdentifier = level.dimension().registryKey().identifier().toDebugFileName();
             return Optional.of(serverLevel.getDataStorage().computeIfAbsent(FilteredLightManager.typeFor("lights_" + dimensionIdentifier)));
         }
         return Optional.empty();
@@ -72,8 +71,8 @@ public class Torchmaster
         MegaTorchFilterRegistry.applyListOverrides(Torchmaster.getConfig().getMegaTorchEntityBlockListOverrides());
     }
 
-    public static ResourceLocation modLoc(String path)
+    public static Identifier modLoc(String path)
     {
-        return ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, path);
+        return Identifier.fromNamespaceAndPath(Constants.MOD_ID, path);
     }
 }

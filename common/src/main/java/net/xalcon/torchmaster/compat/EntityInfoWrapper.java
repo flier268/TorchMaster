@@ -1,20 +1,20 @@
 package net.xalcon.torchmaster.compat;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 
 class EntityInfoWrapper
 {
-    private final ResourceLocation entityName;
+    private final Identifier entityName;
     private final EntityType<?> entityType;
 
-    EntityInfoWrapper(ResourceLocation entityName, EntityType<?> entityType)
+    EntityInfoWrapper(Identifier entityName, EntityType<?> entityType)
     {
         this.entityName = entityName;
         this.entityType = entityType;
     }
 
-    ResourceLocation getEntityName()
+    Identifier getEntityName()
     {
         return entityName;
     }

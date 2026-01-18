@@ -7,7 +7,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.village.VillageSiege;
@@ -63,11 +63,11 @@ public class CommandTorchmaster
                             Torchmaster.LOG.info("  {}", loc));
 
                     Torchmaster.LOG.info("Dread Lamp Registry Content:");
-                    for(ResourceLocation loc: Torchmaster.DreadLampFilterRegistry.getEntities())
+                    for(Identifier loc: Torchmaster.DreadLampFilterRegistry.getEntities())
                         Torchmaster.LOG.info("  {}", loc);
 
                     Torchmaster.LOG.info("Mega Torch Registry Content:");
-                    for(ResourceLocation loc: Torchmaster.MegaTorchFilterRegistry.getEntities())
+                    for(Identifier loc: Torchmaster.MegaTorchFilterRegistry.getEntities())
                         Torchmaster.LOG.info("  {}", loc);
                     Torchmaster.LOG.info("#################################");
                     Torchmaster.LOG.info("# Torchmaster Entity Dump End   #");
@@ -136,8 +136,6 @@ public class CommandTorchmaster
             command.then(Commands.literal(subCommand.getTranslationKey()).executes(subCommand::execute));
         }
 
-        dispatcher.register(
-            (LiteralArgumentBuilder) ((LiteralArgumentBuilder) command.requires((cmdSrc) -> cmdSrc.hasPermission(2)))
-                .executes((ctx) -> 0));
+        dispatcher.register(command.requires(Commands.hasPermission(Commands.LEVEL_ADMINS)));
     }
 }

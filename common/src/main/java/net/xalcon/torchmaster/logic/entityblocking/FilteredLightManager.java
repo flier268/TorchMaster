@@ -130,10 +130,6 @@ public class FilteredLightManager extends SavedData implements IBlockingLightMan
 
     public static SavedDataType<FilteredLightManager> typeFor(String id)
     {
-        return new SavedDataType<FilteredLightManager>(
-                Constants.MOD_ID + "_" + id,
-                ctx -> new FilteredLightManager(),
-                ctx -> CODEC, null
-        );
+        return new SavedDataType<>(Constants.MOD_ID + "_" + id, FilteredLightManager::new, CODEC, null);
     }
 }
