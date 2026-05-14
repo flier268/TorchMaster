@@ -21,7 +21,7 @@ public class TorchmasterFabricClient implements ClientModInitializer {
         {
             ClientLevel level = Minecraft.getInstance().level;
             if (level == null) return;
-            VolumeRendererOverlay.onRenderLevel(ctx.camera());
+            VolumeRendererOverlay.onRenderLevel(level.dimension(), ctx.camera());
         });
     }
 }

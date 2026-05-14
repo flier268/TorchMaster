@@ -1,5 +1,6 @@
 package net.xalcon.torchmaster;
 
+import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -12,7 +13,8 @@ public class TorchmasterClientEventHandler {
     public static void onRenderLevelStageEvent(RenderLevelStageEvent event)
     {
         if(event.getStage() != RenderLevelStageEvent.Stage.AFTER_WEATHER) return;
-
-        VolumeRendererOverlay.onRenderLevel(event.getCamera());
+        var mc = Minecraft.getInstance();
+        if(mc.player == null) return;
+        VolumeRendererOverlay.onRenderLevel(mc.player.level().dimension(), event.getCamera());
     }
 }

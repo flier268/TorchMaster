@@ -52,13 +52,13 @@ public class EntityBlockingLightBlock extends Block
 
             if(show)
             {
-                VolumeRendererOverlay.showVolumeAt(pPos, 64, color);
-                VolumeRendererOverlay.showLocationAt(pPos, color);
+                VolumeRendererOverlay.showVolumeAt(pLevel.dimension(), pPos, 64, color);
+                VolumeRendererOverlay.showLocationAt(pLevel.dimension(), pPos, color);
             }
             else
             {
-                VolumeRendererOverlay.removeVolumeAt(pPos);
-                VolumeRendererOverlay.removeLocationAt(pPos);
+                VolumeRendererOverlay.removeVolumeAt(pLevel.dimension(), pPos);
+                VolumeRendererOverlay.removeLocationAt(pLevel.dimension(), pPos);
             }
             return InteractionResult.SUCCESS;
         }

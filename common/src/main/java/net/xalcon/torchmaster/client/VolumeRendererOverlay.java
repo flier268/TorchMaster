@@ -9,8 +9,10 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.Vec3i;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Tuple;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.Vec3;
 
@@ -19,6 +21,15 @@ import java.util.Map;
 
 public class VolumeRendererOverlay {
     private static final ResourceLocation FORCEFIELD_LOCATION = ResourceLocation.fromNamespaceAndPath("minecraft", "textures/misc/forcefield.png");
+
+    private record LightKey(ResourceLocation dimension, Vec3i pos) {
+        public LightKey(ResourceKey<Level> dimension, Vec3i pos) {
+            this(dimension.location(), pos);
+        }
+    }
+
+    private static final Map<LightKey, Tuple<Integer, Integer>> volumeLights = new HashMap<>();
+    private static final Map<LightKey, Integer> locationLights = new HashMap<>();
 
     private static BoundingBox createVolume(Vec3i pos, int halfRange)
     {
@@ -214,27 +225,24 @@ public class VolumeRendererOverlay {
         RenderSystem.depthMask(true);
     }
 
-    private static final Map<Vec3i, Tuple<Integer, Integer>> volumeLights = new HashMap<>();
-    private static final Map<Vec3i, Integer> locationLights = new HashMap<>();
-
-    public static void showVolumeAt(Vec3i pos, int range, int color)
+    public static void showVolumeAt(ResourceKey<Level> dimension, Vec3i pos, int range, int color)
     {
-        volumeLights.put(pos, new Tuple<>(range, color));
+        volumeLights.put(new LightKey(dimension, pos), new Tuple<>(range, color));
     }
 
-    public static void removeVolumeAt(Vec3i pos)
+    public static void removeVolumeAt(ResourceKey<Level> dimension, Vec3i pos)
     {
-        volumeLights.remove(pos);
+        volumeLights.remove(new LightKey(dimension, pos));
     }
 
-    public static void showLocationAt(Vec3i pos, int color)
+    public static void showLocationAt(ResourceKey<Level> dimension, Vec3i pos, int color)
     {
-        locationLights.put(pos, color);
+        locationLights.put(new LightKey(dimension, pos), color);
     }
 
-    public static void removeLocationAt(Vec3i pos)
+    public static void removeLocationAt(ResourceKey<Level> dimension, Vec3i pos)
     {
-        locationLights.remove(pos);
+        locationLights.remove(new LightKey(dimension, pos));
     }
 
     public static void clearAll()
@@ -243,17 +251,21 @@ public class VolumeRendererOverlay {
         locationLights.clear();
     }
 
-    public static void onRenderLevel(Camera camera) {
+    public static void onRenderLevel(ResourceKey<Level> dimension, Camera camera) {
         for (var light : volumeLights.entrySet())
         {
-            renderLightVolume(light.getKey(), light.getValue().getA(), camera, light.getValue().getB());
-            renderWireframeCube(light.getKey(), light.getValue().getA(), light.getValue().getB(), camera);
+            var key = light.getKey();
+            if(!dimension.location().equals(key.dimension)) continue; // Dont render stuff from different dimensions
+            renderLightVolume(key.pos, light.getValue().getA(), camera, light.getValue().getB());
+            renderWireframeCube(key.pos, light.getValue().getA(), light.getValue().getB(), camera);
         }
 
         for (var light : locationLights.entrySet())
         {
-            renderTorchLocation(light.getKey(), light.getValue(), camera);
-            renderWireframeCube(light.getKey(), 0, light.getValue(), camera);
+            var key = light.getKey();
+            if(!dimension.location().equals(key.dimension)) continue; // Dont render stuff from different dimensions
+            renderTorchLocation(key.pos, light.getValue(), camera);
+            renderWireframeCube(key.pos, 0, light.getValue(), camera);
         }
     }
 
