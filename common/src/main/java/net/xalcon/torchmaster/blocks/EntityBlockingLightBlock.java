@@ -2,14 +2,23 @@ package net.xalcon.torchmaster.blocks;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.xalcon.torchmaster.ModRegistry;
 import net.xalcon.torchmaster.Torchmaster;
+import net.xalcon.torchmaster.client.VolumeRendererOverlay;
 
 public class EntityBlockingLightBlock extends Block
 {
@@ -24,6 +33,37 @@ public class EntityBlockingLightBlock extends Block
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter blockGetter, BlockPos pos, CollisionContext ctx) {
         return lightType.Shape;
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, BlockHitResult pHitResult) {
+        if(pLevel.isClientSide)
+        {
+            var show = !pPlayer.isShiftKeyDown();
+            var color = 0xA0FF20;
+
+            var itemStack = pPlayer.getItemInHand(InteractionHand.MAIN_HAND);
+            if(itemStack.getItem() instanceof DyeItem item)
+            {
+                color = item.getDyeColor().getTextColor();
+            }
+
+            pPlayer.displayClientMessage(Component.translatable(show ? "torchmaster.torch_volume.on_show" : "torchmaster.torch_volume.on_hide"), true);
+
+            if(show)
+            {
+                VolumeRendererOverlay.showVolumeAt(pPos, 64, color);
+                VolumeRendererOverlay.showLocationAt(pPos, color);
+            }
+            else
+            {
+                VolumeRendererOverlay.removeVolumeAt(pPos);
+                VolumeRendererOverlay.removeLocationAt(pPos);
+            }
+            return InteractionResult.SUCCESS;
+        }
+
+        return super.useWithoutItem(pState, pLevel, pPos, pPlayer, pHitResult);
     }
 
     @Override
