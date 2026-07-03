@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.xalcon.torchmaster.mixin",
+  "refmap": "${mod_id}.refmap.json",
+  "compatibilityLevel": "${java_compatibility_level}",
+  "mixins": [
+    "NaturalSpawnerMixin",
+    "VillageSiegeMixin",
+    "BaseSpawnerMixin",
+    "SpawnUtilMixin",
+    "PhantomSpawnerMixin"
+  ],
+  "client": [],
+  "server": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
+  

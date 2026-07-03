@@ -1,0 +1,160 @@
+package net.xalcon.torchmaster;
+
+//? if >=1.19.3 {
+import net.minecraft.core.registries.Registries;
+//?} else {
+/*import net.minecraft.core.Registry;
+*///?}
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+//? if >=1.20 {
+import net.minecraft.world.level.material.MapColor;
+//?} else {
+/*import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
+*///?}
+import net.xalcon.torchmaster.blocks.*;
+import net.xalcon.torchmaster.items.FrozenPearlItem;
+import net.xalcon.torchmaster.items.TMItemBlock;
+import net.xalcon.torchmaster.platform.RegistrationProvider;
+import net.xalcon.torchmaster.platform.RegistryObject;
+import net.xalcon.torchmaster.platform.Services;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
+@SuppressWarnings("DanglingJavadoc")
+public class ModRegistry
+{
+    //? if >=1.19.3 {
+    private static final RegistrationProvider<Block> BLOCKS = RegistrationProvider.create(Registries.BLOCK, Constants.MOD_ID);
+    private static final RegistrationProvider<Item> ITEMS = RegistrationProvider.create(Registries.ITEM, Constants.MOD_ID);
+    private static final RegistrationProvider<BlockEntityType<?>> BLOCK_ENTITIES = RegistrationProvider.create(Registries.BLOCK_ENTITY_TYPE, Constants.MOD_ID);
+    //? if >=1.20
+    private static final RegistrationProvider<CreativeModeTab> CREATIVE_MODE_TABS = RegistrationProvider.create(Registries.CREATIVE_MODE_TAB, Constants.MOD_ID);
+//?} else {
+    /*private static final RegistrationProvider<Block> BLOCKS = RegistrationProvider.create(Registry.BLOCK, Constants.MOD_ID);
+    private static final RegistrationProvider<Item> ITEMS = RegistrationProvider.create(Registry.ITEM, Constants.MOD_ID);
+    private static final RegistrationProvider<BlockEntityType<?>> BLOCK_ENTITIES = RegistrationProvider.create(Registry.BLOCK_ENTITY_TYPE, Constants.MOD_ID);
+    *///?}
+
+    public static RegistryObject<EntityBlockingLightBlock> blockMegaTorch;
+    public static RegistryObject<EntityBlockingLightBlock> blockDreadLamp;
+
+    public static RegistryObject<FeralFlareLanternBlock> blockFeralFlareLantern;
+    public static RegistryObject<BlockEntityType<FeralFlareLanternBlockEntity>> tileFeralFlareLantern;
+    public static RegistryObject<InvisibleLightBlock> blockInvisibleLight;
+
+    public static RegistryObject<Item> itemMegaTorch;
+    public static RegistryObject<Item> itemDreadLamp;
+    public static RegistryObject<Item> itemFeralFlareLantern;
+    public static RegistryObject<Item> itemFrozenPearl;
+
+    private ModRegistry() { }
+    private static CreativeModeTab tab;
+
+    public static void initialize()
+    {
+        List<RegistryObject<Item>> creativeTabItems = new ArrayList<>();
+
+        /**
+         Mega Torch
+         */
+        blockMegaTorch = BLOCKS.register("megatorch", () -> new EntityBlockingLightBlock(
+                //? if >=1.20 {
+                BlockBehaviour.Properties.of()
+                        .mapColor(MapColor.COLOR_YELLOW)
+//?} else {
+                /*BlockBehaviour.Properties.of(Material.WOOD, MaterialColor.COLOR_YELLOW)
+                *///?}
+                        .sound(SoundType.WOOD)
+                        .strength(1.0f, 1.0f)
+                        .lightLevel(state -> 15),
+                LightType.MegaTorch));
+        itemMegaTorch = fromBlock(blockMegaTorch);
+        creativeTabItems.add(itemMegaTorch);
+
+        /**
+         Dread Lamp
+         */
+        blockDreadLamp = BLOCKS.register("dreadlamp", () -> new EntityBlockingLightBlock(
+                //? if >=1.20 {
+                BlockBehaviour.Properties.of()
+                        .mapColor(MapColor.COLOR_BLACK)
+//?} else {
+                /*BlockBehaviour.Properties.of(Material.WOOD, MaterialColor.COLOR_BLACK)
+                *///?}
+                        .sound(SoundType.WOOD)
+                        .strength(1.0f, 1.0f)
+                        .lightLevel(state -> 15),
+                LightType.DreadLamp));
+        itemDreadLamp = fromBlock(blockDreadLamp);
+        creativeTabItems.add(itemDreadLamp);
+
+        /**
+         Feral Flare Lantern
+         */
+        blockFeralFlareLantern = BLOCKS.register("feral_flare_lantern", () -> new FeralFlareLanternBlock(
+                //? if >=1.20 {
+                BlockBehaviour.Properties.of()
+                        .mapColor(MapColor.COLOR_YELLOW)
+//?} else {
+                /*BlockBehaviour.Properties.of(Material.DECORATION, MaterialColor.COLOR_YELLOW)
+                *///?}
+                        .sound(SoundType.LANTERN)
+                        .strength(1.0f, 1.0f)
+                        .lightLevel(state -> 15)
+                )
+        );
+        tileFeralFlareLantern = BLOCK_ENTITIES.register(blockFeralFlareLantern.getId().getPath(),
+                () -> Services.PLATFORM.createBlockEntityType(FeralFlareLanternBlockEntity::new, blockFeralFlareLantern.get()));
+        itemFeralFlareLantern = fromBlock(blockFeralFlareLantern);
+        creativeTabItems.add(itemFeralFlareLantern);
+
+        itemFrozenPearl = ITEMS.register("frozen_pearl", () -> new FrozenPearlItem(new Item.Properties()));
+        creativeTabItems.add(itemFrozenPearl);
+
+        blockInvisibleLight = BLOCKS.register("invisible_light", () -> new InvisibleLightBlock(
+                //? if >=1.20 {
+                BlockBehaviour.Properties.of()
+//?} else {
+                /*BlockBehaviour.Properties.of(Material.AIR)
+                *///?}
+                        .lightLevel(state -> 15)
+                        //? if >=1.21.9 {
+                        /*.noCollision()
+                        *///?} else {
+                        .noCollission()
+                        //?}
+                        //? if >=1.20
+                        .replaceable()
+                        .air()
+                )
+        );
+
+        /**
+         Creative Mode Tab
+         */
+        //? if >=1.20 {
+        CREATIVE_MODE_TABS.register(Constants.MOD_ID, () -> Services.PLATFORM.createCreativeModeTab(Constants.MOD_ID, creativeTabItems));
+//?} else {
+        /*tab = Services.PLATFORM.createCreativeModeTab(Constants.MOD_ID, creativeTabItems);
+        *///?}
+    }
+
+    private static <B extends Block> RegistryObject<Item> fromBlock(RegistryObject<B> block) {
+        return fromBlock(block, i -> {});
+    }
+
+    private static <B extends Block> RegistryObject<Item> fromBlock(RegistryObject<B> block, Consumer<Item.Properties> propertiesConfig) {
+        Item.Properties properties = new Item.Properties();
+        propertiesConfig.accept(properties);
+        return ITEMS.register(block.getId().getPath(), () -> new TMItemBlock(block.get(), properties));
+    }
+}
