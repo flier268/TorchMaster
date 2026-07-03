@@ -15,6 +15,7 @@ import net.minecraftforge.registries.ObjectHolder;
 import net.xalcon.torchmaster.Torchmaster;
 import net.xalcon.torchmaster.common.blocks.EntityBlockingLightBlock;
 import net.xalcon.torchmaster.common.blocks.FeralFlareLanternBlock;
+import net.xalcon.torchmaster.common.blocks.MegaTorchBlock;
 import net.xalcon.torchmaster.common.items.TMItemBlock;
 import net.xalcon.torchmaster.common.logic.entityblocking.dreadlamp.DreadLampEntityBlockingLight;
 import net.xalcon.torchmaster.common.logic.entityblocking.megatorch.MegatorchEntityBlockingLight;
@@ -28,7 +29,7 @@ import static net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 public final class ModBlocks
 {
     @ObjectHolder("megatorch")
-    public static EntityBlockingLightBlock blockMegaTorch;
+    public static MegaTorchBlock blockMegaTorch;
     @ObjectHolder("megatorch")
     public static TMItemBlock itemMegaTorch;
 
@@ -56,12 +57,12 @@ public final class ModBlocks
             IForgeRegistry<Block> registry = event.getRegistry();
 
             /* Mega Torch */
-            blockMegaTorch = new EntityBlockingLightBlock(Block.Properties
+            blockMegaTorch = new MegaTorchBlock(Block.Properties
                     .create(Material.WOOD)
                     .hardnessAndResistance(1.0f, 1.0f)
                     .setLightLevel(blockState -> 15),
                 pos -> "MT_" +pos.getX() + "_" + pos.getY() + "_" + pos.getZ(),
-                MegatorchEntityBlockingLight::new, 1.0f, MegatorchEntityBlockingLight.SHAPE);
+                1.0f, MegatorchEntityBlockingLight.SHAPE);
             blockMegaTorch.setRegistryName("megatorch");
             registry.register(blockMegaTorch);
 

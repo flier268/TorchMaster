@@ -1,6 +1,7 @@
 package net.xalcon.torchmaster.common.logic.entityblocking;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Tuple;
 import net.minecraft.util.math.BlockPos;
@@ -11,6 +12,9 @@ import net.xalcon.torchmaster.common.commands.TorchInfo;
 public interface ITEBLightRegistry extends INBTSerializable<CompoundNBT>
 {
     boolean shouldBlockEntity(Entity entity, BlockPos pos);
+    boolean shouldBlockEntity(EntityType<?> entityType, BlockPos pos);
+    boolean shouldBlockNaturalSpawnPosition(BlockPos pos);
+    boolean shouldBlockNaturalSpawnChunk(int chunkX, int chunkZ);
 
     /**
      * Warning: The IEntityBlockingLight instance should not be directly attached to any chunk data!

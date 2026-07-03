@@ -1,6 +1,7 @@
 package net.xalcon.torchmaster.common.logic.entityblocking;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Tuple;
@@ -163,6 +164,42 @@ public class LightsRegistryCapability implements ICapabilityProvider, ICapabilit
             {
                 IEntityBlockingLight light = lightEntry.getValue();
                 if(light.shouldBlockEntity(entity, pos))
+                    return true;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean shouldBlockEntity(EntityType<?> entityType, BlockPos pos)
+        {
+            for(HashMap.Entry<String, IEntityBlockingLight> lightEntry : lights.entrySet())
+            {
+                IEntityBlockingLight light = lightEntry.getValue();
+                if(light.shouldBlockEntity(entityType, pos))
+                    return true;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean shouldBlockNaturalSpawnPosition(BlockPos pos)
+        {
+            for(HashMap.Entry<String, IEntityBlockingLight> lightEntry : lights.entrySet())
+            {
+                IEntityBlockingLight light = lightEntry.getValue();
+                if(light.shouldBlockNaturalSpawnPosition(pos))
+                    return true;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean shouldBlockNaturalSpawnChunk(int chunkX, int chunkZ)
+        {
+            for(HashMap.Entry<String, IEntityBlockingLight> lightEntry : lights.entrySet())
+            {
+                IEntityBlockingLight light = lightEntry.getValue();
+                if(light.shouldBlockNaturalSpawnChunk(chunkX, chunkZ))
                     return true;
             }
             return false;

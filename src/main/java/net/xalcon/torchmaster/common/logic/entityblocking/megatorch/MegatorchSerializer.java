@@ -26,6 +26,7 @@ public class MegatorchSerializer implements ILightSerializer
 
         CompoundNBT nbt = new CompoundNBT();
         nbt.put("pos", NBTUtil.writeBlockPos(light.getPos()));
+        nbt.putBoolean("diamondBase", light.hasDiamondBase());
 
         return nbt;
     }
@@ -33,7 +34,7 @@ public class MegatorchSerializer implements ILightSerializer
     @Override
     public IEntityBlockingLight deserializeLight(String lightKey, CompoundNBT nbt)
     {
-        return new MegatorchEntityBlockingLight(NBTUtil.readBlockPos(nbt.getCompound("pos")));
+        return new MegatorchEntityBlockingLight(NBTUtil.readBlockPos(nbt.getCompound("pos")), nbt.getBoolean("diamondBase"));
     }
 
     @Override

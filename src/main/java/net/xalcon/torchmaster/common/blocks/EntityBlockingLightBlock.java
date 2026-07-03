@@ -12,7 +12,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.xalcon.torchmaster.common.ModCaps;
 import net.xalcon.torchmaster.common.logic.entityblocking.IEntityBlockingLight;
-import net.xalcon.torchmaster.common.logic.entityblocking.megatorch.MegatorchEntityBlockingLight;
 
 import java.util.Random;
 import java.util.function.Function;
@@ -21,8 +20,8 @@ public class EntityBlockingLightBlock extends Block
 {
     protected static final VoxelShape SHAPE = Block.makeCuboidShape(6.0D, 0.0D, 6.0D, 10.0D, 16.0D, 10.0D);
 
-    private Function<BlockPos, String> keyFactory;
-    private Function<BlockPos, IEntityBlockingLight> lightFactory;
+    protected Function<BlockPos, String> keyFactory;
+    protected Function<BlockPos, IEntityBlockingLight> lightFactory;
     private float flameOffsetY;
     private final VoxelShape shape;
 
@@ -59,8 +58,24 @@ public class EntityBlockingLightBlock extends Block
         .ifPresent(reg ->
         {
             //String lightKey = pos.getX() + "_" + pos.getY() + "_" + pos.getZ();
-            reg.registerLight(this.keyFactory.apply(pos), this.lightFactory.apply(pos));
+            reg.registerLight(this.getLightKey(pos), this.createLight(state, pos));
         });
+    }
+
+    protected String getLightKey(BlockPos pos)
+    {
+        return this.keyFactory.apply(pos);
+    }
+
+    protected IEntityBlockingLight createLight(BlockState state, BlockPos pos)
+    {
+        return this.lightFactory.apply(pos);
+    }
+
+    protected void updateLight(World world, BlockState state, BlockPos pos)
+    {
+        world.getCapability(ModCaps.TEB_REGISTRY)
+            .ifPresent(reg -> reg.registerLight(this.getLightKey(pos), this.createLight(state, pos)));
     }
 
     public boolean propagatesSkylightDown(BlockState state, IBlockReader reader, BlockPos pos) {
@@ -69,14 +84,17 @@ public class EntityBlockingLightBlock extends Block
 
 
     @Override
-    public void onReplaced(BlockState state, World world, BlockPos pos, BlockState oldState, boolean moving)
+    public void onReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moving)
     {
-        world.getCapability(ModCaps.TEB_REGISTRY)
-        .ifPresent(reg ->
+        if(state.getBlock() != newState.getBlock())
         {
-            //String lightKey = pos.getX() + "_" + pos.getY() + "_" + pos.getZ();
-            reg.unregisterLight(this.keyFactory.apply(pos));
-        });
-        super.onReplaced(state, world, pos, oldState, moving);
+            world.getCapability(ModCaps.TEB_REGISTRY)
+            .ifPresent(reg ->
+            {
+                //String lightKey = pos.getX() + "_" + pos.getY() + "_" + pos.getZ();
+                reg.unregisterLight(this.getLightKey(pos));
+            });
+        }
+        super.onReplaced(state, world, pos, newState, moving);
     }
 }
