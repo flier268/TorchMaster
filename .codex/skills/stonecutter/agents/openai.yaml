@@ -1,0 +1,4 @@
+interface:
+  display_name: "Stonecutter"
+  short_description: "Stonecutter version switching and comments"
+  default_prompt: "Use $stonecutter to update cross-version Minecraft mod code with Stonecutter comments."

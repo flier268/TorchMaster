@@ -1,0 +1,7 @@
+interface:
+  display_name: "Minecraft Adapter Boundaries"
+  short_description: "維護 Minecraft API 與核心邏輯邊界規範"
+  default_prompt: "Use $minecraft-adapter-boundaries to add or refactor AutoHarvestMod behavior without leaking Minecraft or loader APIs into core logic."
+
+policy:
+  allow_implicit_invocation: true
