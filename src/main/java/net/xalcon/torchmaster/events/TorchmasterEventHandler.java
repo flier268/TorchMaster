@@ -16,6 +16,7 @@ import net.xalcon.torchmaster.Torchmaster;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
 import net.xalcon.torchmaster.core.SpawnBlockingRules;
 import net.xalcon.torchmaster.minecraft.MinecraftConfigView;
+import net.xalcon.torchmaster.minecraft.MinecraftAdapterViews;
 import net.xalcon.torchmaster.minecraft.MinecraftEventResultAdapter;
 import net.xalcon.torchmaster.minecraft.MinecraftSpawnReasonAdapter;
 import net.xalcon.torchmaster.platform.Services;
@@ -48,13 +49,10 @@ public class TorchmasterEventHandler
 
         Torchmaster.getRegistryForLevel(level).ifPresent(reg ->
         {
-            if(reg.shouldBlockEntityType(entityType,
-                    //? if >=1.21.2 {
-                    /*entity.level()
-                    *///?} else {
-                    entity.getCommandSenderWorld()
-                    //?}
-                    , location, spawnType))
+            if(reg.shouldBlockEntityType(
+                    MinecraftAdapterViews.entityTypeKey(EntityType.getKey(entityType)),
+                    MinecraftAdapterViews.vec3(location),
+                    MinecraftSpawnReasonAdapter.toPort(spawnType)))
             {
                 container.setResult(EventResult.DENY);
                 Torchmaster.LOG.debug("Blocking spawn of {}", EntityType.getKey(entityType));
@@ -84,13 +82,16 @@ public class TorchmasterEventHandler
 
         Torchmaster.getRegistryForLevel(level).ifPresent(reg ->
         {
-            if(reg.shouldBlockEntityType(EntityType.PHANTOM, level, player.position(),
+            if(reg.shouldBlockEntityType(
+                    MinecraftAdapterViews.entityTypeKey(EntityType.getKey(EntityType.PHANTOM)),
+                    MinecraftAdapterViews.vec3(player.position()),
+                    MinecraftSpawnReasonAdapter.toPort(
                     //? if >=1.21.2 {
                     /*EntitySpawnReason.NATURAL
                     *///?} else {
                     MobSpawnType.NATURAL
                     //?}
-            ))
+                    )))
             {
                 container.setResult(EventResult.DENY);
                 Torchmaster.LOG.debug("Blocking spawn of {}", EntityType.getKey(EntityType.PHANTOM));
@@ -113,7 +114,7 @@ public class TorchmasterEventHandler
 
         Torchmaster.getRegistryForLevel(level).ifPresent(reg ->
         {
-            if(reg.shouldBlockVillageZombieRaid(attemptedSpawnPos))
+            if(reg.shouldBlockVillageZombieRaid(MinecraftAdapterViews.vec3(attemptedSpawnPos)))
             {
                 container.setResult(EventResult.DENY);
                 Torchmaster.LOG.debug("Blocking village siege @ {}", attemptedSpawnPos);
@@ -129,7 +130,7 @@ public class TorchmasterEventHandler
     {
         for(ServerLevel level : server.getAllLevels())
         {
-            Torchmaster.getRegistryForLevel(level).ifPresent(reg -> reg.onGlobalTick(level));
+            Torchmaster.getRegistryForLevel(level).ifPresent(reg -> reg.onGlobalTick(MinecraftAdapterViews.world(level)));
         }
     }
 }

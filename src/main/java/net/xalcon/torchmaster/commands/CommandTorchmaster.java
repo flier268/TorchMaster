@@ -23,7 +23,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.xalcon.torchmaster.Constants;
 import net.xalcon.torchmaster.Torchmaster;
-import net.xalcon.torchmaster.logic.entityblocking.TorchInfo;
+import net.xalcon.torchmaster.adapter.LightInfo;
 
 public class CommandTorchmaster
 {
@@ -50,8 +50,8 @@ public class CommandTorchmaster
                                     level.dimension().location()
                                     //?}
                             );
-                            for(TorchInfo torch: container.getEntries())
-                                Torchmaster.LOG.info("  {} @ {}", torch.getName(), torch.getPos());
+                            for(LightInfo torch: container.getEntries())
+                                Torchmaster.LOG.info("  {} @ {}/{}/{}", torch.name(), torch.position().x(), torch.position().y(), torch.position().z());
                         });
                     }
                     Torchmaster.LOG.info("#################################");

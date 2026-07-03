@@ -8,28 +8,28 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-//? if >=1.21.2 {
-/*import net.minecraft.world.entity.EntitySpawnReason;
-*///?} else {
-import net.minecraft.world.entity.MobSpawnType;
-//?}
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 //? if >=1.21.5 {
 /*import net.minecraft.world.level.saveddata.SavedDataType;
 *///?}
-import net.minecraft.world.phys.Vec3;
 import net.xalcon.torchmaster.Torchmaster;
+import net.xalcon.torchmaster.adapter.EntityTypeKey;
+import net.xalcon.torchmaster.adapter.LightInfo;
+import net.xalcon.torchmaster.adapter.SpawnReason;
+import net.xalcon.torchmaster.adapter.Vec3View;
+import net.xalcon.torchmaster.adapter.WorldView;
+import net.xalcon.torchmaster.core.LightEntry;
+import net.xalcon.torchmaster.core.LightRegistry;
+import net.xalcon.torchmaster.minecraft.MinecraftAdapterViews;
+import net.xalcon.torchmaster.minecraft.MinecraftConfigView;
+import net.xalcon.torchmaster.platform.Services;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 public class FilteredLightManager extends SavedData implements IBlockingLightManager
 {
-    private final Map<String, IEntityBlockingLight> lights = new HashMap<>();
+    private final LightRegistry lights = new LightRegistry();
 
     public FilteredLightManager()
     {
@@ -39,72 +39,56 @@ public class FilteredLightManager extends SavedData implements IBlockingLightMan
     }
 
     @Override
-    //? if >=1.21.2 {
-    /*public boolean shouldBlockEntityType(EntityType<?> entityType, Level level, Vec3 pos, EntitySpawnReason spawnType)
-    *///?} else {
-    public boolean shouldBlockEntityType(EntityType<?> entityType, Level level, Vec3 pos, MobSpawnType spawnType)
-    //?}
+    public boolean shouldBlockEntityType(EntityTypeKey entityType, Vec3View pos, SpawnReason spawnType)
     {
-        for(IEntityBlockingLight light: lights.values())
-        {
-            if(light.shouldBlockEntityType(entityType, level, pos, spawnType))
-            {
-                return true;
-            }
-        }
-        return false;
+        return lights.blocksEntity(
+                MinecraftAdapterViews.entityFilter(Torchmaster.MegaTorchFilterRegistry),
+                MinecraftAdapterViews.entityFilter(Torchmaster.DreadLampFilterRegistry),
+                new MinecraftConfigView(Services.PLATFORM.getConfig()),
+                entityType,
+                pos);
     }
 
     @Override
-    public boolean shouldBlockVillageZombieRaid(Vec3 pos)
+    public boolean shouldBlockVillageZombieRaid(Vec3View pos)
     {
-        for(IEntityBlockingLight light: lights.values())
-        {
-            if(light.shouldBlockVillageZombieRaid(pos))
-            {
-                return true;
-            }
-        }
-        return false;
+        return lights.blocksVillageSiege(new MinecraftConfigView(Services.PLATFORM.getConfig()), pos);
     }
 
     @Override
     public void registerLight(String lightKey, IEntityBlockingLight light)
     {
-        lights.put(lightKey, light);
+        lights.register(lightKey, light);
         setDirty();
     }
 
     @Override
     public void unregisterLight(String lightKey)
     {
-        lights.remove(lightKey);
+        lights.unregister(lightKey);
         setDirty();
     }
 
     @Override
     public Optional<IEntityBlockingLight> getLight(String lightKey)
     {
-        IEntityBlockingLight light = lights.get(lightKey);
-        if(light == null) return Optional.empty();
-        return Optional.of(light);
+        return lights.get(lightKey)
+                .filter(IEntityBlockingLight.class::isInstance)
+                .map(IEntityBlockingLight.class::cast);
     }
 
     @Override
-    public void onGlobalTick(Level level)
+    public void onGlobalTick(WorldView world)
     {
-        // TODO: Rate limit this
-        for(IEntityBlockingLight light: lights.values())
-        {
-            light.cleanupCheck(level);
-        }
+        // TODO: Rate limit cleanup once cleanup has a Minecraft-free world port.
     }
 
     @Override
-    public TorchInfo[] getEntries()
+    public LightInfo[] getEntries()
     {
-        // TODO: implement for command?
-        return new TorchInfo[0];
+        return lights.entries().stream()
+                .map(light -> new LightInfo(light.displayName(), light.position()))
+                .toArray(LightInfo[]::new);
     }
 
     //? if >=1.21.5 {
@@ -164,10 +148,15 @@ public class FilteredLightManager extends SavedData implements IBlockingLightMan
     private void saveInto(CompoundTag compoundTag)
     {
         ListTag list = new ListTag();
-        for (Map.Entry<String, IEntityBlockingLight> pair : lights.entrySet())
+        for (Map.Entry<String, LightEntry> pair : lights.keyedEntries())
         {
             String lightKey = pair.getKey();
-            IEntityBlockingLight light = pair.getValue();
+            LightEntry entry = pair.getValue();
+            if (!(entry instanceof IEntityBlockingLight)) {
+                Torchmaster.LOG.error("Unable to save light {}, data is lost", entry.position());
+                continue;
+            }
+            IEntityBlockingLight light = (IEntityBlockingLight)entry;
             String serializerType = light.getLightSerializerType();
             Optional<ILightSerializer> serializer = LightSerializerRegistry.getLightSerializer(serializerType);
             if (serializer.isPresent()) {
@@ -176,7 +165,7 @@ public class FilteredLightManager extends SavedData implements IBlockingLightMan
                 tag.putString("_key", lightKey);
                 list.add(tag);
             } else {
-                Torchmaster.LOG.error("Unable to save light {}, data is lost", light.getPos());
+                Torchmaster.LOG.error("Unable to save light {}, data is lost", light.position());
             }
         }
         compoundTag.put("lights", list);
@@ -207,7 +196,7 @@ public class FilteredLightManager extends SavedData implements IBlockingLightMan
             if (serializer.isPresent()) {
                 Optional<IEntityBlockingLight> light = serializer.get().deserializeLight(lightNbt);
                 if (light.isPresent()) {
-                    mgr.lights.put(lightKey, light.get());
+                    mgr.lights.register(lightKey, light.get());
                 } else {
                     Torchmaster.LOG.error("Unable to load light data from nbt for {} - {}, deserialization failed, data is lost", lightKey, serializerType);
                 }

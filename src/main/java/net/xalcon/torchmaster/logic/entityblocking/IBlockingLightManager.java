@@ -1,26 +1,17 @@
 package net.xalcon.torchmaster.logic.entityblocking;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-//? if >=1.21.2 {
-/*import net.minecraft.world.entity.EntitySpawnReason;
-*///?} else {
-import net.minecraft.world.entity.MobSpawnType;
-//?}
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
+import net.xalcon.torchmaster.adapter.EntityTypeKey;
+import net.xalcon.torchmaster.adapter.LightInfo;
+import net.xalcon.torchmaster.adapter.SpawnReason;
+import net.xalcon.torchmaster.adapter.Vec3View;
+import net.xalcon.torchmaster.adapter.WorldView;
 
 import java.util.Optional;
 
 public interface IBlockingLightManager
 {
-    //? if >=1.21.2 {
-    /*boolean shouldBlockEntityType(EntityType<?> entityType, Level level, Vec3 pos, EntitySpawnReason spawnType);
-    *///?} else {
-    boolean shouldBlockEntityType(EntityType<?> entityType, Level level, Vec3 pos, MobSpawnType spawnType);
-    //?}
-    boolean shouldBlockVillageZombieRaid(Vec3 pos);
+    boolean shouldBlockEntityType(EntityTypeKey entityType, Vec3View pos, SpawnReason spawnType);
+    boolean shouldBlockVillageZombieRaid(Vec3View pos);
 
     /**
      * Warning: The IEntityBlockingLight instance should not be directly attached to any chunk data!
@@ -38,7 +29,7 @@ public interface IBlockingLightManager
     void unregisterLight(String lightKey);
     Optional<IEntityBlockingLight> getLight(String lightKey);
 
-    void onGlobalTick(Level level);
+    void onGlobalTick(WorldView world);
 
-    TorchInfo[] getEntries();
+    LightInfo[] getEntries();
 }
