@@ -14,16 +14,12 @@ import net.minecraft.network.chat.Component;
 //? if <1.19 {
 /*import net.minecraft.network.chat.TranslatableComponent;
 *///?}
-//? if >=1.21.11 {
-/*import net.minecraft.resources.Identifier;
-*///?} else {
-import net.minecraft.resources.ResourceLocation;
-//?}
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.xalcon.torchmaster.Constants;
 import net.xalcon.torchmaster.Torchmaster;
 import net.xalcon.torchmaster.adapter.LightInfo;
+import net.xalcon.torchmaster.adapter.EntityTypeKey;
 
 public class CommandTorchmaster
 {
@@ -86,19 +82,11 @@ public class CommandTorchmaster
                             Torchmaster.LOG.info("  {}", loc));
 
                     Torchmaster.LOG.info("Dread Lamp Registry Content:");
-                    //? if >=1.21.11 {
-                    /*for(Identifier loc: Torchmaster.DreadLampFilterRegistry.getEntities())
-                    *///?} else {
-                    for(ResourceLocation loc: Torchmaster.DreadLampFilterRegistry.getEntities())
-                    //?}
+                    for(EntityTypeKey loc: Torchmaster.DreadLampFilterRegistry.getEntities())
                         Torchmaster.LOG.info("  {}", loc);
 
                     Torchmaster.LOG.info("Mega Torch Registry Content:");
-                    //? if >=1.21.11 {
-                    /*for(Identifier loc: Torchmaster.MegaTorchFilterRegistry.getEntities())
-                    *///?} else {
-                    for(ResourceLocation loc: Torchmaster.MegaTorchFilterRegistry.getEntities())
-                    //?}
+                    for(EntityTypeKey loc: Torchmaster.MegaTorchFilterRegistry.getEntities())
                         Torchmaster.LOG.info("  {}", loc);
                     Torchmaster.LOG.info("#################################");
                     Torchmaster.LOG.info("# Torchmaster Entity Dump End   #");

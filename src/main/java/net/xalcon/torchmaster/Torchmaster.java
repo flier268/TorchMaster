@@ -1,10 +1,5 @@
 package net.xalcon.torchmaster;
 
-//? if >=1.21.11 {
-/*import net.minecraft.resources.Identifier;
-*///?} else {
-import net.minecraft.resources.ResourceLocation;
-//?}
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.xalcon.torchmaster.compat.VanillaCompat;
@@ -24,8 +19,8 @@ import java.util.Optional;
 // however it will be compatible with all supported mod loaders.
 public class Torchmaster
 {
-    public static final EntityFilterList MegaTorchFilterRegistry = new EntityFilterList(id("entity_filter/mega_torch"));
-    public static final EntityFilterList DreadLampFilterRegistry = new EntityFilterList(id("entity_filter/dread_lamp"));
+    public static final EntityFilterList MegaTorchFilterRegistry = new EntityFilterList(Constants.MOD_ID + ":entity_filter/mega_torch");
+    public static final EntityFilterList DreadLampFilterRegistry = new EntityFilterList(Constants.MOD_ID + ":entity_filter/dread_lamp");
 
     public static final Logger LOG = LogManager.getLogger(Constants.MOD_NAME);
 
@@ -76,21 +71,6 @@ public class Torchmaster
             *///?}
         }
         return Optional.empty();
-    }
-
-    //? if >=1.21.11 {
-    /*private static Identifier id(String path)
-    *///?} else {
-    private static ResourceLocation id(String path)
-    //?}
-    {
-        //? if >=1.21.11 {
-        /*return Identifier.fromNamespaceAndPath(Constants.MOD_ID, path);
-    *///?} elif >=1.21 {
-        return ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, path);
-	//?} else {
-        /*return new ResourceLocation(Constants.MOD_ID, path);
-        *///?}
     }
 
     public static void onWorldLoaded()

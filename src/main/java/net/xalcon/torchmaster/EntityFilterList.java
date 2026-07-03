@@ -1,54 +1,31 @@
 package net.xalcon.torchmaster;
 
-//? if >=1.19.3 {
-import net.minecraft.core.registries.BuiltInRegistries;
-//?} else {
-/*import net.minecraft.core.Registry;
-*///?}
-//? if >=1.21.11 {
-/*import net.minecraft.resources.Identifier;
-*///?} else {
-import net.minecraft.resources.ResourceLocation;
-//?}
+import net.xalcon.torchmaster.adapter.EntityTypeKey;
+import net.xalcon.torchmaster.minecraft.MinecraftEntityIds;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 public class EntityFilterList
 {
-	//? if >=1.21.11 {
-	/*private final Identifier filterListId;
-	private final Set<Identifier> list = new HashSet<>();
-	*///?} else {
-	private final ResourceLocation filterListId;
-	private final Set<ResourceLocation> list = new HashSet<>();
-	//?}
+	private final String filterListId;
+	private final Set<EntityTypeKey> list = new HashSet<>();
 
-	//? if >=1.21.11 {
-	/*public EntityFilterList(Identifier identifier)
-	*///?} else {
-    public EntityFilterList(ResourceLocation identifier)
-	//?}
+    public EntityFilterList(String identifier)
     {
         this.filterListId = identifier;
     }
 
-	//? if >=1.21.11 {
-	/*public boolean containsEntity(Identifier entityName)
-	*///?} else {
-    public boolean containsEntity(ResourceLocation entityName)
-	//?}
+    public boolean containsEntity(EntityTypeKey entityName)
 	{
 		return this.list.contains(entityName);
 	}
 
-	//? if >=1.21.11 {
-	/*public void registerEntity(Identifier entityName)
-	*///?} else {
-	public void registerEntity(ResourceLocation entityName)
-	//?}
+	public void registerEntity(EntityTypeKey entityName)
 	{
 		this.list.add(entityName);
 	}
@@ -66,6 +43,11 @@ public class EntityFilterList
 
 	public void applyListOverrides(List<String> overrides)
 	{
+		applyListOverrides(overrides, MinecraftEntityIds::entityExists);
+	}
+
+	public void applyListOverrides(List<String> overrides, Predicate<EntityTypeKey> entityExists)
+	{
 		for(String override: overrides)
 		{
 			// minimum len is prefix + valid resource location, i.e. +a:b
@@ -76,36 +58,32 @@ public class EntityFilterList
 			}
 
 			char prefix = override.charAt(0);
-			//? if >=1.21.11 {
-			/*Identifier rl = Identifier.parse(override.substring(1));
-			*///?} elif >=1.21 {
-			ResourceLocation rl = ResourceLocation.parse(override.substring(1));
-	//?} else {
-			/*ResourceLocation rl = new ResourceLocation(override.substring(1));
-			*///?}
+			EntityTypeKey entityType;
+			try {
+				entityType = MinecraftEntityIds.parseEntityTypeKey(override.substring(1));
+			} catch (RuntimeException ignored) {
+				Torchmaster.LOG.warn("[{}] Invalid entity id '{}'", filterListId, override.substring(1));
+				continue;
+			}
 
 			switch (prefix)
 			{
 				case '+':
-					if(!this.containsEntity(rl))
+					if(!this.containsEntity(entityType))
 					{
-							//? if >=1.19.3 {
-							if(!BuiltInRegistries.ENTITY_TYPE.containsKey(rl))
-//?} else {
-							/*if(!Registry.ENTITY_TYPE.containsKey(rl))
-							*///?}
+						if(!entityExists.test(entityType))
 						{
-							Torchmaster.LOG.warn("[{}] The entity '{}' does not exist, skipping", filterListId, rl);
+							Torchmaster.LOG.warn("[{}] The entity '{}' does not exist, skipping", filterListId, entityType);
 							continue;
 						}
-						this.registerEntity(rl);
-						Torchmaster.LOG.info("[{}] Added '{}' to the block list", filterListId, rl);
+						this.registerEntity(entityType);
+						Torchmaster.LOG.info("[{}] Added '{}' to the block list", filterListId, entityType);
 					}
 					break;
 				case '-':
-					if(this.list.removeIf(rrl -> rrl.equals(rl)))
+					if(this.list.removeIf(registeredEntity -> registeredEntity.equals(entityType)))
 					{
-						Torchmaster.LOG.info("[{}] Removed '{}' from the block list", filterListId, rl);
+						Torchmaster.LOG.info("[{}] Removed '{}' from the block list", filterListId, entityType);
 					}
 					break;
 				default:
@@ -115,17 +93,10 @@ public class EntityFilterList
 		}
 	}
 
-	//? if >=1.21.11 {
-	/*public Identifier[] getEntities()
+	public Set<EntityTypeKey> getEntities()
 	{
-		return this.list.toArray(new Identifier[0]);
+		return Collections.unmodifiableSet(list);
 	}
-	*///?} else {
-	public ResourceLocation[] getEntities()
-	{
-		return this.list.toArray(new ResourceLocation[0]);
-	}
-	//?}
 
 	public void clear()
 	{

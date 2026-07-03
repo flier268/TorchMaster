@@ -25,6 +25,8 @@ import net.xalcon.torchmaster.Constants;
 import net.xalcon.torchmaster.ModRegistry;
 import net.xalcon.torchmaster.Torchmaster;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
+import net.xalcon.torchmaster.core.FeralFlareLightPlanner;
+import net.xalcon.torchmaster.minecraft.MinecraftAdapterViews;
 import net.xalcon.torchmaster.platform.Services;
 
 import java.util.ArrayList;
@@ -61,13 +63,7 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
     public void tick()
     {
         ITorchmasterConfig config = Services.PLATFORM.getConfig();
-        if(
-                //? if >=1.21.9 {
-                /*this.level.isClientSide()
-                *///?} else {
-                this.level.isClientSide
-                //?}
-                || ++this.ticks % config.getFeralFlareTickRate() != 0) return;
+        if(!FeralFlareLightPlanner.shouldTick(isClientSide(), ++this.ticks, config.getFeralFlareTickRate())) return;
         if(this.childLights.size() > config.getFeralFlareLanternLightCountHardcap()) return;
         ticks = 0;
 
@@ -97,7 +93,11 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
 
         if(!this.level.isLoaded(targetPos)) return;
 
-        if (this.level.isEmptyBlock(targetPos) && this.level.getBrightness(LightLayer.BLOCK, targetPos) < config.getFeralFlareMinLightLevel())
+        if (this.level.isEmptyBlock(targetPos) && FeralFlareLightPlanner.shouldPlaceLight(
+                this.childLights.size(),
+                config.getFeralFlareLanternLightCountHardcap(),
+                this.level.getBrightness(LightLayer.BLOCK, targetPos),
+                config.getFeralFlareMinLightLevel()))
         {
             if(this.useLineOfSight)
             {
@@ -134,7 +134,9 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
             this.checkIndex = (this.checkIndex + 1) % this.childLights.size();
             BlockPos pos = this.childLights.get(this.checkIndex);
             BlockState block = level.getBlockState(pos);
-            if(!(block.getBlock() instanceof InvisibleLightBlock))
+            if(FeralFlareLightPlanner.shouldRemoveChildLight(
+                    MinecraftAdapterViews.blockPos(pos),
+                    block.getBlock() instanceof InvisibleLightBlock))
             {
                 // Pos in light list no longer points to an invisible light.
                 // it may have gotten removed by some means (replaced by block, removed, etc)
@@ -347,11 +349,7 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
     public void removeChildLights()
     {
         if(
-                //? if >=1.21.9 {
-                /*this.level.isClientSide()
-                *///?} else {
-                this.level.isClientSide
-                //?}
+                isClientSide()
         ) return;
         for(BlockPos pos : this.childLights)
         {
@@ -365,17 +363,22 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
 
     private static int encodePosition(BlockPos origin, BlockPos target)
     {
-        int x = target.getX() - origin.getX();
-        int y = target.getY() - origin.getY();
-        int z = target.getZ() - origin.getZ();
-        return ((x & 0xFF) << 16) + ((y & 0xFF) << 8) + (z & 0xFF);
+        return FeralFlareLightPlanner.encodeRelativePosition(
+                MinecraftAdapterViews.blockPos(origin),
+                MinecraftAdapterViews.blockPos(target));
     }
 
     private static BlockPos decodePosition(BlockPos origin, int pos)
     {
-        int x = (byte)((pos >> 16) & 0xFF);
-        int y = (byte)((pos >> 8) & 0xFF);
-        int z = (byte)(pos & 0xFF);
-        return origin.offset(x, y, z);
+        return MinecraftAdapterViews.blockPos(FeralFlareLightPlanner.decodeRelativePosition(MinecraftAdapterViews.blockPos(origin), pos));
+    }
+
+    private boolean isClientSide()
+    {
+        //? if >=1.21.9 {
+        /*return this.level.isClientSide();
+        *///?} else {
+        return this.level.isClientSide;
+        //?}
     }
 }

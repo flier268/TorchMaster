@@ -8,6 +8,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.xalcon.torchmaster.EntityFilterList;
+import net.xalcon.torchmaster.minecraft.MinecraftAdapterViews;
 
 public class VanillaCompat
 {
@@ -18,10 +19,9 @@ public class VanillaCompat
 //?} else {
 		/*Registry.ENTITY_TYPE.stream()
 		*///?}
-			.map(entityType -> new EntityInfoWrapper(EntityType.getKey(entityType), entityType))
-			.filter(e -> e.getEntityType() != null) // dont ask me why, but some ResourceLocations return null, i.e. minecraft:lightning_bolt
-			.filter(e -> !e.getEntityType().getCategory().isFriendly())
-			.forEach(e -> registry.registerEntity(e.getEntityName()));
+			.filter(entityType -> entityType != null) // dont ask me why, but some ResourceLocations return null, i.e. minecraft:lightning_bolt
+			.filter(entityType -> !entityType.getCategory().isFriendly())
+			.forEach(entityType -> registry.registerEntity(MinecraftAdapterViews.entityTypeKey(EntityType.getKey(entityType))));
 
 	}
 
@@ -32,12 +32,11 @@ public class VanillaCompat
 //?} else {
 		/*Registry.ENTITY_TYPE.stream()
 		*///?}
-			.map(entityType -> new EntityInfoWrapper(EntityType.getKey(entityType), entityType))
-			.filter(e -> e.getEntityType() != null) // dont ask me why, but some ResourceLocations return null, i.e. minecraft:lightning_bolt
-			.filter(e -> {
-				MobCategory cat = e.getEntityType().getCategory();
+			.filter(entityType -> entityType != null) // dont ask me why, but some ResourceLocations return null, i.e. minecraft:lightning_bolt
+			.filter(entityType -> {
+				MobCategory cat = entityType.getCategory();
 				return cat != MobCategory.MISC && cat.isFriendly();
 			})
-			.forEach(e -> registry.registerEntity(e.getEntityName()));
+			.forEach(entityType -> registry.registerEntity(MinecraftAdapterViews.entityTypeKey(EntityType.getKey(entityType))));
 	}
 }

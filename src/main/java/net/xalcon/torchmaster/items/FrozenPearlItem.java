@@ -2,9 +2,6 @@ package net.xalcon.torchmaster.items;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-//? if <1.19 {
-/*import net.minecraft.network.chat.TranslatableComponent;
-*///?}
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -21,7 +18,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.xalcon.torchmaster.ModRegistry;
-import net.xalcon.torchmaster.Torchmaster;
+import net.xalcon.torchmaster.minecraft.MinecraftText;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -85,13 +82,13 @@ public class FrozenPearlItem extends Item
     /*@Override
     public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay tooltipDisplay, Consumer<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltipDisplay, tooltip, flag);
-        tooltip.accept(tooltipText(this.getDescriptionId() + ".tooltip"));
+        tooltip.accept(MinecraftText.translatable(this.getDescriptionId() + ".tooltip"));
     }
 *///?} elif >=1.21 {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
-        tooltip.add(tooltipText(
+        tooltip.add(MinecraftText.translatable(
                 //? if >=1.21.2 {
                 /*this.getDescriptionId()
                 *///?} else {
@@ -103,16 +100,7 @@ public class FrozenPearlItem extends Item
     /*@Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
-        tooltip.add(tooltipText(this.getDescriptionId(stack) + ".tooltip"));
+        tooltip.add(MinecraftText.translatable(this.getDescriptionId(stack) + ".tooltip"));
     }
     *///?}
-
-    private Component tooltipText(String key)
-    {
-        //? if >=1.19 {
-        return Component.translatable(key);
-//?} else {
-        /*return new TranslatableComponent(key);
-        *///?}
-    }
 }

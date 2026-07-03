@@ -5,22 +5,14 @@ import net.minecraft.core.registries.Registries;
 //?} else {
 /*import net.minecraft.core.Registry;
 *///?}
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-//? if >=1.20 {
-import net.minecraft.world.level.material.MapColor;
-//?} else {
-/*import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
-*///?}
 import net.xalcon.torchmaster.blocks.*;
 import net.xalcon.torchmaster.items.FrozenPearlItem;
 import net.xalcon.torchmaster.items.TMItemBlock;
+import net.xalcon.torchmaster.minecraft.MinecraftBlockProperties;
 import net.xalcon.torchmaster.platform.RegistrationProvider;
 import net.xalcon.torchmaster.platform.RegistryObject;
 import net.xalcon.torchmaster.platform.Services;
@@ -67,15 +59,7 @@ public class ModRegistry
          Mega Torch
          */
         blockMegaTorch = BLOCKS.register("megatorch", () -> new EntityBlockingLightBlock(
-                //? if >=1.20 {
-                BlockBehaviour.Properties.of()
-                        .mapColor(MapColor.COLOR_YELLOW)
-//?} else {
-                /*BlockBehaviour.Properties.of(Material.WOOD, MaterialColor.COLOR_YELLOW)
-                *///?}
-                        .sound(SoundType.WOOD)
-                        .strength(1.0f, 1.0f)
-                        .lightLevel(state -> 15),
+                MinecraftBlockProperties.megaTorch(),
                 LightType.MegaTorch));
         itemMegaTorch = fromBlock(blockMegaTorch);
         creativeTabItems.add(itemMegaTorch);
@@ -84,15 +68,7 @@ public class ModRegistry
          Dread Lamp
          */
         blockDreadLamp = BLOCKS.register("dreadlamp", () -> new EntityBlockingLightBlock(
-                //? if >=1.20 {
-                BlockBehaviour.Properties.of()
-                        .mapColor(MapColor.COLOR_BLACK)
-//?} else {
-                /*BlockBehaviour.Properties.of(Material.WOOD, MaterialColor.COLOR_BLACK)
-                *///?}
-                        .sound(SoundType.WOOD)
-                        .strength(1.0f, 1.0f)
-                        .lightLevel(state -> 15),
+                MinecraftBlockProperties.dreadLamp(),
                 LightType.DreadLamp));
         itemDreadLamp = fromBlock(blockDreadLamp);
         creativeTabItems.add(itemDreadLamp);
@@ -101,16 +77,7 @@ public class ModRegistry
          Feral Flare Lantern
          */
         blockFeralFlareLantern = BLOCKS.register("feral_flare_lantern", () -> new FeralFlareLanternBlock(
-                //? if >=1.20 {
-                BlockBehaviour.Properties.of()
-                        .mapColor(MapColor.COLOR_YELLOW)
-//?} else {
-                /*BlockBehaviour.Properties.of(Material.DECORATION, MaterialColor.COLOR_YELLOW)
-                *///?}
-                        .sound(SoundType.LANTERN)
-                        .strength(1.0f, 1.0f)
-                        .lightLevel(state -> 15)
-                )
+                MinecraftBlockProperties.feralFlareLantern())
         );
         tileFeralFlareLantern = BLOCK_ENTITIES.register(blockFeralFlareLantern.getId().getPath(),
                 () -> Services.PLATFORM.createBlockEntityType(FeralFlareLanternBlockEntity::new, blockFeralFlareLantern.get()));
@@ -121,21 +88,7 @@ public class ModRegistry
         creativeTabItems.add(itemFrozenPearl);
 
         blockInvisibleLight = BLOCKS.register("invisible_light", () -> new InvisibleLightBlock(
-                //? if >=1.20 {
-                BlockBehaviour.Properties.of()
-//?} else {
-                /*BlockBehaviour.Properties.of(Material.AIR)
-                *///?}
-                        .lightLevel(state -> 15)
-                        //? if >=1.21.9 {
-                        /*.noCollision()
-                        *///?} else {
-                        .noCollission()
-                        //?}
-                        //? if >=1.20
-                        .replaceable()
-                        .air()
-                )
+                MinecraftBlockProperties.invisibleLight())
         );
 
         /**

@@ -23,6 +23,10 @@ public final class MinecraftAdapterViews {
         return new BlockPosView(pos.getX(), pos.getY(), pos.getZ());
     }
 
+    public static BlockPos blockPos(BlockPosView pos) {
+        return new BlockPos(pos.x(), pos.y(), pos.z());
+    }
+
     public static Vec3View vec3(Vec3 vec) {
         return new Vec3View(vec.x(), vec.y(), vec.z());
     }
@@ -50,12 +54,8 @@ public final class MinecraftAdapterViews {
 
     public static EntityFilter entityFilter(EntityFilterList source) {
         EntityFilter filter = new EntityFilter();
-        //? if >=1.21.11 {
-        /*for (Identifier id : source.getEntities()) {
-        *///?} else {
-        for (ResourceLocation id : source.getEntities()) {
-        //?}
-            filter.register(entityTypeKey(id));
+        for (EntityTypeKey id : source.getEntities()) {
+            filter.register(id);
         }
         return filter;
     }
