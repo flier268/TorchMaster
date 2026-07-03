@@ -1,9 +1,9 @@
 pluginManagement {
-    plugins {
-        id("dev.architectury.loom") version "1.17-SNAPSHOT"
-    }
     repositories {
         gradlePluginPortal()
+        maven("https://maven.kikugie.dev/releases") {
+            name = "KikuGie Releases"
+        }
         maven("https://maven.kikugie.dev/snapshots") {
             name = "KikuGie Snapshots"
         }
@@ -21,8 +21,8 @@ pluginManagement {
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
-    id("dev.kikugie.stonecutter") version "0.9.5"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+    id("dev.kikugie.stonecutter") version "0.9.6"
 }
 
 dependencyResolutionManagement {
@@ -57,8 +57,6 @@ dependencyResolutionManagement {
 
 // This should match the folder name of the project, or else IDEA may complain (see https://youtrack.jetbrains.com/issue/IDEA-317606)
 rootProject.name = "Torchmaster"
-include("adapter")
-include("core")
 
 stonecutter {
     kotlinController = true

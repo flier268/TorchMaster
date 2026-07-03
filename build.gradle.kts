@@ -1,6 +1,5 @@
 import java.util.Properties
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
-import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
@@ -11,14 +10,13 @@ import org.gradle.language.jvm.tasks.ProcessResources
 plugins {
     `java-library`
     `maven-publish`
-    id("dev.architectury.loom") apply false
+    id("dev.kikugie.stonecutter")
+    id("dev.architectury.loom") version "1.17.487"
+    id("architectury-plugin") version "3.5.169"
 }
 
 val activeProject = stonecutter.current.project
 val minecraftVersion = stonecutter.current.version
-val rootBuildRequested = gradle.startParameter.taskNames.any { it == "build" || it == ":build" }
-val activeProjectTaskRequested = gradle.startParameter.taskNames.any { it.startsWith(":$activeProject:") }
-val configureMinecraft = rootBuildRequested || activeProjectTaskRequested || stonecutter.current.isActive
 
 fun loadProperties(file: File): Properties =
     Properties().also { properties ->
@@ -56,20 +54,6 @@ val modId = prop("mod_id")
 
 fun loom(): LoomGradleExtensionAPI = extensions.getByType(LoomGradleExtensionAPI::class.java)
 
-fun DependencyHandler.addMinecraftAndMappings() {
-    add("minecraft", "com.mojang:minecraft:${prop("minecraft_version")}")
-    add("mappings", loom().officialMojangMappings())
-}
-
-fun DependencyHandler.addMixinDependencies(includeJsr305: Boolean = false) {
-    add("compileOnly", "org.spongepowered:mixin:${prop("mixin_version")}")
-    add("compileOnly", "io.github.llamalad7:mixinextras-common:${prop("mixinextras_version")}")
-    add("annotationProcessor", "io.github.llamalad7:mixinextras-common:${prop("mixinextras_version")}")
-    if (includeJsr305) {
-        add("compileOnly", "com.google.code.findbugs:jsr305:3.0.0")
-    }
-}
-
 fun Jar.addRenamedLicense() {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from(rootProject.file("LICENSE")) {
@@ -77,8 +61,79 @@ fun Jar.addRenamedLicense() {
     }
 }
 
-if (configureMinecraft) {
-    apply(plugin = "dev.architectury.loom")
+fun versionMatches(predicate: String): Boolean = stonecutter.eval(minecraftVersion, predicate)
+
+fun selectedCompatSourceDirs(): List<String> = when {
+    isFabric -> listOf(
+        when {
+            versionMatches(">=1.21.2") -> "src/fabric/compat/platform/block-entity-builder"
+            versionMatches(">=1.20") -> "src/fabric/compat/platform/current"
+            else -> "src/fabric/compat/platform/legacy"
+        },
+        if (versionMatches(">=1.21.8")) {
+            "src/fabric/compat/client-render/rendertype-package"
+        } else {
+            "src/fabric/compat/client-render/current"
+        },
+        when {
+            versionMatches(">=1.21.9") -> "src/fabric/compat/phantom/single-flag-tick"
+            versionMatches(">=1.21.5") -> "src/fabric/compat/phantom/double-flag-void-tick"
+            else -> "src/fabric/compat/phantom/double-flag-tick"
+        },
+        if (versionMatches(">=1.21.2")) {
+            "src/fabric/compat/spawn/entity-spawn-reason"
+        } else {
+            "src/fabric/compat/spawn/mob-spawn-type"
+        },
+        when {
+            versionMatches(">=1.21.11") -> "src/fabric/compat/registration/identifier"
+            versionMatches(">=1.21.2") -> "src/fabric/compat/registration/reference"
+            versionMatches(">=1.19.3") -> "src/fabric/compat/registration/current"
+            else -> "src/fabric/compat/registration/legacy"
+        },
+    )
+    isForge -> listOf(
+        if (versionMatches(">=1.19.4")) {
+            "src/forge/compat/spawn/finalize"
+        } else {
+            "src/forge/compat/spawn/legacy"
+        },
+        if (versionMatches(">=1.19")) {
+            "src/forge/compat/world-load/level-event"
+        } else {
+            "src/forge/compat/world-load/world-event"
+        },
+        when {
+            versionMatches(">=1.19") -> "src/forge/compat/registration/resource-key"
+            versionMatches(">=1.18") -> "src/forge/compat/registration/1.18"
+            versionMatches(">=1.17") -> "src/forge/compat/registration/1.17"
+            else -> "src/forge/compat/registration/1.16"
+        },
+        when {
+            versionMatches(">=1.20") -> "src/forge/compat/platform/builder"
+            versionMatches(">=1.19.3") -> "src/forge/compat/platform/builder-row"
+            versionMatches(">=1.17") -> "src/forge/compat/platform/legacy-tab"
+            else -> "src/forge/compat/platform/1.16"
+        },
+    )
+    isNeoForge -> listOf(
+        when {
+            versionMatches(">=1.21.11") -> "src/neoforge/compat/platform/block-entity-constructor"
+            versionMatches(">=1.21.9") -> "src/neoforge/compat/platform/block-entity-constructor-current-loader-instance"
+            versionMatches(">=1.21.2") -> "src/neoforge/compat/platform/block-entity-constructor-current"
+            else -> "src/neoforge/compat/platform/block-entity-builder"
+        },
+        if (versionMatches(">=1.21.11")) {
+            "src/neoforge/compat/registration/identifier"
+        } else {
+            "src/neoforge/compat/registration/resource-location"
+        },
+    )
+    else -> throw GradleException("Unsupported loader '$activeLoader' for Stonecutter project '$activeProject'")
+}
+
+stonecutter {
+    constants.match(activeLoader, "fabric", "forge", "neoforge")
 }
 
 group = prop("group")
@@ -87,6 +142,16 @@ description = prop("description")
 
 base {
     archivesName.set("$modId-$activeProject")
+}
+
+architectury {
+    platformSetupLoomIde()
+    when {
+        isFabric -> fabric()
+        isForge -> forge()
+        isNeoForge -> neoForge()
+        else -> throw GradleException("Unsupported loader '$activeLoader' for Stonecutter project '$activeProject'")
+    }
 }
 
 java {
@@ -124,147 +189,91 @@ repositories {
 
 sourceSets {
     main {
-        if (configureMinecraft) {
-            java.srcDir(rootProject.file("adapter/src/main/java"))
-            java.srcDir(rootProject.file("core/src/main/java"))
-            java.srcDir(rootProject.file("src/$activeLoader"))
-            if (isFabric) {
-                java.exclude("compat/**")
-                java.srcDir(rootProject.file(
-                    when {
-                        stonecutter.eval(minecraftVersion, ">=1.21.2") -> "src/fabric/compat/platform/block-entity-builder"
-                        stonecutter.eval(minecraftVersion, ">=1.20") -> "src/fabric/compat/platform/current"
-                        else -> "src/fabric/compat/platform/legacy"
-                    }
-                ))
-                java.srcDir(rootProject.file(if (stonecutter.eval(minecraftVersion, ">=1.21.8")) "src/fabric/compat/client-render/rendertype-package" else "src/fabric/compat/client-render/current"))
-                java.srcDir(rootProject.file(
-                    when {
-                        stonecutter.eval(minecraftVersion, ">=1.21.9") -> "src/fabric/compat/phantom/single-flag-tick"
-                        stonecutter.eval(minecraftVersion, ">=1.21.5") -> "src/fabric/compat/phantom/double-flag-void-tick"
-                        else -> "src/fabric/compat/phantom/double-flag-tick"
-                    }
-                ))
-                java.srcDir(rootProject.file(if (stonecutter.eval(minecraftVersion, ">=1.21.2")) "src/fabric/compat/spawn/entity-spawn-reason" else "src/fabric/compat/spawn/mob-spawn-type"))
-                java.srcDir(rootProject.file(
-                    when {
-                        stonecutter.eval(minecraftVersion, ">=1.21.11") -> "src/fabric/compat/registration/identifier"
-                        stonecutter.eval(minecraftVersion, ">=1.21.2") -> "src/fabric/compat/registration/reference"
-                        stonecutter.eval(minecraftVersion, ">=1.19.3") -> "src/fabric/compat/registration/current"
-                        else -> "src/fabric/compat/registration/legacy"
-                    }
-                ))
-            } else if (isForge) {
-                java.exclude("compat/**")
-                java.srcDir(rootProject.file(if (stonecutter.eval(minecraftVersion, ">=1.19.4")) "src/forge/compat/spawn/finalize" else "src/forge/compat/spawn/legacy"))
-                java.srcDir(rootProject.file(if (stonecutter.eval(minecraftVersion, ">=1.19")) "src/forge/compat/world-load/level-event" else "src/forge/compat/world-load/world-event"))
-                java.srcDir(rootProject.file("src/forge/compat/phantom/current"))
-                java.srcDir(rootProject.file(
-                    when {
-                        stonecutter.eval(minecraftVersion, ">=1.19") -> "src/forge/compat/registration/resource-key"
-                        stonecutter.eval(minecraftVersion, ">=1.18") -> "src/forge/compat/registration/1.18"
-                        stonecutter.eval(minecraftVersion, ">=1.17") -> "src/forge/compat/registration/1.17"
-                        else -> "src/forge/compat/registration/1.16"
-                    }
-                ))
-                java.srcDir(rootProject.file(
-                    when {
-                        stonecutter.eval(minecraftVersion, ">=1.20") -> "src/forge/compat/platform/builder"
-                        stonecutter.eval(minecraftVersion, ">=1.19.3") -> "src/forge/compat/platform/builder-row"
-                        stonecutter.eval(minecraftVersion, ">=1.17") -> "src/forge/compat/platform/legacy-tab"
-                        else -> "src/forge/compat/platform/1.16"
-                    }
-                ))
-            } else if (isNeoForge) {
-                java.exclude("compat/**")
-                java.srcDir(rootProject.file(
-                    when {
-                        stonecutter.eval(minecraftVersion, ">=1.21.11") -> "src/neoforge/compat/platform/block-entity-constructor"
-                        stonecutter.eval(minecraftVersion, ">=1.21.9") -> "src/neoforge/compat/platform/block-entity-constructor-current-loader-instance"
-                        stonecutter.eval(minecraftVersion, ">=1.21.2") -> "src/neoforge/compat/platform/block-entity-constructor-current"
-                        else -> "src/neoforge/compat/platform/block-entity-builder"
-                    }
-                ))
-                java.srcDir(rootProject.file(if (stonecutter.eval(minecraftVersion, ">=1.21.11")) "src/neoforge/compat/registration/identifier" else "src/neoforge/compat/registration/resource-location"))
-            }
-            resources.srcDir(rootProject.file("src/$activeLoader"))
-            resources.exclude("**/*.java")
-        } else {
-            java.setSrcDirs(emptyList<File>())
-            resources.setSrcDirs(emptyList<File>())
+        java {
+            srcDir(rootProject.file("src/$activeLoader"))
+            exclude("compat/**")
+            selectedCompatSourceDirs().forEach { srcDir(rootProject.file(it)) }
         }
-    }
-    test {
-        if (!configureMinecraft) {
-            java.setSrcDirs(emptyList<File>())
-            resources.setSrcDirs(emptyList<File>())
+        resources {
+            srcDir(rootProject.file("src/$activeLoader"))
+            exclude("**/*.java")
         }
     }
 }
 
-if (configureMinecraft) {
-    extensions.configure<LoomGradleExtensionAPI>("loom") {
-        silentMojangMappingsLicense()
+extensions.configure<LoomGradleExtensionAPI>("loom") {
+    silentMojangMappingsLicense()
+    mods {
+        create(modId) {
+            sourceSet(sourceSets["main"])
+        }
+    }
+
+    if (isFabric) {
+        runs {
+            maybeCreate("client").apply {
+                client()
+                programArg("--username")
+                programArg("Xalcon")
+                name("Fabric Client")
+                runDir("runs/client")
+            }
+            maybeCreate("server").apply {
+                server()
+                name("Fabric Server")
+                runDir("runs/server")
+            }
+        }
+        mixin {
+            defaultRefmapName.set("$modId.refmap.json")
+        }
+    } else if (isForge) {
+        forge {
+            mixinConfigs("$modId.mixins.json")
+            convertAccessWideners.set(true)
+        }
+    } else if (isNeoForge) {
+        neoForge {
+            val accessTransformerFile = file("src/main/resources/META-INF/accesstransformer.cfg")
+            if (accessTransformerFile.exists()) {
+                accessTransformer(accessTransformerFile)
+            }
+        }
     }
 }
 
 dependencies {
-    if (configureMinecraft) {
+    if (isFabric) {
         implementation("com.electronwill.night-config:toml:$nightConfigVersion")
-        addMixinDependencies(includeJsr305 = isFabric)
-        addMinecraftAndMappings()
+    } else {
+        compileOnly("com.electronwill.night-config:core:$nightConfigVersion")
+        compileOnly("com.electronwill.night-config:toml:$nightConfigVersion")
+    }
+    compileOnly("org.spongepowered:mixin:${prop("mixin_version")}")
+    compileOnly("io.github.llamalad7:mixinextras-common:${prop("mixinextras_version")}")
+    annotationProcessor("io.github.llamalad7:mixinextras-common:${prop("mixinextras_version")}")
 
-        when {
-            isFabric -> {
-                add("modImplementation", "net.fabricmc:fabric-loader:${prop("fabric_loader_version")}")
-                add("modImplementation", "net.fabricmc.fabric-api:fabric-api:${prop("fabric_version")}")
-                add("include", "com.electronwill.night-config:core:$nightConfigVersion")
-                add("include", "com.electronwill.night-config:toml:$nightConfigVersion")
-            }
-            isNeoForge -> add("neoForge", "net.neoforged:neoforge:${prop("neoforge_version")}")
-            isForge -> add("forge", "net.minecraftforge:forge:${prop("minecraft_version")}-${prop("forge_version")}")
-            else -> throw GradleException("Unsupported loader '$activeLoader' for Stonecutter project '$activeProject'")
+    if (isFabric) {
+        compileOnly("com.google.code.findbugs:jsr305:3.0.0")
+    }
+
+    minecraft("com.mojang:minecraft:$minecraftVersion")
+    mappings(loom().officialMojangMappings())
+
+    when {
+        isFabric -> {
+            modImplementation("net.fabricmc:fabric-loader:${prop("fabric_loader_version")}")
+            modImplementation("net.fabricmc.fabric-api:fabric-api:${prop("fabric_version")}")
+            include("com.electronwill.night-config:core:$nightConfigVersion")
+            include("com.electronwill.night-config:toml:$nightConfigVersion")
         }
+        isForge -> "forge"("net.minecraftforge:forge:${prop("minecraft_version")}-${prop("forge_version")}")
+        isNeoForge -> "neoForge"("net.neoforged:neoforge:${prop("neoforge_version")}")
+        else -> throw GradleException("Unsupported loader '$activeLoader' for Stonecutter project '$activeProject'")
     }
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
-
-if (configureMinecraft) {
-    extensions.configure<LoomGradleExtensionAPI>("loom") {
-        if (isFabric) {
-            runs {
-                maybeCreate("client").apply {
-                    client()
-                    programArg("--username")
-                    programArg("Xalcon")
-                    name("Fabric Client")
-                    runDir("runs/client")
-                }
-                maybeCreate("server").apply {
-                    server()
-                    name("Fabric Server")
-                    runDir("runs/server")
-                }
-            }
-            mixin {
-                defaultRefmapName.set("$modId.refmap.json")
-            }
-        } else if (isForge) {
-            forge {
-                mixinConfigs("$modId.mixins.json", "$modId.forge.mixins.json")
-                convertAccessWideners.set(true)
-            }
-        } else if (isNeoForge) {
-            neoForge {
-                val accessTransformerFile = file("src/main/resources/META-INF/accesstransformer.cfg")
-                if (accessTransformerFile.exists()) {
-                    accessTransformer(accessTransformerFile)
-                }
-            }
-        }
-    }
 }
 
 tasks.withType<JavaCompile>().configureEach {

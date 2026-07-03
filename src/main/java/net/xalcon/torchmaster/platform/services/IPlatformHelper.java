@@ -48,6 +48,10 @@ public interface IPlatformHelper {
 
     CreativeModeTab createCreativeModeTab(String name, Collection<RegistryObject<Item>> itemsToShow);
 
+    default void registerCreativeModeTab(String name, Collection<RegistryObject<Item>> itemsToShow) {
+        throw new UnsupportedOperationException(getPlatformName() + " does not support platform creative tab registration");
+    }
+
     @FunctionalInterface
     interface BlockEntitySupplier<T extends BlockEntity> {
         T create(BlockPos pos, BlockState state);

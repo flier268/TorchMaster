@@ -6,6 +6,8 @@ Do not provide progress updates while `gradlew` is running; when reporting, only
 
 - This is a Stonecutter multi-version Minecraft mod project.
 - `settings.gradle.kts` currently registers multiple Fabric, Forge, and NeoForge versions; `vcsVersion` is `1.21.1-fabric`.
+- The project must support every Stonecutter version registered in `settings.gradle.kts`; do not treat `vcsVersion`,
+  the currently active project, or recent Minecraft releases as the only supported targets.
 - The active project in `stonecutter.gradle.kts` is managed by Stonecutter. Do not manually edit the `stonecutter active "..."`
   line; use Stonecutter/Gradle tasks when switching versions.
 - For long-term changes, edit the shared sources at the repository root instead of directly modifying generated outputs under `versions/.../build/generated/`.

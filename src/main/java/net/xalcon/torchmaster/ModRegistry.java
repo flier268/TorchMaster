@@ -54,6 +54,8 @@ public class ModRegistry
     public static void initialize()
     {
         List<RegistryObject<Item>> creativeTabItems = new ArrayList<>();
+        //? if <1.19.3
+        //tab = Services.PLATFORM.createCreativeModeTab(Constants.MOD_ID, creativeTabItems);
 
         /**
          Mega Torch
@@ -84,7 +86,7 @@ public class ModRegistry
         itemFeralFlareLantern = fromBlock(blockFeralFlareLantern);
         creativeTabItems.add(itemFeralFlareLantern);
 
-        itemFrozenPearl = ITEMS.register("frozen_pearl", () -> new FrozenPearlItem(new Item.Properties()));
+        itemFrozenPearl = ITEMS.register("frozen_pearl", () -> new FrozenPearlItem(itemProperties()));
         creativeTabItems.add(itemFrozenPearl);
 
         blockInvisibleLight = BLOCKS.register("invisible_light", () -> new InvisibleLightBlock(
@@ -94,11 +96,10 @@ public class ModRegistry
         /**
          Creative Mode Tab
          */
-        //? if >=1.20 {
+        //? if >=1.20
         CREATIVE_MODE_TABS.register(Constants.MOD_ID, () -> Services.PLATFORM.createCreativeModeTab(Constants.MOD_ID, creativeTabItems));
-//?} else {
-        /*tab = Services.PLATFORM.createCreativeModeTab(Constants.MOD_ID, creativeTabItems);
-        *///?}
+        //? if forge && >=1.19.3 <1.20
+        //Services.PLATFORM.registerCreativeModeTab(Constants.MOD_ID, creativeTabItems);
     }
 
     private static <B extends Block> RegistryObject<Item> fromBlock(RegistryObject<B> block) {
@@ -106,8 +107,15 @@ public class ModRegistry
     }
 
     private static <B extends Block> RegistryObject<Item> fromBlock(RegistryObject<B> block, Consumer<Item.Properties> propertiesConfig) {
-        Item.Properties properties = new Item.Properties();
+        Item.Properties properties = itemProperties();
         propertiesConfig.accept(properties);
         return ITEMS.register(block.getId().getPath(), () -> new TMItemBlock(block.get(), properties));
+    }
+
+    private static Item.Properties itemProperties() {
+        Item.Properties properties = new Item.Properties();
+        //? if <1.19.3
+        //properties.tab(tab);
+        return properties;
     }
 }
