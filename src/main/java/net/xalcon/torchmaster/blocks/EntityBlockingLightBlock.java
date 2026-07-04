@@ -10,12 +10,18 @@ import net.minecraft.util.RandomSource;
 //? if >=1.21.5 {
 /*import net.minecraft.server.level.ServerLevel;
 *///?}
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.xalcon.torchmaster.TorchmasterClientBridge;
 import net.xalcon.torchmaster.Torchmaster;
 
 public class EntityBlockingLightBlock extends Block
@@ -31,6 +37,36 @@ public class EntityBlockingLightBlock extends Block
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter blockGetter, BlockPos pos, CollisionContext ctx) {
         return lightType.Shape;
+    }
+
+    //? if >=1.21 {
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult)
+    {
+        return openLightScreen(level, pos, player);
+    }
+    //?} else {
+    /*@Override
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult)
+    {
+        ItemStack itemStack = player.getItemInHand(hand);
+        if (!itemStack.isEmpty()) {
+            return super.use(state, level, pos, player, hand, hitResult);
+        }
+        return openLightScreen(level, pos, player);
+    }
+    *///?}
+
+    private InteractionResult openLightScreen(Level level, BlockPos pos, Player player)
+    {
+        //? if >=1.17 {
+        if (level.isClientSide()) {
+        //?} else {
+        /*if (level.isClientSide) {
+        *///?}
+            TorchmasterClientBridge.openLightScreen(pos, level.dimension(), lightType);
+        }
+        return InteractionResult.SUCCESS;
     }
 
     @Override

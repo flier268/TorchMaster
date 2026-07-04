@@ -11,7 +11,9 @@
     "SpawnUtilMixin",
     "PhantomSpawnerMixin"
   ],
-  "client": [],
+  "client": [
+    "LevelRendererMixin"
+  ],
   "server": [],
   "injectors": {
     "defaultRequire": 1

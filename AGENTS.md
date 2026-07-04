@@ -11,6 +11,8 @@ Do not provide progress updates while `gradlew` is running; when reporting, only
 - The active project in `stonecutter.gradle.kts` is managed by Stonecutter. Do not manually edit the `stonecutter active "..."`
   line; use Stonecutter/Gradle tasks when switching versions.
 - For long-term changes, edit the shared sources at the repository root instead of directly modifying generated outputs under `versions/.../build/generated/`.
+- Do not use Gradle source-set logic to select which Java files compile by loader platform or Minecraft version; use Stonecutter
+  conditional sources/comments or established loader source roots instead.
 - Before committing, confirm the active project is back to `vcsVersion` to avoid committing Stonecutter comment-switching noise.
 - Do not use reflection as a replacement for Stonecutter conditional compilation or version branches.
 - Do not replace strongly typed types with string IDs; prefer keeping and using Minecraft or project-provided strongly typed APIs, keys, registry types, enums, or value objects.

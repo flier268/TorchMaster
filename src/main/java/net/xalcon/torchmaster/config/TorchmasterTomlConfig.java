@@ -18,19 +18,21 @@ public final class TorchmasterTomlConfig implements ITorchmasterConfig
     private static final String LEGACY_FABRIC_CONFIG_NAME = "torchmaster-config";
     private static final Pattern LEGACY_STRING_VALUE = Pattern.compile("\"([^\"\\\\]*(?:\\\\.[^\"\\\\]*)*)\"");
 
-    private final int feralFlareTickRate;
-    private final int feralFlareLanternLightCountHardcap;
-    private final int feralFlareRadius;
-    private final int feralFlareMinLightLevel;
-    private final int dreadLampRadius;
-    private final int megaTorchRadius;
-    private final boolean aggressiveSpawnChecks;
-    private final boolean blockOnlyNaturalSpawns;
-    private final boolean blockVillageSieges;
-    private final List<String> megaTorchEntityBlockListOverrides;
-    private final List<String> dreadLampEntityBlockListOverrides;
+    private final Path configFile;
+    private int feralFlareTickRate;
+    private int feralFlareLanternLightCountHardcap;
+    private int feralFlareRadius;
+    private int feralFlareMinLightLevel;
+    private int dreadLampRadius;
+    private int megaTorchRadius;
+    private boolean aggressiveSpawnChecks;
+    private boolean blockOnlyNaturalSpawns;
+    private boolean blockVillageSieges;
+    private List<String> megaTorchEntityBlockListOverrides;
+    private List<String> dreadLampEntityBlockListOverrides;
 
     private TorchmasterTomlConfig(
+            Path configFile,
             int feralFlareTickRate,
             int feralFlareLanternLightCountHardcap,
             int feralFlareRadius,
@@ -43,6 +45,7 @@ public final class TorchmasterTomlConfig implements ITorchmasterConfig
             List<String> megaTorchEntityBlockListOverrides,
             List<String> dreadLampEntityBlockListOverrides)
     {
+        this.configFile = configFile;
         this.feralFlareTickRate = feralFlareTickRate;
         this.feralFlareLanternLightCountHardcap = feralFlareLanternLightCountHardcap;
         this.feralFlareRadius = feralFlareRadius;
@@ -70,6 +73,7 @@ public final class TorchmasterTomlConfig implements ITorchmasterConfig
             config.save();
 
             return new TorchmasterTomlConfig(
+                    configFile,
                     readInt(config, TorchmasterConfigSchema.FERAL_FLARE_TICK_RATE),
                     readInt(config, TorchmasterConfigSchema.FERAL_FLARE_LANTERN_LIGHT_COUNT_HARDCAP),
                     readInt(config, TorchmasterConfigSchema.FERAL_FLARE_RADIUS),
@@ -81,6 +85,40 @@ public final class TorchmasterTomlConfig implements ITorchmasterConfig
                     readBoolean(config, TorchmasterConfigSchema.BLOCK_VILLAGE_SIEGES),
                     readList(config, TorchmasterConfigSchema.MEGA_TORCH_ENTITY_BLOCK_LIST_OVERRIDES),
                     readList(config, TorchmasterConfigSchema.DREAD_LAMP_ENTITY_BLOCK_LIST_OVERRIDES));
+        }
+    }
+
+    public synchronized void save(
+            int feralFlareTickRate,
+            int feralFlareLanternLightCountHardcap,
+            int feralFlareRadius,
+            int feralFlareMinLightLevel,
+            int dreadLampRadius,
+            int megaTorchRadius,
+            boolean aggressiveSpawnChecks,
+            boolean blockOnlyNaturalSpawns,
+            boolean blockVillageSieges,
+            List<String> megaTorchEntityBlockListOverrides,
+            List<String> dreadLampEntityBlockListOverrides)
+    {
+        try (CommentedFileConfig config = CommentedFileConfig.builder(configFile).sync().build()) {
+            config.load();
+            applyDefaults(config);
+
+            setInt(config, TorchmasterConfigSchema.FERAL_FLARE_TICK_RATE, feralFlareTickRate);
+            setInt(config, TorchmasterConfigSchema.FERAL_FLARE_LANTERN_LIGHT_COUNT_HARDCAP, feralFlareLanternLightCountHardcap);
+            setInt(config, TorchmasterConfigSchema.FERAL_FLARE_RADIUS, feralFlareRadius);
+            setInt(config, TorchmasterConfigSchema.FERAL_FLARE_MIN_LIGHT_LEVEL, feralFlareMinLightLevel);
+            setInt(config, TorchmasterConfigSchema.DREAD_LAMP_RADIUS, dreadLampRadius);
+            setInt(config, TorchmasterConfigSchema.MEGA_TORCH_RADIUS, megaTorchRadius);
+            setBoolean(config, TorchmasterConfigSchema.AGGRESSIVE_SPAWN_CHECKS, aggressiveSpawnChecks);
+            setBoolean(config, TorchmasterConfigSchema.BLOCK_ONLY_NATURAL_SPAWNS, blockOnlyNaturalSpawns);
+            setBoolean(config, TorchmasterConfigSchema.BLOCK_VILLAGE_SIEGES, blockVillageSieges);
+            setList(config, TorchmasterConfigSchema.MEGA_TORCH_ENTITY_BLOCK_LIST_OVERRIDES, megaTorchEntityBlockListOverrides);
+            setList(config, TorchmasterConfigSchema.DREAD_LAMP_ENTITY_BLOCK_LIST_OVERRIDES, dreadLampEntityBlockListOverrides);
+
+            config.save();
+            reloadFrom(config);
         }
     }
 
@@ -224,6 +262,39 @@ public final class TorchmasterTomlConfig implements ITorchmasterConfig
     private static List<String> readList(CommentedFileConfig config, TorchmasterConfigSchema.ListValue value)
     {
         return value.normalize(config.get(TorchmasterConfigSchema.path(value)), EntityFilterList::IsValidFilterString);
+    }
+
+    private static void setBoolean(CommentedFileConfig config, TorchmasterConfigSchema.BooleanValue value, boolean configured)
+    {
+        config.set(TorchmasterConfigSchema.path(value), configured);
+        config.setComment(TorchmasterConfigSchema.path(value), comment(value));
+    }
+
+    private static void setInt(CommentedFileConfig config, TorchmasterConfigSchema.IntValue value, int configured)
+    {
+        config.set(TorchmasterConfigSchema.path(value), value.normalize(configured));
+        config.setComment(TorchmasterConfigSchema.path(value), comment(value));
+    }
+
+    private static void setList(CommentedFileConfig config, TorchmasterConfigSchema.ListValue value, List<String> configured)
+    {
+        config.set(TorchmasterConfigSchema.path(value), value.normalize(configured, EntityFilterList::IsValidFilterString));
+        config.setComment(TorchmasterConfigSchema.path(value), comment(value));
+    }
+
+    private void reloadFrom(CommentedFileConfig config)
+    {
+        feralFlareTickRate = readInt(config, TorchmasterConfigSchema.FERAL_FLARE_TICK_RATE);
+        feralFlareLanternLightCountHardcap = readInt(config, TorchmasterConfigSchema.FERAL_FLARE_LANTERN_LIGHT_COUNT_HARDCAP);
+        feralFlareRadius = readInt(config, TorchmasterConfigSchema.FERAL_FLARE_RADIUS);
+        feralFlareMinLightLevel = readInt(config, TorchmasterConfigSchema.FERAL_FLARE_MIN_LIGHT_LEVEL);
+        dreadLampRadius = readInt(config, TorchmasterConfigSchema.DREAD_LAMP_RADIUS);
+        megaTorchRadius = readInt(config, TorchmasterConfigSchema.MEGA_TORCH_RADIUS);
+        aggressiveSpawnChecks = readBoolean(config, TorchmasterConfigSchema.AGGRESSIVE_SPAWN_CHECKS);
+        blockOnlyNaturalSpawns = readBoolean(config, TorchmasterConfigSchema.BLOCK_ONLY_NATURAL_SPAWNS);
+        blockVillageSieges = readBoolean(config, TorchmasterConfigSchema.BLOCK_VILLAGE_SIEGES);
+        megaTorchEntityBlockListOverrides = immutableCopy(readList(config, TorchmasterConfigSchema.MEGA_TORCH_ENTITY_BLOCK_LIST_OVERRIDES));
+        dreadLampEntityBlockListOverrides = immutableCopy(readList(config, TorchmasterConfigSchema.DREAD_LAMP_ENTITY_BLOCK_LIST_OVERRIDES));
     }
 
     @Override

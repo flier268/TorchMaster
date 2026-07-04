@@ -1,6 +1,7 @@
 import java.util.Properties
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
@@ -61,77 +62,6 @@ fun Jar.addRenamedLicense() {
     }
 }
 
-fun versionMatches(predicate: String): Boolean = stonecutter.eval(minecraftVersion, predicate)
-
-fun selectedCompatSourceDirs(): List<String> = when {
-    isFabric -> listOf(
-        when {
-            versionMatches(">=1.21.2") -> "src/fabric/compat/platform/block-entity-builder"
-            versionMatches(">=1.20") -> "src/fabric/compat/platform/current"
-            else -> "src/fabric/compat/platform/legacy"
-        },
-        if (versionMatches(">=1.21.8")) {
-            "src/fabric/compat/client-render/rendertype-package"
-        } else {
-            "src/fabric/compat/client-render/current"
-        },
-        when {
-            versionMatches(">=1.21.9") -> "src/fabric/compat/phantom/single-flag-tick"
-            versionMatches(">=1.21.5") -> "src/fabric/compat/phantom/double-flag-void-tick"
-            else -> "src/fabric/compat/phantom/double-flag-tick"
-        },
-        if (versionMatches(">=1.21.2")) {
-            "src/fabric/compat/spawn/entity-spawn-reason"
-        } else {
-            "src/fabric/compat/spawn/mob-spawn-type"
-        },
-        when {
-            versionMatches(">=1.21.11") -> "src/fabric/compat/registration/identifier"
-            versionMatches(">=1.21.2") -> "src/fabric/compat/registration/reference"
-            versionMatches(">=1.19.3") -> "src/fabric/compat/registration/current"
-            else -> "src/fabric/compat/registration/legacy"
-        },
-    )
-    isForge -> listOf(
-        if (versionMatches(">=1.19.4")) {
-            "src/forge/compat/spawn/finalize"
-        } else {
-            "src/forge/compat/spawn/legacy"
-        },
-        if (versionMatches(">=1.19")) {
-            "src/forge/compat/world-load/level-event"
-        } else {
-            "src/forge/compat/world-load/world-event"
-        },
-        when {
-            versionMatches(">=1.19") -> "src/forge/compat/registration/resource-key"
-            versionMatches(">=1.18") -> "src/forge/compat/registration/1.18"
-            versionMatches(">=1.17") -> "src/forge/compat/registration/1.17"
-            else -> "src/forge/compat/registration/1.16"
-        },
-        when {
-            versionMatches(">=1.20") -> "src/forge/compat/platform/builder"
-            versionMatches(">=1.19.3") -> "src/forge/compat/platform/builder-row"
-            versionMatches(">=1.17") -> "src/forge/compat/platform/legacy-tab"
-            else -> "src/forge/compat/platform/1.16"
-        },
-    )
-    isNeoForge -> listOf(
-        when {
-            versionMatches(">=1.21.11") -> "src/neoforge/compat/platform/block-entity-constructor"
-            versionMatches(">=1.21.9") -> "src/neoforge/compat/platform/block-entity-constructor-current-loader-instance"
-            versionMatches(">=1.21.2") -> "src/neoforge/compat/platform/block-entity-constructor-current"
-            else -> "src/neoforge/compat/platform/block-entity-builder"
-        },
-        if (versionMatches(">=1.21.11")) {
-            "src/neoforge/compat/registration/identifier"
-        } else {
-            "src/neoforge/compat/registration/resource-location"
-        },
-    )
-    else -> throw GradleException("Unsupported loader '$activeLoader' for Stonecutter project '$activeProject'")
-}
-
 stonecutter {
     constants.match(activeLoader, "fabric", "forge", "neoforge")
 }
@@ -157,6 +87,14 @@ architectury {
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(javaVersion))
     withSourcesJar()
+}
+
+val javaToolchainLauncher = javaToolchains.launcherFor {
+    languageVersion.set(JavaLanguageVersion.of(javaVersion))
+}
+
+tasks.withType<JavaExec>().configureEach {
+    javaLauncher.set(javaToolchainLauncher)
 }
 
 repositories {
@@ -191,8 +129,6 @@ sourceSets {
     main {
         java {
             srcDir(rootProject.file("src/$activeLoader"))
-            exclude("compat/**")
-            selectedCompatSourceDirs().forEach { srcDir(rootProject.file(it)) }
         }
         resources {
             srcDir(rootProject.file("src/$activeLoader"))
