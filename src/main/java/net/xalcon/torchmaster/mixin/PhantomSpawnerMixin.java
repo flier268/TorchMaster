@@ -22,7 +22,7 @@ public abstract class PhantomSpawnerMixin {
             method = "tick(Lnet/minecraft/server/level/ServerLevel;Z)V",
             at = @At(
                     value = "INVOKE",
-                    target = "net/minecraft/world/level/NaturalSpawner.isValidEmptySpawnBlock(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;Lnet/minecraft/world/entity/EntityType;)Z"
+                    target = "Lnet/minecraft/world/level/NaturalSpawner;isValidEmptySpawnBlock(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;Lnet/minecraft/world/entity/EntityType;)Z"
             )
     )
     private static boolean torchmaster_tick_NaturalSpawner__isValidEmptySpawnBlock(BlockGetter block, BlockPos pos, BlockState blockState, FluidState fluidState, EntityType<?> entityType, Operation<Boolean> original, @Local ServerPlayer player)
@@ -52,7 +52,7 @@ public abstract class PhantomSpawnerMixin {
             method = "tick(Lnet/minecraft/server/level/ServerLevel;ZZ)V",
             at = @At(
                     value = "INVOKE",
-                    target = "net/minecraft/world/level/NaturalSpawner.isValidEmptySpawnBlock(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;Lnet/minecraft/world/entity/EntityType;)Z"
+                    target = "Lnet/minecraft/world/level/NaturalSpawner;isValidEmptySpawnBlock(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;Lnet/minecraft/world/entity/EntityType;)Z"
             )
     )
     private static boolean torchmaster_tick_NaturalSpawner__isValidEmptySpawnBlock(BlockGetter block, BlockPos pos, BlockState blockState, FluidState fluidState, EntityType<?> entityType, Operation<Boolean> original, @Local ServerPlayer player)
@@ -67,6 +67,7 @@ import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.PhantomSpawner;
@@ -82,12 +83,12 @@ public abstract class PhantomSpawnerMixin {
             method = "tick(Lnet/minecraft/server/level/ServerLevel;ZZ)I",
             at = @At(
                     value = "INVOKE",
-                    target = "net/minecraft/world/level/NaturalSpawner.isValidEmptySpawnBlock(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;Lnet/minecraft/world/entity/EntityType;)Z"
+                    target = "Lnet/minecraft/world/level/NaturalSpawner;isValidEmptySpawnBlock(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;Lnet/minecraft/world/entity/EntityType;)Z"
             )
     )
-    private static boolean torchmaster_tick_NaturalSpawner__isValidEmptySpawnBlock(BlockGetter block, BlockPos pos, BlockState blockState, FluidState fluidState, EntityType<?> entityType, Operation<Boolean> original, @Local ServerPlayer player)
+    private static boolean torchmaster_tick_NaturalSpawner__isValidEmptySpawnBlock(BlockGetter block, BlockPos pos, BlockState blockState, FluidState fluidState, EntityType<?> entityType, Operation<Boolean> original, @Local Player player)
     {
-        return NaturalSpawnerWrapper.isValidEmptySpawnBlock(block, pos, blockState, fluidState, entityType, original, player);
+        return NaturalSpawnerWrapper.isValidEmptySpawnBlock(block, pos, blockState, fluidState, entityType, original, (ServerPlayer) player);
     }
 }
 //?}

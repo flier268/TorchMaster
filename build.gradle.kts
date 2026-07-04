@@ -165,7 +165,12 @@ extensions.configure<LoomGradleExtensionAPI>("loom") {
         }
     } else if (isForge) {
         forge {
-            mixinConfigs("$modId.mixins.json")
+            mixinConfigs(
+                *listOfNotNull(
+                    "$modId.mixins.json",
+                    "$modId.legacy_forge_dev.mixins.json".takeIf { prop("minecraft_version") == "1.16.5" },
+                ).toTypedArray()
+            )
             convertAccessWideners.set(true)
         }
     } else if (isNeoForge) {
@@ -200,6 +205,10 @@ dependencies {
         isFabric -> {
             modImplementation("net.fabricmc:fabric-loader:${prop("fabric_loader_version")}")
             modImplementation("net.fabricmc.fabric-api:fabric-api:${prop("fabric_version")}")
+            if (prop("minecraft_version") == "1.19") {
+                modImplementation("io.github.llamalad7:mixinextras-fabric:${prop("mixinextras_version")}")
+                include("io.github.llamalad7:mixinextras-fabric:${prop("mixinextras_version")}:slim")
+            }
             include("com.electronwill.night-config:core:$nightConfigVersion")
             include("com.electronwill.night-config:toml:$nightConfigVersion")
         }
