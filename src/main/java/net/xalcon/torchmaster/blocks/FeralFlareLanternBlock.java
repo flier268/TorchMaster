@@ -21,7 +21,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.xalcon.torchmaster.ModRegistry;
+import net.xalcon.torchmaster.TorchmasterContent;
 
 import javax.annotation.Nullable;
 
@@ -120,7 +120,7 @@ public class FeralFlareLanternBlock extends DirectionalBlock implements EntityBl
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return type == ModRegistry.tileFeralFlareLantern.get() ? FeralFlareLanternBlockEntity::dispatchTickBlockEntity : null;
+        return type == TorchmasterContent.tileFeralFlareLantern.get() ? FeralFlareLanternBlockEntity::dispatchTickBlockEntity : null;
     }
 //?}
 

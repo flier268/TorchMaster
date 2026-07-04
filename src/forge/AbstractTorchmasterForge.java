@@ -15,7 +15,7 @@ public abstract class AbstractTorchmasterForge
         eventBus.addListener(this::doClientStuff);
         MinecraftForge.EVENT_BUS.addListener(AbstractTorchmasterForge::onRegisterCommands);
 
-        Torchmaster.init();
+        TorchmasterRuntime.init();
     }
 
     private void doClientStuff(final FMLClientSetupEvent event) {

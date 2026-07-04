@@ -3,7 +3,7 @@ package net.xalcon.torchmaster.mixin;
 import net.xalcon.torchmaster.Constants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.TitleScreen;
-import net.xalcon.torchmaster.Torchmaster;
+import net.xalcon.torchmaster.TorchmasterRuntime;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -15,7 +15,7 @@ public class MixinTitleScreen {
     @Inject(at = @At("HEAD"), method = "init()V")
     private void init(CallbackInfo info) {
 
-        Torchmaster.LOG.info("This line is printed by an example mod mixin from NeoForge!");
-        Torchmaster.LOG.info("MC Version: {}", Minecraft.getInstance().getVersionType());
+        TorchmasterRuntime.LOG.info("This line is printed by an example mod mixin from NeoForge!");
+        TorchmasterRuntime.LOG.info("MC Version: {}", Minecraft.getInstance().getVersionType());
     }
 }

@@ -1,6 +1,6 @@
 package net.xalcon.torchmaster;
 
-import net.xalcon.torchmaster.adapter.EntityTypeKey;
+import net.xalcon.torchmaster.port.EntityTypeKey;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;

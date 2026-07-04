@@ -9,7 +9,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerSpawnPhantomsEvent;
 import net.neoforged.neoforge.event.village.VillageSiegeEvent;
 import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
-import net.xalcon.torchmaster.events.TorchmasterEventHandler;
+import net.xalcon.torchmaster.events.SpawnEventBridge;
 
 @EventBusSubscriber(modid = Constants.MOD_ID)
 public class NeoforgeEventHandler
@@ -27,7 +27,7 @@ public class NeoforgeEventHandler
         var spawnType = event.getSpawnType();
         var entity = event.getEntity();
         var pos = new Vec3(event.getX(), event.getY(), event.getZ());
-        TorchmasterEventHandler.onCheckSpawn(spawnType, entity, pos, container);
+        SpawnEventBridge.onCheckSpawn(spawnType, entity, pos, container);
 
         event.setResult(switch(container.getResult())
         {
@@ -50,7 +50,7 @@ public class NeoforgeEventHandler
         var spawnType = event.getSpawnType();
         var entity = event.getEntity();
         var pos = new Vec3(event.getX(), event.getY(), event.getZ());
-        TorchmasterEventHandler.onCheckSpawn(spawnType, entity, pos, container);
+        SpawnEventBridge.onCheckSpawn(spawnType, entity, pos, container);
 
         event.setResult(switch(container.getResult())
         {
@@ -72,7 +72,7 @@ public class NeoforgeEventHandler
 
         var player = event.getEntity();
         var pos = player.position();
-        TorchmasterEventHandler.onPlayerSpawnPhantoms(player, pos, container);
+        SpawnEventBridge.onPlayerSpawnPhantoms(player, pos, container);
 
         event.setResult(switch(container.getResult())
         {
@@ -87,7 +87,7 @@ public class NeoforgeEventHandler
     {
         var container = new EventResultContainer(EventResult.DEFAULT);
 
-        TorchmasterEventHandler.onVillageSiege(event.getLevel(), event.getAttemptedSpawnPos(), container);
+        SpawnEventBridge.onVillageSiege(event.getLevel(), event.getAttemptedSpawnPos(), container);
 
         if(container.getResult() == EventResult.DENY)
             event.setCanceled(true);

@@ -22,7 +22,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.xalcon.torchmaster.TorchmasterClientBridge;
-import net.xalcon.torchmaster.Torchmaster;
+import net.xalcon.torchmaster.TorchmasterRuntime;
 
 public class EntityBlockingLightBlock extends Block
 {
@@ -86,7 +86,7 @@ public class EntityBlockingLightBlock extends Block
     @Override
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moving) {
         super.onPlace(state, level, pos, oldState, moving);
-        Torchmaster.getRegistryForLevel(level)
+        TorchmasterRuntime.getRegistryForLevel(level)
             .ifPresent(reg ->
                     reg.registerLight(lightType.KeyFactory.apply(pos), lightType.LightFactory.apply(pos)));
     }
@@ -103,7 +103,7 @@ public class EntityBlockingLightBlock extends Block
     //? if >=1.21.5 {
     /*@Override
     protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moving) {
-        Torchmaster.getRegistryForLevel(level)
+        TorchmasterRuntime.getRegistryForLevel(level)
             .ifPresent(reg ->
                     reg.unregisterLight(lightType.KeyFactory.apply(pos)));
         super.affectNeighborsAfterRemoval(state, level, pos, moving);
@@ -111,7 +111,7 @@ public class EntityBlockingLightBlock extends Block
     *///?} else {
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moving) {
-        Torchmaster.getRegistryForLevel(level)
+        TorchmasterRuntime.getRegistryForLevel(level)
             .ifPresent(reg ->
                     reg.unregisterLight(lightType.KeyFactory.apply(pos)));
         super.onRemove(state, level, pos, oldState, moving);

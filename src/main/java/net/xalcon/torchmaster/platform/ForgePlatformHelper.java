@@ -8,7 +8,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.xalcon.torchmaster.ModRegistry;
+import net.xalcon.torchmaster.TorchmasterContent;
 
 import java.util.Collection;
 
@@ -19,7 +19,7 @@ public class ForgePlatformHelper extends AbstractForgePlatformHelper
     {
         return CreativeModeTab.builder()
                 .title(Component.translatable("itemGroup." + name))
-                .icon(() -> new ItemStack(ModRegistry.itemMegaTorch.get()))
+                .icon(() -> new ItemStack(TorchmasterContent.itemMegaTorch.get()))
                 .displayItems((parameters, output) -> itemsToShow.forEach(itemRef -> output.accept(new ItemStack(itemRef.get()))))
                 .build();
     }
@@ -42,7 +42,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.event.CreativeModeTabEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.xalcon.torchmaster.Constants;
-import net.xalcon.torchmaster.ModRegistry;
+import net.xalcon.torchmaster.TorchmasterContent;
 
 import java.util.Collection;
 
@@ -53,7 +53,7 @@ public class ForgePlatformHelper extends AbstractForgePlatformHelper
     {
         return CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
                 .title(Component.translatable("itemGroup." + name))
-                .icon(() -> new ItemStack(ModRegistry.itemMegaTorch.get()))
+                .icon(() -> new ItemStack(TorchmasterContent.itemMegaTorch.get()))
                 .displayItems((parameters, output) -> itemsToShow.forEach(itemRef -> output.accept(new ItemStack(itemRef.get()))))
                 .build();
     }
@@ -64,7 +64,7 @@ public class ForgePlatformHelper extends AbstractForgePlatformHelper
         FMLJavaModLoadingContext.get().getModEventBus().addListener((CreativeModeTabEvent.Register event) ->
                 event.registerCreativeModeTab(new ResourceLocation(Constants.MOD_ID, name), builder -> builder
                         .title(Component.translatable("itemGroup." + name))
-                        .icon(() -> new ItemStack(ModRegistry.itemMegaTorch.get()))
+                        .icon(() -> new ItemStack(TorchmasterContent.itemMegaTorch.get()))
                         .displayItems((parameters, output) -> itemsToShow.forEach(itemRef -> output.accept(new ItemStack(itemRef.get()))))));
     }
 
@@ -81,7 +81,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.xalcon.torchmaster.ModRegistry;
+import net.xalcon.torchmaster.TorchmasterContent;
 
 import java.util.Collection;
 
@@ -93,7 +93,7 @@ public class ForgePlatformHelper extends AbstractForgePlatformHelper
         return new CreativeModeTab(name) {
             @Override
             public ItemStack makeIcon() {
-                return new ItemStack(ModRegistry.itemMegaTorch.get());
+                return new ItemStack(TorchmasterContent.itemMegaTorch.get());
             }
         };
     }
@@ -112,7 +112,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.xalcon.torchmaster.ModRegistry;
+import net.xalcon.torchmaster.TorchmasterContent;
 
 import java.util.Collection;
 
@@ -124,7 +124,7 @@ public class ForgePlatformHelper extends AbstractForgePlatformHelper
         return new CreativeModeTab(name) {
             @Override
             public ItemStack makeIcon() {
-                return new ItemStack(ModRegistry.itemMegaTorch.get());
+                return new ItemStack(TorchmasterContent.itemMegaTorch.get());
             }
         };
     }

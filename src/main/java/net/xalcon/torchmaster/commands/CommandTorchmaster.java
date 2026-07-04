@@ -17,9 +17,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.xalcon.torchmaster.Constants;
-import net.xalcon.torchmaster.Torchmaster;
-import net.xalcon.torchmaster.adapter.LightInfo;
-import net.xalcon.torchmaster.adapter.EntityTypeKey;
+import net.xalcon.torchmaster.TorchmasterRuntime;
+import net.xalcon.torchmaster.port.LightInfo;
+import net.xalcon.torchmaster.port.EntityTypeKey;
 
 public class CommandTorchmaster
 {
@@ -32,14 +32,14 @@ public class CommandTorchmaster
                 {
                     CommandSourceStack source = ctx.getSource();
                     MinecraftServer server = source.getServer();
-                    Torchmaster.LOG.info("#################################");
-                    Torchmaster.LOG.info("# Torchmaster Torch Dump Start  #");
-                    Torchmaster.LOG.info("#################################");
+                    TorchmasterRuntime.LOG.info("#################################");
+                    TorchmasterRuntime.LOG.info("# Torchmaster Torch Dump Start  #");
+                    TorchmasterRuntime.LOG.info("#################################");
                     for(ServerLevel level: server.getAllLevels())
                     {
-                        Torchmaster.getRegistryForLevel(level).ifPresent(container ->
+                        TorchmasterRuntime.getRegistryForLevel(level).ifPresent(container ->
                         {
-                            Torchmaster.LOG.info("Torches in dimension {}:",
+                            TorchmasterRuntime.LOG.info("Torches in dimension {}:",
                                     //? if >=1.21.11 {
                                     /*level.dimension().identifier()
                                     *///?} else {
@@ -47,12 +47,12 @@ public class CommandTorchmaster
                                     //?}
                             );
                             for(LightInfo torch: container.getEntries())
-                                Torchmaster.LOG.info("  {} @ {}/{}/{}", torch.name(), torch.position().x(), torch.position().y(), torch.position().z());
+                                TorchmasterRuntime.LOG.info("  {} @ {}/{}/{}", torch.name(), torch.position().x(), torch.position().y(), torch.position().z());
                         });
                     }
-                    Torchmaster.LOG.info("#################################");
-                    Torchmaster.LOG.info("# Torchmaster Torch Dump End    #");
-                    Torchmaster.LOG.info("#################################");
+                    TorchmasterRuntime.LOG.info("#################################");
+                    TorchmasterRuntime.LOG.info("# Torchmaster Torch Dump End    #");
+                    TorchmasterRuntime.LOG.info("#################################");
 
                     //? if >=1.20 {
                     source.sendSuccess(() -> Component.translatable(Constants.MOD_ID + ".command.torch_dump.completed"), false);
@@ -70,27 +70,27 @@ public class CommandTorchmaster
                 public int execute(CommandContext<CommandSourceStack> ctx)
                 {
                     CommandSourceStack source = ctx.getSource();
-                    Torchmaster.LOG.info("#################################");
-                    Torchmaster.LOG.info("# Torchmaster Entity Dump Start #");
-                    Torchmaster.LOG.info("#################################");
-                    Torchmaster.LOG.info("List of registered entities:");
+                    TorchmasterRuntime.LOG.info("#################################");
+                    TorchmasterRuntime.LOG.info("# Torchmaster Entity Dump Start #");
+                    TorchmasterRuntime.LOG.info("#################################");
+                    TorchmasterRuntime.LOG.info("List of registered entities:");
                     //? if >=1.19.3 {
                     BuiltInRegistries.ENTITY_TYPE.stream().map(BuiltInRegistries.ENTITY_TYPE::getKey).forEach(loc ->
 //?} else {
                     /*Registry.ENTITY_TYPE.stream().map(Registry.ENTITY_TYPE::getKey).forEach(loc ->
                     *///?}
-                            Torchmaster.LOG.info("  {}", loc));
+                            TorchmasterRuntime.LOG.info("  {}", loc));
 
-                    Torchmaster.LOG.info("Dread Lamp Registry Content:");
-                    for(EntityTypeKey loc: Torchmaster.DreadLampFilterRegistry.getEntities())
-                        Torchmaster.LOG.info("  {}", loc);
+                    TorchmasterRuntime.LOG.info("Dread Lamp Registry Content:");
+                    for(EntityTypeKey loc: TorchmasterRuntime.DreadLampFilterRegistry.getEntities())
+                        TorchmasterRuntime.LOG.info("  {}", loc);
 
-                    Torchmaster.LOG.info("Mega Torch Registry Content:");
-                    for(EntityTypeKey loc: Torchmaster.MegaTorchFilterRegistry.getEntities())
-                        Torchmaster.LOG.info("  {}", loc);
-                    Torchmaster.LOG.info("#################################");
-                    Torchmaster.LOG.info("# Torchmaster Entity Dump End   #");
-                    Torchmaster.LOG.info("#################################");
+                    TorchmasterRuntime.LOG.info("Mega Torch Registry Content:");
+                    for(EntityTypeKey loc: TorchmasterRuntime.MegaTorchFilterRegistry.getEntities())
+                        TorchmasterRuntime.LOG.info("  {}", loc);
+                    TorchmasterRuntime.LOG.info("#################################");
+                    TorchmasterRuntime.LOG.info("# Torchmaster Entity Dump End   #");
+                    TorchmasterRuntime.LOG.info("#################################");
                     //? if >=1.20 {
                     source.sendSuccess(() -> Component.translatable(Constants.MOD_ID + ".command.entity_dump.completed"), false);
 //?} elif >=1.19 {

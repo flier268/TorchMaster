@@ -11,7 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.xalcon.torchmaster.ModRegistry;
+import net.xalcon.torchmaster.TorchmasterContent;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
 import net.xalcon.torchmaster.config.TorchmasterTomlConfig;
 import net.xalcon.torchmaster.platform.services.IPlatformHelper;
@@ -41,7 +41,7 @@ public class FabricPlatformHelper implements IPlatformHelper {
     {
         return FabricItemGroup.builder()
                 .title(Component.translatable("itemGroup." + name))
-                .icon(() -> new ItemStack(ModRegistry.itemMegaTorch.get()))
+                .icon(() -> new ItemStack(TorchmasterContent.itemMegaTorch.get()))
                 .displayItems((parameters, output) -> itemsToShow.forEach(itemRef -> output.accept(new ItemStack(itemRef.get()))))
                 .build();
     }
@@ -68,7 +68,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.xalcon.torchmaster.ModRegistry;
+import net.xalcon.torchmaster.TorchmasterContent;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
 import net.xalcon.torchmaster.config.TorchmasterTomlConfig;
 import net.xalcon.torchmaster.platform.services.IPlatformHelper;
@@ -98,7 +98,7 @@ public class FabricPlatformHelper implements IPlatformHelper {
     {
         return FabricItemGroup.builder()
                 .title(Component.translatable("itemGroup." + name))
-                .icon(() -> new ItemStack(ModRegistry.itemMegaTorch.get()))
+                .icon(() -> new ItemStack(TorchmasterContent.itemMegaTorch.get()))
                 .displayItems((parameters, output) -> itemsToShow.forEach(itemRef -> output.accept(new ItemStack(itemRef.get()))))
                 .build();
     }
@@ -127,7 +127,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.xalcon.torchmaster.Constants;
-import net.xalcon.torchmaster.ModRegistry;
+import net.xalcon.torchmaster.TorchmasterContent;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
 import net.xalcon.torchmaster.config.TorchmasterTomlConfig;
 import net.xalcon.torchmaster.platform.services.IPlatformHelper;
@@ -156,7 +156,7 @@ public class FabricPlatformHelper implements IPlatformHelper {
     public CreativeModeTab createCreativeModeTab(String name, Collection<RegistryObject<Item>> itemsToShow)
     {
         return FabricItemGroupBuilder.create(new ResourceLocation(Constants.MOD_ID, name))
-                .icon(() -> new ItemStack(ModRegistry.itemMegaTorch.get()))
+                .icon(() -> new ItemStack(TorchmasterContent.itemMegaTorch.get()))
                 .appendItems(stacks -> itemsToShow.forEach(itemRef -> stacks.add(new ItemStack(itemRef.get()))))
                 .build();
     }

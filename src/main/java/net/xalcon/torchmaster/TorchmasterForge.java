@@ -14,7 +14,7 @@ public class TorchmasterForge extends AbstractTorchmasterForge
 
     private static void loadComplete(LevelEvent.Load event)
     {
-        Torchmaster.onWorldLoaded();
+        TorchmasterRuntime.onWorldLoaded();
     }
 
 }
@@ -32,7 +32,7 @@ public class TorchmasterForge extends AbstractTorchmasterForge
 
     private static void loadComplete(WorldEvent.Load event)
     {
-        Torchmaster.onWorldLoaded();
+        TorchmasterRuntime.onWorldLoaded();
     }
 
 }

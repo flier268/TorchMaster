@@ -9,7 +9,7 @@ import net.minecraft.world.item.TooltipFlag;
 *///?}
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.xalcon.torchmaster.minecraft.MinecraftText;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftText;
 
 import javax.annotation.Nullable;
 import java.util.List;

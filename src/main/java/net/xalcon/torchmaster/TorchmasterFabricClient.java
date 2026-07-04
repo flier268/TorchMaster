@@ -12,7 +12,7 @@ import net.xalcon.torchmaster.client.TorchmasterLightScreen;
 public class TorchmasterFabricClient implements ClientModInitializer {
     public void onInitializeClient()
     {
-        BlockRenderLayerMap.putBlock(ModRegistry.blockDreadLamp.get(), ChunkSectionLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(TorchmasterContent.blockDreadLamp.get(), ChunkSectionLayer.CUTOUT);
         TorchmasterClientBridge.setLightScreenOpener(TorchmasterLightScreen::open);
         registerConfigKey();
     }
@@ -39,7 +39,7 @@ import net.xalcon.torchmaster.client.TorchmasterLightScreen;
 public class TorchmasterFabricClient implements ClientModInitializer {
     public void onInitializeClient()
     {
-        BlockRenderLayerMap.putBlock(ModRegistry.blockDreadLamp.get(), ChunkSectionLayer.CUTOUT);
+        BlockRenderLayerMap.putBlock(TorchmasterContent.blockDreadLamp.get(), ChunkSectionLayer.CUTOUT);
         TorchmasterClientBridge.setLightScreenOpener(TorchmasterLightScreen::open);
         registerConfigKey();
     }
@@ -69,7 +69,7 @@ import net.xalcon.torchmaster.client.TorchmasterLightScreen;
 public class TorchmasterFabricClient implements ClientModInitializer {
     public void onInitializeClient()
     {
-        BlockRenderLayerMap.INSTANCE.putBlock(ModRegistry.blockDreadLamp.get(), RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(TorchmasterContent.blockDreadLamp.get(), RenderType.cutout());
         TorchmasterClientBridge.setLightScreenOpener(TorchmasterLightScreen::open);
         registerConfigKey();
         WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
@@ -104,7 +104,7 @@ import net.xalcon.torchmaster.client.TorchmasterLightScreen;
 public class TorchmasterFabricClient implements ClientModInitializer {
     public void onInitializeClient()
     {
-        BlockRenderLayerMap.INSTANCE.putBlock(ModRegistry.blockDreadLamp.get(), RenderType.cutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(TorchmasterContent.blockDreadLamp.get(), RenderType.cutout());
         TorchmasterClientBridge.setLightScreenOpener(TorchmasterLightScreen::open);
         registerConfigKey();
         WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {

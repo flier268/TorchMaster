@@ -17,8 +17,8 @@ import net.minecraft.world.item.TooltipFlag;
 *///?}
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.xalcon.torchmaster.ModRegistry;
-import net.xalcon.torchmaster.minecraft.MinecraftText;
+import net.xalcon.torchmaster.TorchmasterContent;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftText;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -58,7 +58,7 @@ public class FrozenPearlItem extends Item
                 {
                     checkPos.set(pos.getX() + x, pos.getY() + y, pos.getZ() + z);
                     Block block = level.getBlockState(checkPos).getBlock();
-                    if(block == ModRegistry.blockInvisibleLight.get())
+                    if(block == TorchmasterContent.blockInvisibleLight.get())
                     {
                         level.removeBlock(checkPos, false);
                         if(itemStack.isEmpty())

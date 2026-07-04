@@ -18,10 +18,10 @@ import net.minecraft.network.chat.Component;
 /*import net.minecraft.network.chat.TextComponent;
 *///?}
 import net.xalcon.torchmaster.EntityFilterList;
-import net.xalcon.torchmaster.Torchmaster;
+import net.xalcon.torchmaster.TorchmasterRuntime;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
 import net.xalcon.torchmaster.config.TorchmasterTomlConfig;
-import net.xalcon.torchmaster.minecraft.MinecraftText;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftText;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -61,7 +61,7 @@ public class TorchmasterConfigScreen extends Screen
     protected void init()
     {
         entries.clear();
-        ITorchmasterConfig config = Torchmaster.getConfig();
+        ITorchmasterConfig config = TorchmasterRuntime.getConfig();
 
         int fieldX = fieldX();
         int fieldWidth = fieldWidth();
@@ -172,7 +172,7 @@ public class TorchmasterConfigScreen extends Screen
 
     private void save()
     {
-        ITorchmasterConfig loadedConfig = Torchmaster.getConfig();
+        ITorchmasterConfig loadedConfig = TorchmasterRuntime.getConfig();
         if (!(loadedConfig instanceof TorchmasterTomlConfig)) {
             setStatus("screen.torchmaster.config.unsupported", 0xFFFF5555);
             return;
@@ -199,7 +199,7 @@ public class TorchmasterConfigScreen extends Screen
                 booleans.get(2),
                 lists.get(0),
                 lists.get(1));
-        Torchmaster.onWorldLoaded();
+        TorchmasterRuntime.onWorldLoaded();
         setStatus("screen.torchmaster.config.saved", 0xFF55FF55);
     }
 

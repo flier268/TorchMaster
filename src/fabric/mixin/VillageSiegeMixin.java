@@ -8,7 +8,7 @@ import net.minecraft.world.entity.ai.village.VillageSiege;
 import net.minecraft.world.phys.Vec3;
 import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
-import net.xalcon.torchmaster.events.TorchmasterEventHandler;
+import net.xalcon.torchmaster.events.SpawnEventBridge;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -35,7 +35,7 @@ public abstract class VillageSiegeMixin
         if(result != null)
         {
             var container = new EventResultContainer(EventResult.DEFAULT);
-            TorchmasterEventHandler.onVillageSiege(level, result, container);
+            SpawnEventBridge.onVillageSiege(level, result, container);
             if(container.getResult() == EventResult.DENY)
                 return null;
         }

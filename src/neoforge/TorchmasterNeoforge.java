@@ -23,17 +23,17 @@ public class TorchmasterNeoforge
         NeoForge.EVENT_BUS.addListener(TorchmasterNeoforge::onRegisterCommands);
 
         // Use NeoForge to bootstrap the Common mod.
-        Torchmaster.init();
+        TorchmasterRuntime.init();
     }
 
     private static void loadComplete(LevelEvent.Load event)
     {
-        Torchmaster.onWorldLoaded();
+        TorchmasterRuntime.onWorldLoaded();
     }
 
     private void doClientStuff(final FMLClientSetupEvent event) {
         // In neoforge, rendertype is configured via the model.json
-        // ItemBlockRenderTypes.setRenderLayer(ModRegistry.blockDreadLamp.get(), RenderType.cutout());
+        // ItemBlockRenderTypes.setRenderLayer(TorchmasterContent.blockDreadLamp.get(), RenderType.cutout());
     }
 
     private static void onRegisterCommands(RegisterCommandsEvent event)

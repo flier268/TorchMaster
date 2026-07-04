@@ -9,14 +9,14 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
-import net.xalcon.torchmaster.events.TorchmasterEventHandler;
+import net.xalcon.torchmaster.events.SpawnEventBridge;
 
 public class NaturalSpawnerWrapper {
 
     public static boolean isValidEmptySpawnBlock(BlockGetter block, BlockPos pos, BlockState blockState, FluidState fluidState, EntityType<?> entityType, Operation<Boolean> original, ServerPlayer player)
     {
         var container = new EventResultContainer(EventResult.DEFAULT);
-        TorchmasterEventHandler.onPlayerSpawnPhantoms(player, player.position(), container);
+        SpawnEventBridge.onPlayerSpawnPhantoms(player, player.position(), container);
         return switch(container.getResult())
         {
             // Make sure we call the origínal

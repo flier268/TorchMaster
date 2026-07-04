@@ -22,11 +22,11 @@ import net.minecraft.world.phys.Vec3;
 //? if >=1.21
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.xalcon.torchmaster.Constants;
-import net.xalcon.torchmaster.ModRegistry;
-import net.xalcon.torchmaster.Torchmaster;
+import net.xalcon.torchmaster.TorchmasterContent;
+import net.xalcon.torchmaster.TorchmasterRuntime;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
-import net.xalcon.torchmaster.core.FeralFlareLightPlanner;
-import net.xalcon.torchmaster.minecraft.MinecraftAdapterViews;
+import net.xalcon.torchmaster.domain.FeralFlareLightPlanner;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftAdapterViews;
 import net.xalcon.torchmaster.platform.Services;
 
 import java.util.ArrayList;
@@ -43,9 +43,9 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
     public FeralFlareLanternBlockEntity(BlockPos pos, BlockState state)
     {
         //? if >=1.17 {
-        super(ModRegistry.tileFeralFlareLantern.get(), pos, state);
+        super(TorchmasterContent.tileFeralFlareLantern.get(), pos, state);
 	//?} else {
-        /*super(ModRegistry.tileFeralFlareLantern.get());
+        /*super(TorchmasterContent.tileFeralFlareLantern.get());
         this.setPosition(pos);
         *///?}
     }
@@ -119,9 +119,9 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
             }
 
             //? if >=1.17 {
-            if(this.level.setBlock(targetPos, ModRegistry.blockInvisibleLight.get().defaultBlockState(), Block.UPDATE_ALL))
+            if(this.level.setBlock(targetPos, TorchmasterContent.blockInvisibleLight.get().defaultBlockState(), Block.UPDATE_ALL))
 //?} else {
-            /*if(this.level.setBlock(targetPos, ModRegistry.blockInvisibleLight.get().defaultBlockState(), 3))
+            /*if(this.level.setBlock(targetPos, TorchmasterContent.blockInvisibleLight.get().defaultBlockState(), 3))
             *///?}
             {
                 this.childLights.add(targetPos);
@@ -334,7 +334,7 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
 
     public void setUseLineOfSight(boolean state)
     {
-        Torchmaster.LOG.info("Current: {}, New: {}", useLineOfSight, state);
+        TorchmasterRuntime.LOG.info("Current: {}, New: {}", useLineOfSight, state);
         this.useLineOfSight = state;
         this.setChanged();
         BlockState blockState = this.level.getBlockState(this.worldPosition);
@@ -353,7 +353,7 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
         ) return;
         for(BlockPos pos : this.childLights)
         {
-            if (this.level.getBlockState(pos).getBlock() == ModRegistry.blockInvisibleLight.get())
+            if (this.level.getBlockState(pos).getBlock() == TorchmasterContent.blockInvisibleLight.get())
             {
                 this.level.removeBlock(pos, false);
             }

@@ -1,7 +1,7 @@
 package net.xalcon.torchmaster;
 
-import net.xalcon.torchmaster.adapter.EntityTypeKey;
-import net.xalcon.torchmaster.minecraft.MinecraftEntityIds;
+import net.xalcon.torchmaster.port.EntityTypeKey;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftEntityIds;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -53,7 +53,7 @@ public class EntityFilterList
 			// minimum len is prefix + valid resource location, i.e. +a:b
 			if(override.length() < 4)
 			{
-				Torchmaster.LOG.warn("[{}] Invalid filter definition '{}'", filterListId, override);
+				TorchmasterRuntime.LOG.warn("[{}] Invalid filter definition '{}'", filterListId, override);
 				continue;
 			}
 
@@ -62,7 +62,7 @@ public class EntityFilterList
 			try {
 				entityType = MinecraftEntityIds.parseEntityTypeKey(override.substring(1));
 			} catch (RuntimeException ignored) {
-				Torchmaster.LOG.warn("[{}] Invalid entity id '{}'", filterListId, override.substring(1));
+				TorchmasterRuntime.LOG.warn("[{}] Invalid entity id '{}'", filterListId, override.substring(1));
 				continue;
 			}
 
@@ -73,21 +73,21 @@ public class EntityFilterList
 					{
 						if(!entityExists.test(entityType))
 						{
-							Torchmaster.LOG.warn("[{}] The entity '{}' does not exist, skipping", filterListId, entityType);
+							TorchmasterRuntime.LOG.warn("[{}] The entity '{}' does not exist, skipping", filterListId, entityType);
 							continue;
 						}
 						this.registerEntity(entityType);
-						Torchmaster.LOG.info("[{}] Added '{}' to the block list", filterListId, entityType);
+						TorchmasterRuntime.LOG.info("[{}] Added '{}' to the block list", filterListId, entityType);
 					}
 					break;
 				case '-':
 					if(this.list.removeIf(registeredEntity -> registeredEntity.equals(entityType)))
 					{
-						Torchmaster.LOG.info("[{}] Removed '{}' from the block list", filterListId, entityType);
+						TorchmasterRuntime.LOG.info("[{}] Removed '{}' from the block list", filterListId, entityType);
 					}
 					break;
 				default:
-					Torchmaster.LOG.warn("[{}] Invalid block list prefix: '{}', only + and - are valid prefixes", filterListId, prefix);
+					TorchmasterRuntime.LOG.warn("[{}] Invalid block list prefix: '{}', only + and - are valid prefixes", filterListId, prefix);
 					break;
 			}
 		}

@@ -5,7 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
-import net.xalcon.torchmaster.ModRegistry;
+import net.xalcon.torchmaster.TorchmasterContent;
 import net.xalcon.torchmaster.blocks.LightType;
 
 import java.util.ArrayList;
@@ -106,10 +106,10 @@ public final class TorchmasterLightRangeDisplay
     private static boolean isExpectedLight(Level level, BlockPos pos, LightType lightType)
     {
         if (lightType == LightType.MegaTorch) {
-            return level.getBlockState(pos).getBlock() == ModRegistry.blockMegaTorch.get();
+            return level.getBlockState(pos).getBlock() == TorchmasterContent.blockMegaTorch.get();
         }
         if (lightType == LightType.DreadLamp) {
-            return level.getBlockState(pos).getBlock() == ModRegistry.blockDreadLamp.get();
+            return level.getBlockState(pos).getBlock() == TorchmasterContent.blockDreadLamp.get();
         }
         return false;
     }

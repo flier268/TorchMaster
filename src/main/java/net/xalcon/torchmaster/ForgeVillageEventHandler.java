@@ -7,7 +7,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
-import net.xalcon.torchmaster.events.TorchmasterEventHandler;
+import net.xalcon.torchmaster.events.SpawnEventBridge;
 
 @Mod.EventBusSubscriber(modid = Constants.MOD_ID)
 public class ForgeVillageEventHandler
@@ -17,7 +17,7 @@ public class ForgeVillageEventHandler
     {
         EventResultContainer container = new EventResultContainer(EventResult.DEFAULT);
 
-        TorchmasterEventHandler.onVillageSiege(event.getLevel(), event.getAttemptedSpawnPos(), container);
+        SpawnEventBridge.onVillageSiege(event.getLevel(), event.getAttemptedSpawnPos(), container);
 
         if(container.getResult() == EventResult.DENY)
             event.setCanceled(true);
@@ -30,7 +30,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
-import net.xalcon.torchmaster.events.TorchmasterEventHandler;
+import net.xalcon.torchmaster.events.SpawnEventBridge;
 
 @Mod.EventBusSubscriber(modid = Constants.MOD_ID)
 public class ForgeVillageEventHandler
@@ -40,7 +40,7 @@ public class ForgeVillageEventHandler
     {
         EventResultContainer container = new EventResultContainer(EventResult.DEFAULT);
 
-        TorchmasterEventHandler.onVillageSiege(event.getWorld(), event.getAttemptedSpawnPos(), container);
+        SpawnEventBridge.onVillageSiege(event.getWorld(), event.getAttemptedSpawnPos(), container);
 
         if(container.getResult() == EventResult.DENY)
             event.setCanceled(true);

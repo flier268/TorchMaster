@@ -7,14 +7,14 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.LevelAccessor;
 import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
-import net.xalcon.torchmaster.events.TorchmasterEventHandler;
+import net.xalcon.torchmaster.events.SpawnEventBridge;
 
 public abstract class MobWrapper
 {
     public static boolean checkSpawnRules(Mob mob, LevelAccessor level, EntitySpawnReason spawnReason, Operation<Boolean> original)
     {
         var container = new EventResultContainer(EventResult.DEFAULT);
-        TorchmasterEventHandler.onCheckSpawn(spawnReason, mob, mob.position(), container);
+        SpawnEventBridge.onCheckSpawn(spawnReason, mob, mob.position(), container);
         return switch(container.getResult())
         {
             case DEFAULT -> original.call(mob, level, spawnReason);
@@ -30,14 +30,14 @@ import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.level.LevelAccessor;
 import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
-import net.xalcon.torchmaster.events.TorchmasterEventHandler;
+import net.xalcon.torchmaster.events.SpawnEventBridge;
 
 public abstract class MobWrapper
 {
     public static boolean checkSpawnRules(Mob mob, LevelAccessor level, MobSpawnType spawnReason, Operation<Boolean> original)
     {
         var container = new EventResultContainer(EventResult.DEFAULT);
-        TorchmasterEventHandler.onCheckSpawn(spawnReason, mob, mob.position(), container);
+        SpawnEventBridge.onCheckSpawn(spawnReason, mob, mob.position(), container);
         return switch(container.getResult())
         {
             case DEFAULT -> original.call(mob, level, spawnReason);

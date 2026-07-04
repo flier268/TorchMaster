@@ -16,6 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class StonecutterSourcePolicyTest
 {
     private static final Pattern VERSION_CONDITION = Pattern.compile("//\\?\\s*(if|elif|else if)\\b.*(?:[<>]=?|=)\\s*1\\.");
+    private static final Pattern PLATFORM_IMPORT = Pattern.compile(
+            "^import\\s+(net\\.minecraft|net\\.fabricmc|net\\.minecraftforge|net\\.neoforged)\\.");
 
     @Test
     void loaderSourceRootsDoNotContainMinecraftVersionConditions() throws IOException
@@ -25,6 +27,18 @@ class StonecutterSourcePolicyTest
                 .collect(Collectors.toList());
 
         assertTrue(violations.isEmpty(), () -> "Move Minecraft-version Stonecutter branches to shared sources: " + violations);
+    }
+
+    @Test
+    void domainAndPortRemainPlatformFree() throws IOException
+    {
+        List<Path> violations = javaFilesIn(
+                "src/main/java/net/xalcon/torchmaster/domain",
+                "src/main/java/net/xalcon/torchmaster/port")
+                .filter(StonecutterSourcePolicyTest::hasPlatformImport)
+                .collect(Collectors.toList());
+
+        assertTrue(violations.isEmpty(), () -> "Keep domain and port packages Minecraft/loader-free: " + violations);
     }
 
     private static Stream<Path> javaFilesIn(String... roots) throws IOException
@@ -46,6 +60,15 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> VERSION_CONDITION.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasPlatformImport(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> PLATFORM_IMPORT.matcher(line).find());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }

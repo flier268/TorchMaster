@@ -16,10 +16,10 @@ import net.minecraft.network.chat.Component;
 *///?}
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
-import net.xalcon.torchmaster.Torchmaster;
+import net.xalcon.torchmaster.TorchmasterRuntime;
 import net.xalcon.torchmaster.blocks.LightType;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
-import net.xalcon.torchmaster.minecraft.MinecraftText;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftText;
 
 public class TorchmasterLightScreen extends Screen
 {
@@ -43,7 +43,7 @@ public class TorchmasterLightScreen extends Screen
         this.pos = pos.immutable();
         this.dimension = dimension;
         this.lightType = lightType;
-        this.radius = radiusFor(lightType, Torchmaster.getConfig());
+        this.radius = radiusFor(lightType, TorchmasterRuntime.getConfig());
     }
 
     public static void open(BlockPos pos, ResourceKey<Level> dimension, LightType lightType)

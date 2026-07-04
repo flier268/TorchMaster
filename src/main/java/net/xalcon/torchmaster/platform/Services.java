@@ -1,7 +1,7 @@
 package net.xalcon.torchmaster.platform;
 
 import net.xalcon.torchmaster.Constants;
-import net.xalcon.torchmaster.Torchmaster;
+import net.xalcon.torchmaster.TorchmasterRuntime;
 import net.xalcon.torchmaster.platform.services.IPlatformHelper;
 
 import java.util.ServiceLoader;
@@ -27,7 +27,7 @@ public class Services {
             throw new NullPointerException("Failed to load service for " + clazz.getName());
 
         final T loadedService = loader.iterator().next();
-        Torchmaster.LOG.debug("Loaded {} for service {}", loadedService, clazz);
+        TorchmasterRuntime.LOG.debug("Loaded {} for service {}", loadedService, clazz);
         return loadedService;
     }
 }
