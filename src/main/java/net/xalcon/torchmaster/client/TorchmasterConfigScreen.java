@@ -365,16 +365,14 @@ public class TorchmasterConfigScreen extends Screen
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick)
     {
-        //? if >=1.21 {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
-        //?} else {
-        /*renderBackground(graphics);
-        *///?}
         int left = panelLeft();
         int right = left + panelWidth();
-        graphics.fill(left, 32, right, height - 34, 0xAA101010);
-        graphics.fill(left, 32, right, 33, 0xFF404040);
-        graphics.fill(left, height - 35, right, height - 34, 0xFF404040);
+        int top = 32;
+        int bottom = height - 34;
+
+        super.render(graphics, mouseX, mouseY, partialTick);
+
+        drawPanelFrame(graphics, left, top, right, bottom);
         graphics.drawCenteredString(font, title, width / 2, 14, 0xFFFFFFFF);
 
         for (Entry entry : entries) {
@@ -383,19 +381,19 @@ public class TorchmasterConfigScreen extends Screen
             }
         }
         graphics.drawCenteredString(font, status, width / 2, height - 48, statusColor);
-
-        super.render(graphics, mouseX, mouseY, partialTick);
     }
     //?} else {
     /*@Override
     public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick)
     {
-        renderBackground(poseStack);
         int left = panelLeft();
         int right = left + panelWidth();
-        fill(poseStack, left, 32, right, height - 34, 0xAA101010);
-        fill(poseStack, left, 32, right, 33, 0xFF404040);
-        fill(poseStack, left, height - 35, right, height - 34, 0xFF404040);
+        int top = 32;
+        int bottom = height - 34;
+
+        super.render(poseStack, mouseX, mouseY, partialTick);
+
+        drawPanelFrame(poseStack, left, top, right, bottom);
         drawCenteredString(poseStack, font, title, width / 2, 14, 0xFFFFFFFF);
 
         for (Entry entry : entries) {
@@ -404,8 +402,53 @@ public class TorchmasterConfigScreen extends Screen
             }
         }
         drawCenteredString(poseStack, font, status, width / 2, height - 48, statusColor);
+    }
+    *///?}
 
-        super.render(poseStack, mouseX, mouseY, partialTick);
+    //? if >=1.21 {
+    @Override
+    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick)
+    {
+        super.renderBackground(graphics, mouseX, mouseY, partialTick);
+        graphics.fill(panelLeft(), 32, panelLeft() + panelWidth(), height - 34, 0xAA101010);
+    }
+
+    private void drawPanelFrame(GuiGraphics graphics, int left, int top, int right, int bottom)
+    {
+        graphics.fill(left, top, right, top + 1, 0xFF404040);
+        graphics.fill(left, top, left + 1, bottom, 0xFF404040);
+        graphics.fill(left, bottom - 1, right, bottom, 0xFF202020);
+        graphics.fill(right - 1, top, right, bottom, 0xFF202020);
+    }
+    //?} else if >=1.20 {
+    /*@Override
+    public void renderBackground(GuiGraphics graphics)
+    {
+        super.renderBackground(graphics);
+        graphics.fill(panelLeft(), 32, panelLeft() + panelWidth(), height - 34, 0xAA101010);
+    }
+
+    private void drawPanelFrame(GuiGraphics graphics, int left, int top, int right, int bottom)
+    {
+        graphics.fill(left, top, right, top + 1, 0xFF404040);
+        graphics.fill(left, top, left + 1, bottom, 0xFF404040);
+        graphics.fill(left, bottom - 1, right, bottom, 0xFF202020);
+        graphics.fill(right - 1, top, right, bottom, 0xFF202020);
+    }
+    *///?} else {
+    /*@Override
+    public void renderBackground(PoseStack poseStack)
+    {
+        super.renderBackground(poseStack);
+        fill(poseStack, panelLeft(), 32, panelLeft() + panelWidth(), height - 34, 0xAA101010);
+    }
+
+    private void drawPanelFrame(PoseStack poseStack, int left, int top, int right, int bottom)
+    {
+        fill(poseStack, left, top, right, top + 1, 0xFF404040);
+        fill(poseStack, left, top, left + 1, bottom, 0xFF404040);
+        fill(poseStack, left, bottom - 1, right, bottom, 0xFF202020);
+        fill(poseStack, right - 1, top, right, bottom, 0xFF202020);
     }
     *///?}
 

@@ -5,6 +5,15 @@ import net.minecraft.core.registries.Registries;
 //?} else {
 /*import net.minecraft.core.Registry;
 *///?}
+//? if >=1.21.11 {
+/*import net.minecraft.resources.Identifier;
+*///?} else if >=1.21.2 {
+/*import net.minecraft.resources.ResourceLocation;
+*///?}
+//? if >=1.21.2
+//import net.minecraft.resources.ResourceKey;
+//? if >=1.21.2
+//import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -61,7 +70,7 @@ public class TorchmasterContent
          Mega Torch
          */
         blockMegaTorch = BLOCKS.register("megatorch", () -> new EntityBlockingLightBlock(
-                MinecraftBlockProperties.megaTorch(),
+                blockProperties("megatorch", MinecraftBlockProperties.megaTorch()),
                 LightType.MegaTorch));
         itemMegaTorch = fromBlock(blockMegaTorch);
         creativeTabItems.add(itemMegaTorch);
@@ -70,7 +79,7 @@ public class TorchmasterContent
          Dread Lamp
          */
         blockDreadLamp = BLOCKS.register("dreadlamp", () -> new EntityBlockingLightBlock(
-                MinecraftBlockProperties.dreadLamp(),
+                blockProperties("dreadlamp", MinecraftBlockProperties.dreadLamp()),
                 LightType.DreadLamp));
         itemDreadLamp = fromBlock(blockDreadLamp);
         creativeTabItems.add(itemDreadLamp);
@@ -79,18 +88,18 @@ public class TorchmasterContent
          Feral Flare Lantern
          */
         blockFeralFlareLantern = BLOCKS.register("feral_flare_lantern", () -> new FeralFlareLanternBlock(
-                MinecraftBlockProperties.feralFlareLantern())
+                blockProperties("feral_flare_lantern", MinecraftBlockProperties.feralFlareLantern()))
         );
         tileFeralFlareLantern = BLOCK_ENTITIES.register(blockFeralFlareLantern.getId().getPath(),
                 () -> Services.PLATFORM.createBlockEntityType(FeralFlareLanternBlockEntity::new, blockFeralFlareLantern.get()));
         itemFeralFlareLantern = fromBlock(blockFeralFlareLantern);
         creativeTabItems.add(itemFeralFlareLantern);
 
-        itemFrozenPearl = ITEMS.register("frozen_pearl", () -> new FrozenPearlItem(itemProperties()));
+        itemFrozenPearl = ITEMS.register("frozen_pearl", () -> new FrozenPearlItem(itemProperties("frozen_pearl")));
         creativeTabItems.add(itemFrozenPearl);
 
         blockInvisibleLight = BLOCKS.register("invisible_light", () -> new InvisibleLightBlock(
-                MinecraftBlockProperties.invisibleLight())
+                blockProperties("invisible_light", MinecraftBlockProperties.invisibleLight()))
         );
 
         /**
@@ -107,10 +116,40 @@ public class TorchmasterContent
     }
 
     private static <B extends Block> RegistryObject<Item> fromBlock(RegistryObject<B> block, Consumer<Item.Properties> propertiesConfig) {
-        Item.Properties properties = itemProperties();
+        Item.Properties properties = blockItemProperties(block.getId().getPath());
         propertiesConfig.accept(properties);
         return ITEMS.register(block.getId().getPath(), () -> new TMItemBlock(block.get(), properties));
     }
+
+    private static <P> P blockProperties(String name, P properties) {
+        //? if >=1.21.2
+        //((BlockBehaviour.Properties) properties).setId(ResourceKey.create(Registries.BLOCK, resourceLocation(name)));
+        return properties;
+    }
+
+    private static Item.Properties blockItemProperties(String name) {
+        Item.Properties properties = itemProperties(name);
+        //? if >=1.21.2
+        //properties.useBlockDescriptionPrefix();
+        return properties;
+    }
+
+    private static Item.Properties itemProperties(String name) {
+        Item.Properties properties = itemProperties();
+        //? if >=1.21.2
+        //properties.setId(ResourceKey.create(Registries.ITEM, resourceLocation(name)));
+        return properties;
+    }
+
+    //? if >=1.21.11 {
+    /*private static Identifier resourceLocation(String name) {
+        return Identifier.tryBuild(Constants.MOD_ID, name);
+    }
+    *///?} else if >=1.21.2 {
+    /*private static ResourceLocation resourceLocation(String name) {
+        return ResourceLocation.tryBuild(Constants.MOD_ID, name);
+    }
+    *///?}
 
     private static Item.Properties itemProperties() {
         Item.Properties properties = new Item.Properties();

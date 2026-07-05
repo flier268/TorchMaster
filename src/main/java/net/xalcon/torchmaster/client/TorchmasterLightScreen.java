@@ -89,43 +89,86 @@ public class TorchmasterLightScreen extends Screen
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick)
     {
-        //? if >=1.21 {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
-        //?} else {
-        /*renderBackground(graphics);
-        *///?}
         int left = (width - PANEL_WIDTH) / 2;
         int top = Math.max(20, (height - PANEL_HEIGHT) / 2);
         int right = left + PANEL_WIDTH;
         int bottom = top + PANEL_HEIGHT;
 
-        graphics.fill(left, top, right, bottom, 0xAA101010);
-        graphics.fill(left, top, right, top + 1, 0xFF404040);
-        graphics.fill(left, bottom - 1, right, bottom, 0xFF404040);
+        super.render(graphics, mouseX, mouseY, partialTick);
+
+        drawPanelFrame(graphics, left, top, right, bottom);
         graphics.drawCenteredString(font, title, width / 2, top + 10, 0xFFFFFFFF);
         graphics.drawCenteredString(font, blockName(), width / 2, top + 28, 0xFFE0E0E0);
         graphics.drawCenteredString(font, text("screen.torchmaster.light.range", radius), width / 2, top + 42, 0xFFA0FFA0);
-
-        super.render(graphics, mouseX, mouseY, partialTick);
     }
     //?} else {
     /*@Override
     public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick)
     {
-        renderBackground(poseStack);
         int left = (width - PANEL_WIDTH) / 2;
         int top = Math.max(20, (height - PANEL_HEIGHT) / 2);
         int right = left + PANEL_WIDTH;
         int bottom = top + PANEL_HEIGHT;
 
-        fill(poseStack, left, top, right, bottom, 0xAA101010);
-        fill(poseStack, left, top, right, top + 1, 0xFF404040);
-        fill(poseStack, left, bottom - 1, right, bottom, 0xFF404040);
+        super.render(poseStack, mouseX, mouseY, partialTick);
+
+        drawPanelFrame(poseStack, left, top, right, bottom);
         drawCenteredString(poseStack, font, title, width / 2, top + 10, 0xFFFFFFFF);
         drawCenteredString(poseStack, font, blockName(), width / 2, top + 28, 0xFFE0E0E0);
         drawCenteredString(poseStack, font, text("screen.torchmaster.light.range", radius), width / 2, top + 42, 0xFFA0FFA0);
+    }
+    *///?}
 
-        super.render(poseStack, mouseX, mouseY, partialTick);
+    //? if >=1.21 {
+    @Override
+    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick)
+    {
+        super.renderBackground(graphics, mouseX, mouseY, partialTick);
+        int left = (width - PANEL_WIDTH) / 2;
+        int top = Math.max(20, (height - PANEL_HEIGHT) / 2);
+        graphics.fill(left, top, left + PANEL_WIDTH, top + PANEL_HEIGHT, 0xAA101010);
+    }
+
+    private void drawPanelFrame(GuiGraphics graphics, int left, int top, int right, int bottom)
+    {
+        graphics.fill(left, top, right, top + 1, 0xFF404040);
+        graphics.fill(left, top, left + 1, bottom, 0xFF404040);
+        graphics.fill(left, bottom - 1, right, bottom, 0xFF202020);
+        graphics.fill(right - 1, top, right, bottom, 0xFF202020);
+    }
+    //?} else if >=1.20 {
+    /*@Override
+    public void renderBackground(GuiGraphics graphics)
+    {
+        super.renderBackground(graphics);
+        int left = (width - PANEL_WIDTH) / 2;
+        int top = Math.max(20, (height - PANEL_HEIGHT) / 2);
+        graphics.fill(left, top, left + PANEL_WIDTH, top + PANEL_HEIGHT, 0xAA101010);
+    }
+
+    private void drawPanelFrame(GuiGraphics graphics, int left, int top, int right, int bottom)
+    {
+        graphics.fill(left, top, right, top + 1, 0xFF404040);
+        graphics.fill(left, top, left + 1, bottom, 0xFF404040);
+        graphics.fill(left, bottom - 1, right, bottom, 0xFF202020);
+        graphics.fill(right - 1, top, right, bottom, 0xFF202020);
+    }
+    *///?} else {
+    /*@Override
+    public void renderBackground(PoseStack poseStack)
+    {
+        super.renderBackground(poseStack);
+        int left = (width - PANEL_WIDTH) / 2;
+        int top = Math.max(20, (height - PANEL_HEIGHT) / 2);
+        fill(poseStack, left, top, left + PANEL_WIDTH, top + PANEL_HEIGHT, 0xAA101010);
+    }
+
+    private void drawPanelFrame(PoseStack poseStack, int left, int top, int right, int bottom)
+    {
+        fill(poseStack, left, top, right, top + 1, 0xFF404040);
+        fill(poseStack, left, top, left + 1, bottom, 0xFF404040);
+        fill(poseStack, left, bottom - 1, right, bottom, 0xFF202020);
+        fill(poseStack, right - 1, top, right, bottom, 0xFF202020);
     }
     *///?}
 

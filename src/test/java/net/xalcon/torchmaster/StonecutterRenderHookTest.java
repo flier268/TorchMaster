@@ -37,21 +37,25 @@ class StonecutterRenderHookTest
                 "net.xalcon.torchmaster.TorchmasterNeoforgeClient",
                 "onRenderLevelStage",
                 "net.neoforged.neoforge.client.event.RenderLevelStageEvent");
-        *///?} elif fabric && >=1.21.8 {
+        *///?} elif fabric && 1.21.9 {
         /*assertStaticMethod(
                 "net.xalcon.torchmaster.mixin.LevelRendererMixin",
                 "renderRange",
-                "net.minecraft.client.Camera");
+                "com.mojang.blaze3d.vertex.PoseStack",
+                "net.minecraft.client.renderer.MultiBufferSource$BufferSource");
         *///?} elif fabric {
         assertClientInitializer("net.xalcon.torchmaster.TorchmasterFabricClient");
         //?}
     }
 
-    private static void assertStaticMethod(String className, String methodName, String parameterClassName) throws Exception
+    private static void assertStaticMethod(String className, String methodName, String... parameterClassNames) throws Exception
     {
         Class<?> owner = Class.forName(className);
-        Class<?> parameter = Class.forName(parameterClassName);
-        Method method = owner.getDeclaredMethod(methodName, parameter);
+        Class<?>[] parameters = new Class<?>[parameterClassNames.length];
+        for (int i = 0; i < parameterClassNames.length; i++) {
+            parameters[i] = Class.forName(parameterClassNames[i]);
+        }
+        Method method = owner.getDeclaredMethod(methodName, parameters);
 
         assertTrue(Modifier.isStatic(method.getModifiers()), className + "#" + methodName + " must be static");
     }

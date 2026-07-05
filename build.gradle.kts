@@ -191,8 +191,6 @@ dependencies {
         compileOnly("com.electronwill.night-config:toml:$nightConfigVersion")
     }
     compileOnly("org.spongepowered:mixin:${prop("mixin_version")}")
-    compileOnly("io.github.llamalad7:mixinextras-common:${prop("mixinextras_version")}")
-    annotationProcessor("io.github.llamalad7:mixinextras-common:${prop("mixinextras_version")}")
 
     if (isFabric) {
         compileOnly("com.google.code.findbugs:jsr305:3.0.0")
@@ -205,10 +203,6 @@ dependencies {
         isFabric -> {
             modImplementation("net.fabricmc:fabric-loader:${prop("fabric_loader_version")}")
             modImplementation("net.fabricmc.fabric-api:fabric-api:${prop("fabric_version")}")
-            if (prop("minecraft_version") == "1.19") {
-                modImplementation("io.github.llamalad7:mixinextras-fabric:${prop("mixinextras_version")}")
-                include("io.github.llamalad7:mixinextras-fabric:${prop("mixinextras_version")}:slim")
-            }
             include("com.electronwill.night-config:core:$nightConfigVersion")
             include("com.electronwill.night-config:toml:$nightConfigVersion")
         }

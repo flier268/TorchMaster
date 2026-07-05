@@ -4,8 +4,11 @@ package net.xalcon.torchmaster;
 /*import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.xalcon.torchmaster.client.TorchmasterLightRangeRenderer;
 import net.xalcon.torchmaster.client.TorchmasterLightScreen;
 
 @Environment(EnvType.CLIENT)
@@ -15,6 +18,48 @@ public class TorchmasterFabricClient implements ClientModInitializer {
         BlockRenderLayerMap.putBlock(TorchmasterContent.blockDreadLamp.get(), ChunkSectionLayer.CUTOUT);
         TorchmasterClientBridge.setLightScreenOpener(TorchmasterLightScreen::open);
         registerConfigKey();
+        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(context -> {
+            Minecraft minecraft = Minecraft.getInstance();
+            if (minecraft.level != null && context.matrices() != null) {
+                TorchmasterLightRangeRenderer.render(minecraft.level, minecraft.gameRenderer.getMainCamera(), context.matrices());
+            }
+        });
+    }
+
+    private static void registerConfigKey()
+    {
+        try {
+            Class.forName("net.xalcon.torchmaster.TorchmasterFabricConfigClient")
+                    .getMethod("register")
+                    .invoke(null);
+        } catch (ReflectiveOperationException ignored) {
+        }
+    }
+}
+*///?} else if fabric && 1.21.8 {
+/*import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.xalcon.torchmaster.client.TorchmasterLightRangeRenderer;
+import net.xalcon.torchmaster.client.TorchmasterLightScreen;
+
+@Environment(EnvType.CLIENT)
+public class TorchmasterFabricClient implements ClientModInitializer {
+    public void onInitializeClient()
+    {
+        BlockRenderLayerMap.putBlock(TorchmasterContent.blockDreadLamp.get(), ChunkSectionLayer.CUTOUT);
+        TorchmasterClientBridge.setLightScreenOpener(TorchmasterLightScreen::open);
+        registerConfigKey();
+        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(context -> {
+            Minecraft minecraft = Minecraft.getInstance();
+            if (minecraft.level != null && context.matrixStack() != null) {
+                TorchmasterLightRangeRenderer.render(minecraft.level, context.camera(), context.matrixStack());
+            }
+        });
     }
 
     private static void registerConfigKey()
