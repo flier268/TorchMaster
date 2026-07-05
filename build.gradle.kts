@@ -53,6 +53,8 @@ val javaVersion = prop("java_version", "21").toInt()
 val nightConfigVersion = prop("night_config_version")
 val modId = prop("mod_id")
 
+layout.buildDirectory.dir("loom-cache/remapped_working").get().asFile.mkdirs()
+
 fun loom(): LoomGradleExtensionAPI = extensions.getByType(LoomGradleExtensionAPI::class.java)
 
 fun Jar.addRenamedLicense() {
