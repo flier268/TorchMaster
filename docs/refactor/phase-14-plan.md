@@ -1,34 +1,41 @@
-# Phase 14 Refactor Plan
+# Phase 14 Completion Record
 
-## Targets
+## Completed
 
-- Finish screen class cleanup.
-  - Keep `TorchmasterLightScreen` and `TorchmasterConfigScreen` as Minecraft override/lifecycle containers.
-  - Move remaining repeated label-loop and status/title render composition into a presenter/helper that consumes layout snapshots and `CompatText`.
-  - Keep widget construction and visibility in `TorchmasterConfigWidgetRows`; do not reintroduce raw save-order lists.
-- Continue range render pipeline cleanup.
-  - Review whether `TorchmasterRangeLineSubmitter` can split latest, modern, and legacy line submission branches into narrow helpers without loader-root copies.
-  - Keep geometry/style in `TorchmasterLineBoxRenderer` and `TorchmasterRangeRenderPlan`.
-- Tighten storage signature boundary.
-  - Check if `SavedLightStore.saveInto/loadFrom` can move fully behind `SavedLightStoreNbtBridge` or `SavedLightStoreStateFactory` without exposing internals.
-  - Keep NBT, Codec, PersistentState, RegistryWrapper, and serializer details inside `minecraft.storage`.
-- Audit deprecated runtime facades.
-  - Confirm whether public compatibility requires `TorchmasterRuntime.MegaTorchFilterRegistry` and `DreadLampFilterRegistry`.
-  - If removable, prepare a compatibility note and removal patch; otherwise keep them deprecated and keep policy blocking internal use.
+- Added `TorchmasterScreenRenderPlan` plus light/config screen presenters so screen classes keep render signatures and lifecycle while render composition lives in shared presenter helpers.
+- Extended `TorchmasterScreenRenderAdapter` to render whole screen plans; screens now delegate frame, labels, status, and title drawing through plans.
+- Split range line submission into latest, modern WorldRenderer, and legacy BufferBuilder helpers while keeping `TorchmasterRangeLineSubmitter` as a thin coordinator.
+- Renamed storage state bridge methods from `saveInto/loadFrom` to `writeState/readState`; `SavedLightStoreStateFactory` no longer depends on the old facade names.
+- Added focused tests for screen render plans, range line submission invariants, storage state factory bridge, and source policy regressions.
 
-## Verification Plan
+## Remaining Coupling
 
-- Add tests for any new pure presenter, line-submitter descriptor, or storage bridge behavior.
-- Run:
+- Screen classes still own Minecraft override signatures, background render call order, widget construction, and input event signatures.
+- `TorchmasterScreenRenderAdapter` still contains version-specific GUI draw APIs; this is intentional until a deeper widget/render adapter split.
+- The latest, modern, and legacy range line submitter helpers still contain Minecraft render API branches.
+- `SavedLightStore` still extends `PersistentState` and owns version-specific override signatures.
+- Deprecated `TorchmasterRuntime.MegaTorchFilterRegistry` and `DreadLampFilterRegistry` remain as public compatibility facades.
+
+## Phase 15 Direction
+
+- Audit whether deprecated runtime filter facade fields can be removed without breaking supported public/internal compatibility.
+- Evaluate client entrypoint/source-root strategy for remaining Stonecutter-heavy client lifecycle branches.
+- Reduce `SavedLightStore` legacy PersistentState branch surface if a narrower state adapter can keep behavior unchanged.
+- Review whether config screen widget creation can move behind a typed widget presenter without touching UI behavior.
+
+## Verification
+
+- Required representative matrix:
   - `./gradlew :1.21.1-fabric:test :1.14.4-forge:test :1.20.6-neoforge:test :1.21.11-fabric:test`
-  - `./gradlew :1.14.4-fabric:test :1.21.11-fabric:test` if render branches change
+  - `./gradlew :1.14.4-fabric:test :1.21.11-fabric:test`
   - `./gradlew "Reset active project"`
+  - reset後 `./gradlew :1.21.1-fabric:test`
   - `git diff --check`
-- Confirm active project returns to `1.21.1-fabric`.
+- Active project must return to `1.21.1-fabric`.
 
-## Anti-Regression Rules
+## Anti-Regression
 
-- Business rules stay shared and version-neutral.
-- No `Text`/`String` branching in screen classes; use `CompatText`.
-- No render/storage/filter helper details in loader roots.
-- No reflection, no loader-specific copies, and no direct edits to generated `versions/.../build/generated` sources.
+- Do not put render title/status/label composition back into screen classes; use presenters and `TorchmasterScreenRenderPlan`.
+- Do not put `WorldRenderer.drawBox`, latest `.lineWidth(...)`, or legacy `buffer.vertex(...)` back into `TorchmasterRangeLineSubmitter`.
+- Do not call old `SavedLightStore.saveInto/loadFrom` names from state factory code.
+- Do not duplicate client render, storage, filter, or content details in Fabric/Forge/NeoForge roots.

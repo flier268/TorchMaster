@@ -131,8 +131,7 @@ public class TorchmasterLightScreen extends TorchmasterScreenCompat
     {
         drawPanelBackground(graphics, mouseX, mouseY, partialTick);
         super.render(graphics, mouseX, mouseY, partialTick);
-        drawPanelFrame(graphics);
-        drawPanelLabels(graphics);
+        TorchmasterScreenRenderAdapter.renderPlan(graphics, textRenderer, renderPlan());
     }
     //?} else if >=1.16 {
     /*@Override
@@ -140,8 +139,7 @@ public class TorchmasterLightScreen extends TorchmasterScreenCompat
     {
         drawPanelBackground(poseStack);
         super.render(poseStack, mouseX, mouseY, partialTick);
-        drawPanelFrame(poseStack);
-        drawPanelLabels(poseStack);
+        TorchmasterScreenRenderAdapter.renderPlan(poseStack, textRenderer, renderPlan());
     }
     *///?} else {
     /*@Override
@@ -149,8 +147,7 @@ public class TorchmasterLightScreen extends TorchmasterScreenCompat
     {
         drawPanelBackground();
         super.render(mouseX, mouseY, partialTick);
-        drawPanelFrame();
-        drawPanelLabels();
+        TorchmasterScreenRenderAdapter.renderPlan(font, renderPlan());
     }
     *///?}
 
@@ -159,24 +156,9 @@ public class TorchmasterLightScreen extends TorchmasterScreenCompat
         return new TorchmasterLightScreenLayout(width, height, PANEL_WIDTH, PANEL_HEIGHT);
     }
 
-    private int panelLeft()
+    private TorchmasterScreenRenderPlan renderPlan()
     {
-        return layout().panelLeft();
-    }
-
-    private int panelTop()
-    {
-        return layout().panelTop();
-    }
-
-    private int panelRight()
-    {
-        return layout().panelRight();
-    }
-
-    private int panelBottom()
-    {
-        return layout().panelBottom();
+        return TorchmasterLightScreenPresenter.plan(layout(), model);
     }
 
     //? if >=1.20 {
@@ -191,63 +173,20 @@ public class TorchmasterLightScreen extends TorchmasterScreenCompat
         /*
         super.renderBackground(graphics);
         *///?}
-        TorchmasterScreenRenderAdapter.fill(graphics, TorchmasterPanelRenderer.background(panelLeft(), panelTop(), panelRight(), panelBottom()));
+        TorchmasterScreenRenderAdapter.background(graphics, renderPlan());
     }
     //?} else if >=1.16 {
     /*private void drawPanelBackground(MatrixStack poseStack)
     {
         super.renderBackground(poseStack);
-        TorchmasterScreenRenderAdapter.fill(poseStack, TorchmasterPanelRenderer.background(panelLeft(), panelTop(), panelRight(), panelBottom()));
-    }
-
-    private void drawPanelFrame(MatrixStack poseStack)
-    {
-        TorchmasterScreenRenderAdapter.frame(poseStack, panelLeft(), panelTop(), panelRight(), panelBottom());
-    }
-
-    private void drawPanelLabels(MatrixStack poseStack)
-    {
-        TorchmasterScreenRenderAdapter.centered(poseStack, textRenderer, text(TorchmasterLightScreenModel.TITLE_KEY), width / 2, panelTop() + 10, TorchmasterPanelRenderer.TITLE_COLOR, true);
-        TorchmasterScreenRenderAdapter.centered(poseStack, textRenderer, blockName(), width / 2, panelTop() + 28, TorchmasterPanelRenderer.LABEL_COLOR, true);
-        TorchmasterScreenRenderAdapter.centered(poseStack, textRenderer, text(TorchmasterLightScreenModel.RANGE_KEY, model.radius()), width / 2, panelTop() + 42, TorchmasterPanelRenderer.RANGE_COLOR, true);
+        TorchmasterScreenRenderAdapter.background(poseStack, renderPlan());
     }
     *///?} else {
     /*private void drawPanelBackground()
     {
         renderBackground();
-        TorchmasterScreenRenderAdapter.fill(TorchmasterPanelRenderer.background(panelLeft(), panelTop(), panelRight(), panelBottom()));
-    }
-
-    private void drawPanelFrame()
-    {
-        TorchmasterScreenRenderAdapter.frame(panelLeft(), panelTop(), panelRight(), panelBottom());
-    }
-
-    private void drawPanelLabels()
-    {
-        TorchmasterScreenRenderAdapter.centered(font, text(TorchmasterLightScreenModel.TITLE_KEY), width / 2, panelTop() + 10, TorchmasterPanelRenderer.TITLE_COLOR);
-        TorchmasterScreenRenderAdapter.centered(font, blockName(), width / 2, panelTop() + 28, TorchmasterPanelRenderer.LABEL_COLOR);
-        TorchmasterScreenRenderAdapter.centered(font, text(TorchmasterLightScreenModel.RANGE_KEY, model.radius()), width / 2, panelTop() + 42, TorchmasterPanelRenderer.RANGE_COLOR);
+        TorchmasterScreenRenderAdapter.background(renderPlan());
     }
     *///?}
-
-    //? if >=1.20 {
-    private void drawPanelFrame(DrawContext graphics)
-    {
-        TorchmasterScreenRenderAdapter.frame(graphics, panelLeft(), panelTop(), panelRight(), panelBottom());
-    }
-
-    private void drawPanelLabels(DrawContext graphics)
-    {
-        TorchmasterScreenRenderAdapter.centered(graphics, textRenderer, text(TorchmasterLightScreenModel.TITLE_KEY), width / 2, panelTop() + 10, TorchmasterPanelRenderer.TITLE_COLOR);
-        TorchmasterScreenRenderAdapter.centered(graphics, textRenderer, blockName(), width / 2, panelTop() + 28, TorchmasterPanelRenderer.LABEL_COLOR);
-        TorchmasterScreenRenderAdapter.centered(graphics, textRenderer, text(TorchmasterLightScreenModel.RANGE_KEY, model.radius()), width / 2, panelTop() + 42, TorchmasterPanelRenderer.RANGE_COLOR);
-    }
-    //?}
-
-    private CompatText blockName()
-    {
-        return text(model.blockKey());
-    }
 
 }

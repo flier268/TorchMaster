@@ -34,6 +34,22 @@ final class TorchmasterScreenRenderAdapter
     {
         graphics.drawText(textRenderer, text.asWidget(), x, y, color, false);
     }
+
+    static void background(DrawContext graphics, TorchmasterScreenRenderPlan plan)
+    {
+        fill(graphics, plan.background);
+    }
+
+    static void renderPlan(DrawContext graphics, TextRenderer textRenderer, TorchmasterScreenRenderPlan plan)
+    {
+        frame(graphics, plan.frameLeft, plan.frameTop, plan.frameRight, plan.frameBottom);
+        for (TorchmasterScreenRenderPlan.CenteredLabel label : plan.centeredLabels()) {
+            centered(graphics, textRenderer, label.text, label.x, label.y, label.color);
+        }
+        for (TorchmasterScreenRenderPlan.LeftLabel label : plan.leftLabels()) {
+            label(graphics, textRenderer, label.text, label.x, label.y, label.color);
+        }
+    }
     //?} else if >=1.16 {
     /*static void fill(MatrixStack poseStack, TorchmasterPanelRenderer.Fill fill)
     {
@@ -62,6 +78,22 @@ final class TorchmasterScreenRenderAdapter
     {
         textRenderer.drawWithShadow(poseStack, text.asWidget(), x, y, color);
     }
+
+    static void background(MatrixStack poseStack, TorchmasterScreenRenderPlan plan)
+    {
+        fill(poseStack, plan.background);
+    }
+
+    static void renderPlan(MatrixStack poseStack, TextRenderer textRenderer, TorchmasterScreenRenderPlan plan)
+    {
+        frame(poseStack, plan.frameLeft, plan.frameTop, plan.frameRight, plan.frameBottom);
+        for (TorchmasterScreenRenderPlan.CenteredLabel label : plan.centeredLabels()) {
+            centered(poseStack, textRenderer, label.text, label.x, label.y, label.color, label.shadow);
+        }
+        for (TorchmasterScreenRenderPlan.LeftLabel label : plan.leftLabels()) {
+            label(poseStack, textRenderer, label.text, label.x, label.y, label.color);
+        }
+    }
     *///?} else {
     /*static void fill(TorchmasterPanelRenderer.Fill fill)
     {
@@ -84,6 +116,22 @@ final class TorchmasterScreenRenderAdapter
     static void label(TextRenderer textRenderer, CompatText text, int x, int y, int color)
     {
         textRenderer.drawWithShadow(text.asWidget(), x, y, color);
+    }
+
+    static void background(TorchmasterScreenRenderPlan plan)
+    {
+        fill(plan.background);
+    }
+
+    static void renderPlan(TextRenderer textRenderer, TorchmasterScreenRenderPlan plan)
+    {
+        frame(plan.frameLeft, plan.frameTop, plan.frameRight, plan.frameBottom);
+        for (TorchmasterScreenRenderPlan.CenteredLabel label : plan.centeredLabels()) {
+            centered(textRenderer, label.text, label.x, label.y, label.color);
+        }
+        for (TorchmasterScreenRenderPlan.LeftLabel label : plan.leftLabels()) {
+            label(textRenderer, label.text, label.x, label.y, label.color);
+        }
     }
     *///?}
 }

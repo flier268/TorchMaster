@@ -35,13 +35,13 @@ final class SavedLightStoreStateFactory
     }
 
     //? if >=1.21.11 {
-    /*private static final Codec<SavedLightStore> CODEC = NbtCompound.CODEC.xmap(
-            SavedLightStoreStateFactory::load,
-            store -> {
-                NbtCompound tag = new NbtCompound();
-                store.saveInto(tag);
-                return tag;
-            });
+	    /*private static final Codec<SavedLightStore> CODEC = NbtCompound.CODEC.xmap(
+	            SavedLightStoreStateFactory::load,
+	            store -> {
+	                NbtCompound tag = new NbtCompound();
+	                store.writeState(tag);
+	                return tag;
+	            });
 
     static PersistentStateType<SavedLightStore> type(String id)
     {
@@ -60,7 +60,7 @@ final class SavedLightStoreStateFactory
     static SavedLightStore load(NbtCompound tag)
     {
         SavedLightStore store = new SavedLightStore();
-        store.loadFrom(tag);
+        store.readState(tag);
         return store;
     }
     //?}

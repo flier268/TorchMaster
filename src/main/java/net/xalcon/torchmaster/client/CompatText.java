@@ -39,6 +39,21 @@ final class CompatText
         return literal("");
     }
 
+    String translationKey()
+    {
+        return translationKey;
+    }
+
+    Object[] args()
+    {
+        return args;
+    }
+
+    String literalValue()
+    {
+        return literalValue;
+    }
+
     Text asTitle()
     {
         if (literalValue != null) {

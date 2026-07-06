@@ -86,13 +86,13 @@ public class SavedLightStore extends PersistentState implements LightStoreBridge
     @Override
     public NbtCompound writeNbt(NbtCompound compoundTag, RegistryWrapper.WrapperLookup provider)
     {
-        return saveInto(new NbtCompound());
+        return writeState(new NbtCompound());
     }
 //?} elif >=1.16.5 <1.20.6 {
     /*@Override
     public NbtCompound writeNbt(NbtCompound compoundTag)
     {
-        return saveInto(compoundTag);
+        return writeState(compoundTag);
     }
     *///?} elif <1.16.5 {
 	    /*@Override
@@ -106,7 +106,7 @@ public class SavedLightStore extends PersistentState implements LightStoreBridge
     /*@Override
     public void fromTag(NbtCompound tag)
     {
-        loadFrom(tag);
+        readState(tag);
     }
     *///?} else if <1.16.5 {
 	    /*@Override
@@ -117,12 +117,12 @@ public class SavedLightStore extends PersistentState implements LightStoreBridge
 	    *///?}
 
     //? if >=1.16.5 {
-    NbtCompound saveInto(NbtCompound tag)
+    NbtCompound writeState(NbtCompound tag)
     {
         return SavedLightStoreNbtBridge.save(lights, tag);
     }
 
-    void loadFrom(NbtCompound tag)
+    void readState(NbtCompound tag)
     {
         SavedLightStoreNbtBridge.load(this.lights, tag);
     }

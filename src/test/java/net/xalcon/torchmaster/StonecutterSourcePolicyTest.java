@@ -23,7 +23,7 @@ class StonecutterSourcePolicyTest
     private static final Pattern MIXIN_FORBIDDEN_SPAWN_IMPORT = Pattern.compile(
             "^import\\s+net\\.xalcon\\.torchmaster\\.(domain\\.SpawnBlockingRules|minecraft\\.storage\\.|minecraft\\.adapter\\.MinecraftSpawnBlocker)");
     private static final Pattern CLIENT_RUNTIME_DETAIL = Pattern.compile(
-            "Torchmaster(LightRangeDisplay|LightRangeRenderer|LightScreen|ClientLifecycle|ScreenCompat|ScreenRenderAdapter|RangeBoxes|PanelRenderer|LineBoxRenderer|RangeRenderPlan|RangeLineSubmitter|RangeRenderSession|RangeRenderTarget|ConfigScreenLayout|ConfigEntries|ConfigWidgetRows)");
+            "Torchmaster(LightRangeDisplay|LightRangeRenderer|LightScreen|LightScreenPresenter|ClientLifecycle|ScreenCompat|ScreenRenderAdapter|ScreenRenderPlan|RangeBoxes|PanelRenderer|LineBoxRenderer|RangeRenderPlan|RangeLineSubmitter|LatestLineSubmitter|WorldRendererLineSubmitter|LegacyLineSubmitter|RangeRenderSession|RangeRenderTarget|ConfigScreenLayout|ConfigEntries|ConfigWidgetRows|ConfigScreenPresenter)");
     private static final Pattern STORAGE_RUNTIME_DETAIL = Pattern.compile(
             "(SavedLightStore|SavedLightStoreStateFactory|SavedLightStoreNbtBridge|MinecraftLightStoreAccess|LightStoreBridge|LightStoreConfigView)");
     private static final Pattern RUNTIME_REGISTRY_FACADE = Pattern.compile("getRegistryForLevel\\s*\\(");
@@ -39,6 +39,9 @@ class StonecutterSourcePolicyTest
     private static final Pattern SCREEN_DIRECT_TEXT_DRAW = Pattern.compile("drawCenteredText|drawCenteredString|drawText\\s*\\(|drawString\\s*\\(");
     private static final Pattern RANGE_SESSION_RENDER_TARGET_DETAIL = Pattern.compile("RenderLayer\\.getLines\\s*\\(|LINE_LAYER|bufferSource\\.draw\\s*\\(|RenderPipelines|RenderSetup|GlStateManager\\.");
     private static final Pattern SAVED_LIGHT_STORE_DIRECT_SERIALIZER = Pattern.compile("SavedLightStoreSerializer\\.");
+    private static final Pattern SCREEN_DIRECT_RENDER_COMPOSITION = Pattern.compile("TorchmasterScreenRenderAdapter\\.(centered|label|frame)\\s*\\(");
+    private static final Pattern LINE_SUBMITTER_DIRECT_API = Pattern.compile("WorldRenderer\\.drawBox\\s*\\(|\\.lineWidth\\s*\\(|buffer\\.vertex\\s*\\(");
+    private static final Pattern STORAGE_FACTORY_OLD_STATE_FACADE = Pattern.compile("\\.(saveInto|loadFrom)\\s*\\(");
     private static final Pattern LOADER_GATED_FILE_START = Pattern.compile("//\\?\\s*(if|elif|else if)\\b.*\\b(fabric|forge|neoforge)\\b.*\\{");
 
     @Test
@@ -221,6 +224,35 @@ class StonecutterSourcePolicyTest
         Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/storage/SavedLightStore.java");
 
         assertTrue(!hasSavedLightStoreDirectSerializer(path), () -> "Use SavedLightStoreNbtBridge from PersistentState signatures instead of direct serializer calls: " + path);
+    }
+
+    @Test
+    void screensDelegateRenderCompositionToPresenters() throws IOException
+    {
+        List<Path> violations = Arrays.asList(
+                        sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterLightScreen.java"),
+                        sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterConfigScreen.java"))
+                .stream()
+                .filter(StonecutterSourcePolicyTest::hasScreenDirectRenderComposition)
+                .collect(Collectors.toList());
+
+        assertTrue(violations.isEmpty(), () -> "Use screen presenters and render plans instead of hand-written label/frame composition in screen classes: " + violations);
+    }
+
+    @Test
+    void rangeLineSubmitterStaysThinCoordinator() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterRangeLineSubmitter.java");
+
+        assertTrue(!hasLineSubmitterDirectApi(path), () -> "Keep direct line submission API in latest/world-renderer/legacy helpers, not the coordinator: " + path);
+    }
+
+    @Test
+    void savedLightStoreStateFactoryDoesNotUseOldStateFacadeNames() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/storage/SavedLightStoreStateFactory.java");
+
+        assertTrue(!hasStorageFactoryOldStateFacade(path), () -> "Use writeState/readState bridge names from state factory instead of old saveInto/loadFrom facade calls: " + path);
     }
 
     @Test
@@ -417,6 +449,33 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> SAVED_LIGHT_STORE_DIRECT_SERIALIZER.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasScreenDirectRenderComposition(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> SCREEN_DIRECT_RENDER_COMPOSITION.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasLineSubmitterDirectApi(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> LINE_SUBMITTER_DIRECT_API.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasStorageFactoryOldStateFacade(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> STORAGE_FACTORY_OLD_STATE_FACADE.matcher(line).find());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }
