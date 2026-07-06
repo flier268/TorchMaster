@@ -1,19 +1,28 @@
 package net.xalcon.torchmaster.mixin;
 
-//? if fabric && >=1.19.2 {
+//? if fabric {
+//? if >=1.19.2 {
 import net.minecraft.entity.LargeEntitySpawnHelper;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.world.WorldAccess;
 import net.xalcon.torchmaster.minecraft.adapter.MinecraftEventResultDecisions;
 import net.xalcon.torchmaster.minecraft.spawn.FabricSpawnEventHooks;
-import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
+//?} else {
+/*import net.minecraft.world.MobSpawnerLogic;
+*///?}
+import org.spongepowered.asm.mixin.Mixin;
+//?}
 
+//? if fabric && >=1.19.2
 @Mixin(LargeEntitySpawnHelper.class)
+//? if fabric && <1.19.2
+//@Mixin(value = MobSpawnerLogic.class, priority = 100)
 public abstract class SpawnUtilMixin
 {
+    //? if fabric && >=1.19.2 {
     @Redirect(
             method = "trySpawnAt",
             at = @At(
@@ -27,13 +36,5 @@ public abstract class SpawnUtilMixin
                 FabricSpawnEventHooks.checkSpawnRules(mob, spawnReason),
                 () -> mob.canSpawn(level, spawnReason));
     }
+    //?}
 }
-//?} else if fabric {
-/*import net.minecraft.world.MobSpawnerLogic;
-import org.spongepowered.asm.mixin.Mixin;
-
-@Mixin(value = MobSpawnerLogic.class, priority = 100)
-public abstract class SpawnUtilMixin
-{
-}
-*///?}

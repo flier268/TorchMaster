@@ -47,6 +47,9 @@ class StonecutterSourcePolicyTest
     private static final Pattern CONFIG_SCREEN_DIRECT_BOTTOM_BUTTON_GEOMETRY = Pattern.compile("bottomButtonWidth\\s*\\(|buttonGap|totalButtonWidth|buttonX\\s*=|button\\([^\\n]*(screen\\.torchmaster\\.config\\.(save|reset)|gui\\.done)");
     private static final Pattern STORAGE_STATE_OLD_BRIDGE_NAMES = Pattern.compile("\\b(writeState|readState)\\s*\\(");
     private static final Pattern LOADER_GATED_FILE_START = Pattern.compile("//\\?\\s*(if|elif|else if)\\b.*\\b(fabric|forge|neoforge)\\b.*\\{");
+    private static final Pattern STONECUTTER_CLOSED_BLOCK_START = Pattern.compile("//\\?\\s*(if|elif|else if)\\b.*\\{\\s*");
+    private static final Pattern STONECUTTER_BLOCK_CLOSE = Pattern.compile("(?:\\*/)?//\\?\\}|\\*///\\?\\}");
+    private static final Pattern TYPE_DECLARATION = Pattern.compile("\\b(class|interface|enum)\\s+\\w+");
     private static final Pattern LOADER_CLIENT_ENTRYPOINT_LIFECYCLE_IMPORT = Pattern.compile("TorchmasterClientLifecycle");
     private static final Pattern CONFIG_SCREEN_DIRECT_ACTION_OR_SAVE = Pattern.compile("private\\s+void\\s+(save|reset)\\s*\\(|setStatus\\s*\\(|TorchmasterTomlConfig|TorchmasterConfigEntries\\.collector\\s*\\(|TorchmasterRuntime\\.onWorldLoaded\\s*\\(");
     private static final Pattern STORAGE_FACTORY_DIRECT_STATE_GLUE = Pattern.compile("new\\s+SavedLightStore\\s*\\(|SavedLightStore::new|SavedLightStoreStateBridge\\.read\\s*\\(");
@@ -77,7 +80,7 @@ class StonecutterSourcePolicyTest
     void loaderSourceRootsDoNotContainMinecraftVersionConditions() throws IOException
     {
         List<Path> violations = javaFilesIn("src/fabric", "src/forge", "src/neoforge")
-                .filter(path -> !isAllowedForgeLifecycleAdapter(path))
+                .filter(path -> !isAllowedLoaderRootVersionCondition(path))
                 .filter(StonecutterSourcePolicyTest::hasMinecraftVersionCondition)
                 .collect(Collectors.toList());
 
@@ -594,6 +597,35 @@ class StonecutterSourcePolicyTest
         assertTrue(violations.isEmpty(), () -> "Do not add shared helper classes whose whole class body is loader-gated by Stonecutter: " + violations);
     }
 
+    @Test
+    void javaSourcesDoNotWrapWholeTypesInInitialStonecutterBlocks() throws IOException
+    {
+        List<Path> violations = javaFilesIn(
+                "src/main/java",
+                "src/fabric/java",
+                "src/forge/java",
+                "src/neoforge/java",
+                "src/test/java")
+                .filter(StonecutterSourcePolicyTest::startsWithWholeTypeStonecutterBlock)
+                .collect(Collectors.toList());
+
+        assertTrue(violations.isEmpty(), () -> "Keep package and type declarations outside initial Stonecutter blocks: " + violations);
+    }
+
+    @Test
+    void modernInvisibleLightPropertiesRemainReplaceable() throws IOException
+    {
+        Path source = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/adapter/MinecraftBlockProperties.java");
+        String text = new String(Files.readAllBytes(source));
+
+        int branchStart = text.indexOf("//? if >=1.20 {", text.indexOf("invisibleLight()"));
+        int branchEnd = text.indexOf("//?} else if fabric && >=1.18", branchStart);
+
+        assertTrue(branchStart >= 0 && branchEnd > branchStart, "Expected an explicit >=1.20 invisibleLight branch");
+        String branch = text.substring(branchStart, branchEnd);
+        assertTrue(branch.contains(".replaceable()"), "MC >=1.20 invisible light settings must remain replaceable");
+    }
+
     private static Stream<Path> javaFilesIn(String... roots) throws IOException
     {
         Stream.Builder<Path> files = Stream.builder();
@@ -1083,12 +1115,66 @@ class StonecutterSourcePolicyTest
         }
     }
 
-    private static boolean isAllowedForgeLifecycleAdapter(Path path)
+    private static boolean startsWithWholeTypeStonecutterBlock(Path path)
+    {
+        try {
+            List<String> lines = Files.readAllLines(path);
+            int packageLine = -1;
+            for (int i = 0; i < lines.size(); i++) {
+                if (lines.get(i).trim().startsWith("package ")) {
+                    packageLine = i;
+                    break;
+                }
+            }
+            if (packageLine < 0) {
+                return false;
+            }
+
+            int firstCodeLine = packageLine + 1;
+            while (firstCodeLine < lines.size() && lines.get(firstCodeLine).trim().isEmpty()) {
+                firstCodeLine++;
+            }
+            if (firstCodeLine >= lines.size() || !STONECUTTER_CLOSED_BLOCK_START.matcher(lines.get(firstCodeLine).trim()).matches()) {
+                return false;
+            }
+
+            for (int i = firstCodeLine + 1; i < lines.size(); i++) {
+                String line = lines.get(i).trim();
+                if (STONECUTTER_BLOCK_CLOSE.matcher(line).find()) {
+                    return false;
+                }
+                if (TYPE_DECLARATION.matcher(line).find()) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean isAllowedLoaderRootVersionCondition(Path path)
     {
         String normalized = path.toString().replace('\\', '/');
-        return normalized.endsWith("src/forge/net/xalcon/torchmaster/AbstractTorchmasterForge.java")
-                || normalized.endsWith("src/forge/net/xalcon/torchmaster/TorchmasterForge.java")
-                || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/TorchmasterForgeClient.java");
+        return normalized.endsWith("src/fabric/java/net/xalcon/torchmaster/TorchmasterFabricClient.java")
+                || normalized.endsWith("src/fabric/java/net/xalcon/torchmaster/mixin/BaseSpawnerMixin.java")
+                || normalized.endsWith("src/fabric/java/net/xalcon/torchmaster/mixin/LevelRendererMixin.java")
+                || normalized.endsWith("src/fabric/java/net/xalcon/torchmaster/mixin/NaturalSpawnerMixin.java")
+                || normalized.endsWith("src/fabric/java/net/xalcon/torchmaster/mixin/PhantomSpawnerMixin.java")
+                || normalized.endsWith("src/fabric/java/net/xalcon/torchmaster/mixin/SpawnUtilMixin.java")
+                || normalized.endsWith("src/fabric/java/net/xalcon/torchmaster/platform/FabricPlatformHelper.java")
+                || normalized.endsWith("src/fabric/java/net/xalcon/torchmaster/platform/FabricRegistrationFactory.java")
+                || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/AbstractTorchmasterForge.java")
+                || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/TorchmasterForgeClient.java")
+                || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/ForgeEventHandler.java")
+                || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/ForgeSpawnEventResults.java")
+                || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/ForgeVillageEventHandler.java")
+                || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/TorchmasterForgeLifecycleAdapter.java")
+                || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/platform/AbstractLegacyForgeRegistrationFactory.java")
+                || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/platform/ForgePlatformHelper.java")
+                || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/platform/ForgeRegistrationFactory.java")
+                || normalized.endsWith("src/neoforge/java/net/xalcon/torchmaster/TorchmasterNeoforgeClient.java")
+                || normalized.endsWith("src/neoforge/java/net/xalcon/torchmaster/platform/NeoForgePlatformHelper.java");
     }
 
     private static boolean isAllowedLoaderEntrypointAdapter(Path path)

@@ -1,16 +1,18 @@
 package net.xalcon.torchmaster.platform;
 
-//? if forge && <1.19.3 {
+//? if <1.19.3 {
 /*import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraft.util.registry.Registry;
 
 import java.util.Objects;
+*///?}
 
 public abstract class AbstractLegacyForgeRegistrationFactory extends AbstractForgeRegistrationFactory {
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    //? if <1.19.3 {
+    /*@SuppressWarnings({"rawtypes", "unchecked"})
     public <T> RegistrationProvider<T> create(Object resourceKey, String modId) {
         //? if >=1.15.2 {
         DeferredRegister register = DeferredRegister.create(forgeRegistry(resourceKey), modId);
@@ -43,5 +45,5 @@ public abstract class AbstractLegacyForgeRegistrationFactory extends AbstractFor
 
     @SuppressWarnings("rawtypes")
     protected abstract IForgeRegistry blockEntityTypeRegistry();
+    *///?}
 }
-*///?}

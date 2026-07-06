@@ -1,7 +1,6 @@
 package net.xalcon.torchmaster.platform;
 
-//? if neoforge {
-/*import net.minecraft.block.Block;
+import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.item.Item;
@@ -37,8 +36,8 @@ public class NeoForgePlatformHelper implements IPlatformHelper
         //? if >=1.21.9 {
         return !FMLLoader.getCurrent().isProduction();
         //?} else {
-        /^return !FMLLoader.isProduction();^/
-        //?}
+        /*return !FMLLoader.isProduction();
+        *///?}
     }
 
     @Override
@@ -57,8 +56,8 @@ public class NeoForgePlatformHelper implements IPlatformHelper
         //? if >=1.21.11 {
         return new BlockEntityType<>(supplier::create, blocks);
         //?} else {
-        /^return BlockEntityType.Builder.create(supplier::create, blocks).build(null);^/
-        //?}
+        /*return BlockEntityType.Builder.create(supplier::create, blocks).build(null);
+        *///?}
     }
 
     @Override
@@ -67,4 +66,3 @@ public class NeoForgePlatformHelper implements IPlatformHelper
         return CONFIG;
     }
 }
-*///?}

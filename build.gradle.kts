@@ -98,6 +98,8 @@ val activeLoader = prop("loader")
 val isFabric = activeLoader == "fabric"
 val isForge = activeLoader == "forge"
 val isNeoForge = activeLoader == "neoforge"
+val activeLoaderSourceSetName = activeLoader
+val activeLoaderSourceSetSuffix = activeLoaderSourceSetName.replaceFirstChar(Char::uppercase)
 val javaVersion = prop("java_version", "21").toInt()
 val nightConfigVersion = prop("night_config_version")
 val modId = prop("mod_id")
@@ -210,9 +212,13 @@ repositories {
 }
 
 sourceSets {
+    maybeCreate(activeLoaderSourceSetName)
     main {
         java {
-            srcDir(rootProject.file("src/$activeLoader/java"))
+            srcDir(
+                files(layout.buildDirectory.dir("generated/stonecutter/$activeLoaderSourceSetName/java"))
+                    .builtBy("stonecutterGenerate$activeLoaderSourceSetSuffix")
+            )
         }
         if (isFabric) {
             output.setResourcesDir(java.classesDirectory)

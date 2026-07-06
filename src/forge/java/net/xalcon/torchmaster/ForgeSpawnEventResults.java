@@ -1,9 +1,8 @@
 package net.xalcon.torchmaster;
 
-//? if forge {
-/*import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.eventbus.api.Event;
 //? if >=1.19.4
-import net.minecraftforge.event.entity.living.MobSpawnEvent;
+/*import net.minecraftforge.event.entity.living.MobSpawnEvent;*/
 import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
 import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventContainers;
@@ -33,7 +32,7 @@ final class ForgeSpawnEventResults
     }
 
     //? if >=1.19.4 {
-    static void applyFinalizeSpawnResult(MobSpawnEvent.FinalizeSpawn event, EventResultContainer container)
+    /*static void applyFinalizeSpawnResult(MobSpawnEvent.FinalizeSpawn event, EventResultContainer container)
     {
         switch (MinecraftSpawnEventContainers.result(container)) {
             case DENY:
@@ -47,7 +46,7 @@ final class ForgeSpawnEventResults
                 break;
         }
     }
-    //?}
+    *///?}
 
     private static EventResult fromForgeResult(Event.Result result)
     {
@@ -62,4 +61,3 @@ final class ForgeSpawnEventResults
         }
     }
 }
-*///?}

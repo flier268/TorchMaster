@@ -1,12 +1,11 @@
 package net.xalcon.torchmaster;
 
-//? if forge {
-/*import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.MinecraftForge;
 //? if >=1.16 {
 import net.minecraftforge.event.RegisterCommandsEvent;
 //?} else {
-/^import net.minecraftforge.fml.event.server.FMLServerStartingEvent;^/
-//?}
+/*import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
+*///?}
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -33,10 +32,9 @@ public abstract class AbstractTorchmasterForge
         CommandTorchmaster.register(event.getDispatcher());
     }
 //?} else {
-    /^private static void onRegisterCommands(FMLServerStartingEvent event)^/
-    /^{^/
-    /^    CommandTorchmaster.register(event.getCommandDispatcher());^/
-    /^}^/
-    //?}
+    /*private static void onRegisterCommands(FMLServerStartingEvent event)
+    {
+        CommandTorchmaster.register(event.getCommandDispatcher());
+    }
+    *///?}
 }
-*///?}

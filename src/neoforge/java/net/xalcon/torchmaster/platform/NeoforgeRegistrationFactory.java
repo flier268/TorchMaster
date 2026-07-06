@@ -1,7 +1,6 @@
 package net.xalcon.torchmaster.platform;
 
-//? if neoforge {
-/*import net.minecraft.registry.Registry;
+import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
@@ -86,4 +85,3 @@ public class NeoforgeRegistrationFactory implements RegistrationProvider.Factory
         }
     }
 }
-*///?}

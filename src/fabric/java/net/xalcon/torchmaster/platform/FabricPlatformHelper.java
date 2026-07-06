@@ -1,6 +1,5 @@
 package net.xalcon.torchmaster.platform;
 
-//? if fabric {
 //? if >=1.19.3
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 //? if >=1.17 <1.19.3
@@ -108,4 +107,3 @@ public class FabricPlatformHelper implements IPlatformHelper {
         return CONFIG;
     }
 }
-//?}

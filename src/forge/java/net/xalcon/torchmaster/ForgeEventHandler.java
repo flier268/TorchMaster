@@ -1,19 +1,23 @@
 package net.xalcon.torchmaster;
 
-//? if forge && >=1.19.4 {
-/*import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.event.entity.living.MobSpawnEvent;
+import net.minecraft.util.math.Vec3d;
+//? if >=1.19.4 {
+/*import net.minecraftforge.event.entity.living.MobSpawnEvent;
+import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventContainers;
+*///?} else {
+import net.minecraftforge.event.entity.living.LivingSpawnEvent;
+//?}
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.xalcon.torchmaster.events.EventResultContainer;
-import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventContainers;
 import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventHooks;
 
 @Mod.EventBusSubscriber(modid = Constants.MOD_ID)
 public class ForgeEventHandler
 {
-    @SubscribeEvent(priority = EventPriority.HIGH)
+    //? if >=1.19.4 {
+    /*@SubscribeEvent(priority = EventPriority.HIGH)
     public static void onFinalizeSpawn(MobSpawnEvent.FinalizeSpawn event)
     {
         EventResultContainer container = MinecraftSpawnEventContainers.defaultContainer();
@@ -26,19 +30,7 @@ public class ForgeEventHandler
 
         ForgeSpawnEventResults.applyFinalizeSpawnResult(event, container);
     }
-}
-*///?} else if forge {
-/*import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.event.entity.living.LivingSpawnEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.xalcon.torchmaster.events.EventResultContainer;
-import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventHooks;
-
-@Mod.EventBusSubscriber(modid = Constants.MOD_ID)
-public class ForgeEventHandler
-{
+    *///?} else {
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onCheckSpawn(LivingSpawnEvent.CheckSpawn event)
     {
@@ -52,5 +44,5 @@ public class ForgeEventHandler
 
         event.setResult(ForgeSpawnEventResults.toForgeResult(container));
     }
+    //?}
 }
-*///?}

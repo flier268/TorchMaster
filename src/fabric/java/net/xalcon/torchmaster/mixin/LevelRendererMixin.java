@@ -1,6 +1,5 @@
 package net.xalcon.torchmaster.mixin;
 
-//? if fabric {
 //? if <1.16 {
 /*import net.minecraft.client.MinecraftClient;
 *///?}
@@ -55,4 +54,3 @@ public abstract class LevelRendererMixin
     }
     *///?}
 }
-//?}
