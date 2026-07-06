@@ -10,6 +10,7 @@ import net.minecraft.nbt.ListTag;
 import net.xalcon.torchmaster.domain.LightKind;
 import net.xalcon.torchmaster.domain.LightRegistry;
 import net.xalcon.torchmaster.minecraft.light.MinecraftBlockingLight;
+import net.xalcon.torchmaster.minecraft.storage.PersistedLightEntry;
 import net.xalcon.torchmaster.port.BlockPosView;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -147,9 +148,9 @@ class SavedLightStoreSerializerTest {
 
         @Override
         //? if >=1.16.5
-        public NbtCompound serializeLight(MinecraftBlockingLight light) {
+        public NbtCompound serializeLight(PersistedLightEntry light) {
         //? if <1.16.5
-        //public CompoundTag serializeLight(MinecraftBlockingLight light) {
+        //public CompoundTag serializeLight(PersistedLightEntry light) {
             //? if >=1.16.5
             return new NbtCompound();
             //? if <1.16.5
@@ -158,9 +159,9 @@ class SavedLightStoreSerializerTest {
 
         @Override
         //? if >=1.16.5
-        public Optional<MinecraftBlockingLight> deserializeLight(NbtCompound nbt) {
+        public Optional<PersistedLightEntry> deserializeLight(NbtCompound nbt) {
         //? if <1.16.5
-        //public Optional<MinecraftBlockingLight> deserializeLight(CompoundTag nbt) {
+        //public Optional<PersistedLightEntry> deserializeLight(CompoundTag nbt) {
             return Optional.of(new TestLight(new BlockPosView(0, 64, 0), "Loaded Light"));
         }
 

@@ -9,7 +9,6 @@ import net.minecraft.nbt.ListTag;
 *///?}
 import net.xalcon.torchmaster.domain.LightEntry;
 import net.xalcon.torchmaster.domain.LightRegistry;
-import net.xalcon.torchmaster.minecraft.light.MinecraftBlockingLight;
 
 import java.util.Map;
 import java.util.Optional;
@@ -38,11 +37,11 @@ final class SavedLightStoreSerializer {
     //? if <1.16.5
     //private static void saveLight(ListTag list, String lightKey, LightEntry entry)
     {
-        if (!(entry instanceof MinecraftBlockingLight)) {
+        if (!(entry instanceof PersistedLightEntry)) {
             StorageLogger.LOG.error("Unable to save light {}, data is lost", entry.position());
             return;
         }
-        MinecraftBlockingLight light = (MinecraftBlockingLight)entry;
+        PersistedLightEntry light = (PersistedLightEntry)entry;
         String serializerType = light.getLightSerializerType();
         Optional<LightNbtSerializer> serializer = LightSerializerRegistry.getLightSerializer(serializerType);
         if (serializer.isPresent()) {
@@ -95,7 +94,7 @@ final class SavedLightStoreSerializer {
         //?}
         Optional<LightNbtSerializer> serializer = LightSerializerRegistry.getLightSerializer(serializerType);
         if (serializer.isPresent()) {
-            Optional<MinecraftBlockingLight> light = serializer.get().deserializeLight(lightNbt);
+            Optional<PersistedLightEntry> light = serializer.get().deserializeLight(lightNbt);
             if (light.isPresent()) {
                 lights.register(lightKey, light.get());
             } else {

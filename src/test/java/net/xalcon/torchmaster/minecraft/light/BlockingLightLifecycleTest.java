@@ -1,6 +1,7 @@
 package net.xalcon.torchmaster.minecraft.light;
 
 import net.xalcon.torchmaster.domain.LightKind;
+import net.xalcon.torchmaster.domain.LightEntry;
 import net.xalcon.torchmaster.minecraft.storage.LightStoreBridge;
 import net.xalcon.torchmaster.port.BlockPosView;
 import net.xalcon.torchmaster.port.EntityTypeKey;
@@ -9,8 +10,6 @@ import net.xalcon.torchmaster.port.SpawnReason;
 import net.xalcon.torchmaster.port.Vec3View;
 import net.xalcon.torchmaster.port.WorldView;
 import org.junit.jupiter.api.Test;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -76,19 +75,14 @@ class BlockingLightLifecycleTest {
         }
 
         @Override
-        public void registerLight(String lightKey, MinecraftBlockingLight light) {
+        public void registerLight(String lightKey, LightEntry light) {
             this.registeredKey = lightKey;
-            this.registeredLight = light;
+            this.registeredLight = (MinecraftBlockingLight)light;
         }
 
         @Override
         public void unregisterLight(String lightKey) {
             this.unregisteredKey = lightKey;
-        }
-
-        @Override
-        public Optional<MinecraftBlockingLight> getLight(String lightKey) {
-            return Optional.empty();
         }
 
         @Override

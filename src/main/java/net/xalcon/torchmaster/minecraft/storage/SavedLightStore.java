@@ -8,64 +8,55 @@ import net.minecraft.nbt.NbtCompound;
 //? if >=1.20.6
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.world.PersistentState;
+import net.xalcon.torchmaster.domain.LightEntry;
+import net.xalcon.torchmaster.domain.LightStoreRuntime;
 import net.xalcon.torchmaster.port.EntityTypeKey;
 import net.xalcon.torchmaster.port.LightInfo;
 import net.xalcon.torchmaster.port.SpawnReason;
 import net.xalcon.torchmaster.port.Vec3View;
 import net.xalcon.torchmaster.port.WorldView;
-import net.xalcon.torchmaster.domain.LightRegistry;
-import net.xalcon.torchmaster.minecraft.light.MinecraftBlockingLight;
-
-import java.util.Optional;
 
 public class SavedLightStore extends PersistentState implements LightStoreBridge
 {
-    private final LightRegistry lights = new LightRegistry();
+    private final LightStoreRuntime runtime;
 
     public SavedLightStore()
+    {
+        this(new LightStoreRuntime());
+    }
+
+    SavedLightStore(LightStoreRuntime runtime)
     {
         //? if <1.17 {
         /*super("torchmaster_lights");
         *///?}
+        this.runtime = runtime;
     }
 
     @Override
     public boolean shouldBlockEntityType(EntityTypeKey entityType, Vec3View pos, SpawnReason spawnType)
     {
-        return lights.blocksEntity(
-                LightStoreConfigView.megaTorchFilter(),
-                LightStoreConfigView.dreadLampFilter(),
-                LightStoreConfigView.config(),
-                entityType,
-                pos);
+        return runtime.shouldBlockEntity(MinecraftLightStoreRuntimeContext.create(), entityType, pos);
     }
 
     @Override
     public boolean shouldBlockVillageZombieRaid(Vec3View pos)
     {
-        return lights.blocksVillageSiege(LightStoreConfigView.config(), pos);
+        return runtime.shouldBlockVillageSiege(MinecraftLightStoreRuntimeContext.create(), pos);
     }
 
     @Override
-    public void registerLight(String lightKey, MinecraftBlockingLight light)
+    public void registerLight(String lightKey, LightEntry light)
     {
-        lights.register(lightKey, light);
+        runtime.registerLight(lightKey, light);
         markDirty();
     }
 
     @Override
     public void unregisterLight(String lightKey)
     {
-        lights.unregister(lightKey);
+        runtime.unregisterLight(lightKey);
         markDirty();
-    }
-
-    @Override
-    public Optional<MinecraftBlockingLight> getLight(String lightKey)
-    {
-        return lights.get(lightKey)
-                .filter(MinecraftBlockingLight.class::isInstance)
-                .map(MinecraftBlockingLight.class::cast);
     }
 
     @Override
@@ -77,14 +68,12 @@ public class SavedLightStore extends PersistentState implements LightStoreBridge
     @Override
     public LightInfo[] getEntries()
     {
-        return lights.entries().stream()
-                .map(light -> new LightInfo(light.displayName(), light.position()))
-                .toArray(LightInfo[]::new);
+        return runtime.entries();
     }
 
-    LightRegistry lights()
+    LightStoreRuntime runtime()
     {
-        return lights;
+        return runtime;
     }
 
     //? if >=1.20.6 <1.21.11 {

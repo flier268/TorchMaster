@@ -8,6 +8,7 @@ import net.minecraft.nbt.NbtHelper;
 import net.minecraft.util.math.BlockPos;
 import net.xalcon.torchmaster.minecraft.light.MinecraftBlockingLight;
 import net.xalcon.torchmaster.minecraft.storage.LightNbtSerializer;
+import net.xalcon.torchmaster.minecraft.storage.PersistedLightEntry;
 
 import java.util.Optional;
 
@@ -21,9 +22,9 @@ public class MegatorchSerializer implements LightNbtSerializer
 
     @Override
     //? if >=1.16.5
-    public NbtCompound serializeLight(MinecraftBlockingLight light)
+    public NbtCompound serializeLight(PersistedLightEntry light)
     //? if <1.16.5
-    //public CompoundTag serializeLight(MinecraftBlockingLight light)
+    //public CompoundTag serializeLight(PersistedLightEntry light)
     {
         if(light == null)
             throw new IllegalArgumentException("Unable to serialize null");
@@ -47,9 +48,9 @@ public class MegatorchSerializer implements LightNbtSerializer
 
     @Override
     //? if >=1.16.5
-    public Optional<MinecraftBlockingLight> deserializeLight(NbtCompound nbt)
+    public Optional<PersistedLightEntry> deserializeLight(NbtCompound nbt)
     //? if <1.16.5
-    //public Optional<MinecraftBlockingLight> deserializeLight(CompoundTag nbt)
+    //public Optional<PersistedLightEntry> deserializeLight(CompoundTag nbt)
     {
         //? if >=1.21.11 {
         /*Optional<BlockPos> pos = nbt.get("pos", BlockPos.CODEC);

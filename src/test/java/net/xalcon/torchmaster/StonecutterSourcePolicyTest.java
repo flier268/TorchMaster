@@ -25,7 +25,7 @@ class StonecutterSourcePolicyTest
     private static final Pattern CLIENT_RUNTIME_DETAIL = Pattern.compile(
             "Torchmaster(LightRangeDisplay|LightRangeRenderer|LightScreen|LightScreenPresenter|ClientLifecycle|ClientEventAdapter|ScreenCompat|ScreenRenderAdapter|ScreenRenderPlan|RangeBoxes|PanelRenderer|LineBoxRenderer|RangeRenderPlan|RangeLineSubmitter|LatestLineSubmitter|WorldRendererLineSubmitter|LegacyLineSubmitter|RangeRenderSession|RangeRenderTarget|LatestRangeRenderTarget|VanillaRangeRenderTarget|LegacyRangeRenderTarget|ConfigScreenLayout|ConfigEntries|ConfigWidgetRows|ConfigWidgetAdapter|ConfigScreenActions|ConfigScreenPresenter|ConfigRuntimeAccess)");
     private static final Pattern STORAGE_RUNTIME_DETAIL = Pattern.compile(
-            "(SavedLightStore|SavedLightStoreStateFactory|SavedLightStoreStateBridge|SavedLightStoreNbtBridge|MinecraftLightStoreAccess|LightStoreBridge|LightStoreConfigView)");
+            "(SavedLightStore|SavedLightStoreStateFactory|SavedLightStoreStateBridge|SavedLightStoreNbtBridge|MinecraftLightStoreAccess|LightStoreBridge|MinecraftLightStoreRuntimeContext|PersistedLightEntry)");
     private static final Pattern RUNTIME_REGISTRY_FACADE = Pattern.compile("getRegistryForLevel\\s*\\(");
     private static final Pattern RUNTIME_FILTER_GLOBAL = Pattern.compile("TorchmasterRuntime\\.(MegaTorchFilterRegistry|DreadLampFilterRegistry)");
     private static final Pattern RUNTIME_FILTER_VALIDATION = Pattern.compile("EntityFilterList::IsValidFilterString|EntityFilterList\\.IsValidFilterString");
@@ -66,6 +66,9 @@ class StonecutterSourcePolicyTest
     private static final Pattern FABRIC_SPAWN_HOOK_DIRECT_BRIDGE = Pattern.compile("SpawnEventBridge");
     private static final Pattern RANGE_TARGET_DIRECT_LINE_LAYER_API = Pattern.compile("RenderLayer\\.getLines\\s*\\(|LINE_LAYER|RenderPipelines|RenderSetup|bufferSource\\.draw\\s*\\(");
     private static final Pattern CONFIG_ROWS_DIRECT_WIDGET_STATE = Pattern.compile("TorchmasterScreenCompat\\.setWidget|\\.setMessage\\s*\\(");
+    private static final Pattern SAVED_LIGHT_STORE_DIRECT_PLATFORM_GLUE = Pattern.compile("Services\\.PLATFORM|TorchmasterEntityFilters|new\\s+MinecraftConfigView\\s*\\(");
+    private static final Pattern LIGHT_STORE_BRIDGE_DIRECT_MINECRAFT_LIGHT = Pattern.compile("MinecraftBlockingLight");
+    private static final Pattern STORAGE_SERIALIZER_DIRECT_MINECRAFT_LIGHT = Pattern.compile("^import\\s+net\\.xalcon\\.torchmaster\\.minecraft\\.light\\.MinecraftBlockingLight");
 
     @Test
     void loaderSourceRootsDoNotContainMinecraftVersionConditions() throws IOException
@@ -389,6 +392,30 @@ class StonecutterSourcePolicyTest
         Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/storage/SavedLightStore.java");
 
         assertTrue(!hasStorageOverrideDirectNbtBridge(path), () -> "Use SavedLightStoreStateBridge from PersistentState overrides, not NBT bridge or serializer directly: " + path);
+    }
+
+    @Test
+    void savedLightStoreDelegatesPlatformGlueToRuntimeContextProvider() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/storage/SavedLightStore.java");
+
+        assertTrue(!hasSavedLightStoreDirectPlatformGlue(path), () -> "Keep Services.PLATFORM, TorchmasterEntityFilters, and MinecraftConfigView inside MinecraftLightStoreRuntimeContext: " + path);
+    }
+
+    @Test
+    void lightStoreBridgeDoesNotExposeMinecraftLightType() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/storage/LightStoreBridge.java");
+
+        assertTrue(!hasLightStoreBridgeDirectMinecraftLight(path), () -> "Keep MinecraftBlockingLight out of LightStoreBridge; expose project-owned LightEntry only: " + path);
+    }
+
+    @Test
+    void storageSerializerDoesNotImportMinecraftLightType() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/storage/SavedLightStoreSerializer.java");
+
+        assertTrue(!hasStorageSerializerDirectMinecraftLight(path), () -> "Use PersistedLightEntry in storage serializer instead of importing MinecraftBlockingLight: " + path);
     }
 
     @Test
@@ -838,6 +865,33 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> STORAGE_OVERRIDE_DIRECT_NBT_BRIDGE.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasSavedLightStoreDirectPlatformGlue(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> SAVED_LIGHT_STORE_DIRECT_PLATFORM_GLUE.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasLightStoreBridgeDirectMinecraftLight(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> LIGHT_STORE_BRIDGE_DIRECT_MINECRAFT_LIGHT.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasStorageSerializerDirectMinecraftLight(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> STORAGE_SERIALIZER_DIRECT_MINECRAFT_LIGHT.matcher(line).find());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }

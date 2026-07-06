@@ -6,8 +6,9 @@ import net.minecraft.nbt.NbtCompound;
 /*import net.minecraft.nbt.CompoundTag;
 *///?}
 import net.xalcon.torchmaster.domain.LightKind;
-import net.xalcon.torchmaster.domain.LightRegistry;
+import net.xalcon.torchmaster.domain.LightStoreRuntime;
 import net.xalcon.torchmaster.minecraft.light.MinecraftBlockingLight;
+import net.xalcon.torchmaster.minecraft.storage.PersistedLightEntry;
 import net.xalcon.torchmaster.port.BlockPosView;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -32,31 +33,31 @@ class SavedLightStoreNbtBridgeTest
     @Test
     void saveReturnsProvidedTag()
     {
-        LightRegistry registry = new LightRegistry();
-        registry.register("MT_1_64_2", new TestLight(new BlockPosView(1, 64, 2)));
+        LightStoreRuntime runtime = new LightStoreRuntime();
+        runtime.registerLight("MT_1_64_2", new TestLight(new BlockPosView(1, 64, 2)));
         //? if >=1.16.5
         NbtCompound tag = new NbtCompound();
         //? if <1.16.5
         //CompoundTag tag = new CompoundTag();
 
-        assertSame(tag, SavedLightStoreNbtBridge.save(registry, tag));
+        assertSame(tag, SavedLightStoreNbtBridge.save(runtime, tag));
     }
 
     @Test
     void loadReplacesRegistryEntries()
     {
-        LightRegistry registry = new LightRegistry();
-        registry.register("MT_1_64_2", new TestLight(new BlockPosView(1, 64, 2)));
+        LightStoreRuntime runtime = new LightStoreRuntime();
+        runtime.registerLight("MT_1_64_2", new TestLight(new BlockPosView(1, 64, 2)));
         //? if >=1.16.5
         NbtCompound tag = new NbtCompound();
         //? if <1.16.5
         //CompoundTag tag = new CompoundTag();
-        SavedLightStoreNbtBridge.save(registry, tag);
+        SavedLightStoreNbtBridge.save(runtime, tag);
 
-        LightRegistry loaded = new LightRegistry();
+        LightStoreRuntime loaded = new LightStoreRuntime();
         SavedLightStoreNbtBridge.load(loaded, tag);
 
-        assertTrue(loaded.get("MT_1_64_2").isPresent());
+        assertTrue(loaded.getLight("MT_1_64_2").isPresent());
     }
 
     private static final class TestLight implements MinecraftBlockingLight
@@ -103,9 +104,9 @@ class SavedLightStoreNbtBridgeTest
 
         @Override
         //? if >=1.16.5
-        public NbtCompound serializeLight(MinecraftBlockingLight light) {
+        public NbtCompound serializeLight(PersistedLightEntry light) {
         //? if <1.16.5
-        //public CompoundTag serializeLight(MinecraftBlockingLight light) {
+        //public CompoundTag serializeLight(PersistedLightEntry light) {
             //? if >=1.16.5
             return new NbtCompound();
             //? if <1.16.5
@@ -114,9 +115,9 @@ class SavedLightStoreNbtBridgeTest
 
         @Override
         //? if >=1.16.5
-        public Optional<MinecraftBlockingLight> deserializeLight(NbtCompound nbt) {
+        public Optional<PersistedLightEntry> deserializeLight(NbtCompound nbt) {
         //? if <1.16.5
-        //public Optional<MinecraftBlockingLight> deserializeLight(CompoundTag nbt) {
+        //public Optional<PersistedLightEntry> deserializeLight(CompoundTag nbt) {
             return Optional.of(new TestLight(new BlockPosView(0, 64, 0)));
         }
 

@@ -5,7 +5,7 @@ import net.minecraft.nbt.NbtCompound;
 //?} else {
 /*import net.minecraft.nbt.CompoundTag;
 *///?}
-import net.xalcon.torchmaster.domain.LightRegistry;
+import net.xalcon.torchmaster.domain.LightStoreRuntime;
 
 final class SavedLightStoreNbtBridge
 {
@@ -14,19 +14,19 @@ final class SavedLightStoreNbtBridge
     }
 
     //? if >=1.16.5
-    static NbtCompound save(LightRegistry lights, NbtCompound tag)
+    static NbtCompound save(LightStoreRuntime runtime, NbtCompound tag)
     //? if <1.16.5
-    //static CompoundTag save(LightRegistry lights, CompoundTag tag)
+    //static CompoundTag save(LightStoreRuntime runtime, CompoundTag tag)
     {
-        SavedLightStoreSerializer.saveInto(tag, lights);
+        SavedLightStoreSerializer.saveInto(tag, runtime.registry());
         return tag;
     }
 
     //? if >=1.16.5
-    static void load(LightRegistry lights, NbtCompound tag)
+    static void load(LightStoreRuntime runtime, NbtCompound tag)
     //? if <1.16.5
-    //static void load(LightRegistry lights, CompoundTag tag)
+    //static void load(LightStoreRuntime runtime, CompoundTag tag)
     {
-        SavedLightStoreSerializer.loadInto(lights, tag);
+        SavedLightStoreSerializer.loadInto(runtime.registry(), tag);
     }
 }

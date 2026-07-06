@@ -1,111 +1,64 @@
 package net.xalcon.torchmaster.domain;
 
 import net.xalcon.torchmaster.port.BlockPosView;
-import net.xalcon.torchmaster.port.ConfigView;
-import net.xalcon.torchmaster.port.EntityTypeKey;
-import net.xalcon.torchmaster.port.Vec3View;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LightRegistryTest {
-    private static final EntityTypeKey ZOMBIE = EntityTypeKey.parse("minecraft:zombie");
-    private static final EntityTypeKey SKELETON = EntityTypeKey.parse("minecraft:skeleton");
-
     @Test
-    void emptyRegistryDoesNotBlock() {
+    void emptyRegistryHasNoEntries() {
         LightRegistry registry = new LightRegistry();
 
-        assertFalse(registry.blocksEntity(filter(ZOMBIE), filter(SKELETON), config(), ZOMBIE, new Vec3View(0.5, 64, 0.5)));
-        assertFalse(registry.blocksVillageSiege(config(), new Vec3View(0.5, 64, 0.5)));
+        assertEquals(0, registry.entries().size());
+        assertEquals(0, registry.keyedEntries().size());
     }
 
     @Test
-    void registeredMegaTorchBlocksFilteredEntity() {
+    void registerStoresEntryByKey() {
         LightRegistry registry = new LightRegistry();
-        registry.register("mega", light(LightKind.MEGA_TORCH, 0, 64, 0));
+        LightEntry entry = light(LightKind.MEGA_TORCH, 0, 64, 0);
+        registry.register("mega", entry);
 
-        assertTrue(registry.blocksEntity(filter(ZOMBIE), filter(SKELETON), config(), ZOMBIE, new Vec3View(3.5, 64, 3.5)));
+        assertTrue(registry.get("mega").isPresent());
+        assertSame(entry, registry.get("mega").get());
+        assertEquals(1, registry.entries().size());
     }
 
     @Test
-    void registeredDreadLampUsesDreadLampFilter() {
-        LightRegistry registry = new LightRegistry();
-        registry.register("dread", light(LightKind.DREAD_LAMP, 0, 64, 0));
-
-        assertTrue(registry.blocksEntity(filter(ZOMBIE), filter(SKELETON), config(), SKELETON, new Vec3View(7.5, 64, 7.5)));
-        assertFalse(registry.blocksEntity(filter(ZOMBIE), filter(SKELETON), config(), ZOMBIE, new Vec3View(7.5, 64, 7.5)));
-    }
-
-    @Test
-    void unregisterRemovesLight() {
+    void unregisterRemovesStoredEntry() {
         LightRegistry registry = new LightRegistry();
         registry.register("mega", light(LightKind.MEGA_TORCH, 0, 64, 0));
         registry.unregister("mega");
 
         assertFalse(registry.get("mega").isPresent());
-        assertFalse(registry.blocksEntity(filter(ZOMBIE), filter(SKELETON), config(), ZOMBIE, new Vec3View(3.5, 64, 3.5)));
+        assertEquals(0, registry.entries().size());
     }
 
     @Test
-    void megaTorchBlocksVillageSiegeButDreadLampDoesNot() {
+    void clearRemovesAllEntries() {
         LightRegistry registry = new LightRegistry();
         registry.register("dread", light(LightKind.DREAD_LAMP, 0, 64, 0));
-        assertFalse(registry.blocksVillageSiege(config(), new Vec3View(1.5, 64, 1.5)));
-
         registry.register("mega", light(LightKind.MEGA_TORCH, 0, 64, 0));
-        assertTrue(registry.blocksVillageSiege(config(), new Vec3View(1.5, 64, 1.5)));
+        registry.clear();
+
+        assertEquals(0, registry.entries().size());
+        assertEquals(0, registry.keyedEntries().size());
     }
 
     @Test
-    void entriesExposeRegisteredLights() {
+    void keyedEntriesPreserveKeyAssociations() {
         LightRegistry registry = new LightRegistry();
-        registry.register("mega", light(LightKind.MEGA_TORCH, 0, 64, 0));
+        LightEntry mega = light(LightKind.MEGA_TORCH, 0, 64, 0);
+        LightEntry dread = light(LightKind.DREAD_LAMP, 2, 64, 2);
+        registry.register("mega", mega);
+        registry.register("dread", dread);
 
-        assertEquals(1, registry.entries().size());
-        assertEquals("Mega Torch", registry.entries().iterator().next().displayName());
-    }
-
-    private static EntityFilter filter(EntityTypeKey entityType) {
-        EntityFilter filter = new EntityFilter();
-        filter.register(entityType);
-        return filter;
-    }
-
-    private static ConfigView config() {
-        return new ConfigView() {
-            @Override
-            public int feralFlareRadius() {
-                return 16;
-            }
-
-            @Override
-            public int dreadLampRadius() {
-                return 8;
-            }
-
-            @Override
-            public int megaTorchRadius() {
-                return 4;
-            }
-
-            @Override
-            public boolean aggressiveSpawnChecks() {
-                return true;
-            }
-
-            @Override
-            public boolean blockOnlyNaturalSpawns() {
-                return true;
-            }
-
-            @Override
-            public boolean blockVillageSieges() {
-                return true;
-            }
-        };
+        assertEquals(2, registry.keyedEntries().size());
+        assertSame(mega, registry.keyedEntries().iterator().next().getValue());
     }
 
     private static LightEntry light(LightKind kind, int x, int y, int z) {
