@@ -43,6 +43,14 @@ final class SavedLightStoreStateBridge
     //? if <1.16.5
     //static CompoundTag write(SavedLightStore store, CompoundTag tag)
     {
+        return writeIntoExistingTag(store, tag);
+    }
+
+    //? if >=1.16.5
+    static NbtCompound writeIntoExistingTag(SavedLightStore store, NbtCompound tag)
+    //? if <1.16.5
+    //static CompoundTag writeIntoExistingTag(SavedLightStore store, CompoundTag tag)
+    {
         return SavedLightStoreNbtBridge.save(store.lights(), tag);
     }
 
@@ -50,6 +58,14 @@ final class SavedLightStoreStateBridge
     static void read(SavedLightStore store, NbtCompound tag)
     //? if <1.16.5
     //static void read(SavedLightStore store, CompoundTag tag)
+    {
+        readIntoExistingStore(store, tag);
+    }
+
+    //? if >=1.16.5
+    static void readIntoExistingStore(SavedLightStore store, NbtCompound tag)
+    //? if <1.16.5
+    //static void readIntoExistingStore(SavedLightStore store, CompoundTag tag)
     {
         SavedLightStoreNbtBridge.load(store.lights(), tag);
     }

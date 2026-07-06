@@ -58,6 +58,23 @@ class SavedLightStoreStateBridgeTest
     }
 
     @Test
+    void existingTagAndStoreRouteRoundTrips()
+    {
+        SavedLightStore store = new SavedLightStore();
+        store.registerLight("MT_1_64_2", new TestLight(new BlockPosView(1, 64, 2)));
+        //? if >=1.16.5
+        NbtCompound tag = new NbtCompound();
+        //? if <1.16.5
+        //CompoundTag tag = new CompoundTag();
+
+        assertSame(tag, SavedLightStoreStateBridge.writeIntoExistingTag(store, tag));
+        SavedLightStore loaded = new SavedLightStore();
+        SavedLightStoreStateBridge.readIntoExistingStore(loaded, tag);
+
+        assertTrue(loaded.getLight("MT_1_64_2").isPresent());
+    }
+
+    @Test
     void loadCreatesStoreAndRestoresLights()
     {
         SavedLightStore store = SavedLightStoreStateBridge.create();

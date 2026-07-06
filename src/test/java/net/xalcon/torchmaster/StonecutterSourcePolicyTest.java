@@ -50,6 +50,9 @@ class StonecutterSourcePolicyTest
     private static final Pattern LOADER_CLIENT_ENTRYPOINT_LIFECYCLE_IMPORT = Pattern.compile("TorchmasterClientLifecycle");
     private static final Pattern CONFIG_SCREEN_DIRECT_ACTION_OR_SAVE = Pattern.compile("private\\s+void\\s+(save|reset)\\s*\\(|setStatus\\s*\\(|TorchmasterTomlConfig|TorchmasterConfigEntries\\.collector\\s*\\(|TorchmasterRuntime\\.onWorldLoaded\\s*\\(");
     private static final Pattern STORAGE_FACTORY_DIRECT_STATE_GLUE = Pattern.compile("new\\s+SavedLightStore\\s*\\(|SavedLightStore::new|SavedLightStoreStateBridge\\.read\\s*\\(");
+    private static final Pattern SPAWN_BRIDGE_DIRECT_RUNTIME_GLUE = Pattern.compile("Services\\.PLATFORM\\.getConfig\\s*\\(|TorchmasterRuntime\\.LOG|new\\s+MinecraftConfigView\\s*\\(");
+    private static final Pattern RANGE_TARGET_DIRECT_BACKEND_DECISION = Pattern.compile("new\\s+(CameraOffset|LegacySessionState)\\s*\\(|TorchmasterLineBoxRenderer\\.LINE_WIDTH");
+    private static final Pattern STORAGE_OVERRIDE_DIRECT_NBT_BRIDGE = Pattern.compile("SavedLightStore(NbtBridge|Serializer)\\.");
 
     @Test
     void loaderSourceRootsDoNotContainMinecraftVersionConditions() throws IOException
@@ -352,6 +355,30 @@ class StonecutterSourcePolicyTest
     }
 
     @Test
+    void spawnEventBridgeDelegatesRuntimeGlue() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/events/SpawnEventBridge.java");
+
+        assertTrue(!hasSpawnBridgeDirectRuntimeGlue(path), () -> "Use MinecraftSpawnEventRuntime for config, config view, and logging glue: " + path);
+    }
+
+    @Test
+    void rangeRenderTargetDelegatesBackendDecisions() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterRangeRenderTarget.java");
+
+        assertTrue(!hasRangeTargetDirectBackendDecision(path), () -> "Use TorchmasterRangeRenderBackend for camera offset, legacy state, and line width decisions: " + path);
+    }
+
+    @Test
+    void savedLightStoreOverridesDoNotCallNbtBridgeDirectly() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/storage/SavedLightStore.java");
+
+        assertTrue(!hasStorageOverrideDirectNbtBridge(path), () -> "Use SavedLightStoreStateBridge from PersistentState overrides, not NBT bridge or serializer directly: " + path);
+    }
+
+    @Test
     void sharedHelpersDoNotGateWholeClassesByLoader() throws IOException
     {
         List<Path> violations = javaFilesIn(
@@ -635,6 +662,33 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> STORAGE_FACTORY_DIRECT_STATE_GLUE.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasSpawnBridgeDirectRuntimeGlue(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> SPAWN_BRIDGE_DIRECT_RUNTIME_GLUE.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasRangeTargetDirectBackendDecision(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> RANGE_TARGET_DIRECT_BACKEND_DECISION.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasStorageOverrideDirectNbtBridge(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> STORAGE_OVERRIDE_DIRECT_NBT_BRIDGE.matcher(line).find());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }

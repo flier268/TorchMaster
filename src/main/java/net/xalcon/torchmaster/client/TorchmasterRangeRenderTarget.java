@@ -34,31 +34,45 @@ final class TorchmasterRangeRenderTarget
 
     static CameraOffset cameraOffset(double x, double y, double z)
     {
-        return new CameraOffset(-x, -y, -z);
+        return TorchmasterRangeRenderBackend.cameraOffset(x, y, z);
     }
 
     static LegacySessionState legacySessionState()
     {
-        return new LegacySessionState(true, true, TorchmasterLineBoxRenderer.LINE_WIDTH);
+        return TorchmasterRangeRenderBackend.legacySessionState();
     }
 
     //? if >=1.15 {
     static VertexConsumer lineBuffer(VertexConsumerProvider bufferSource)
     {
+        TorchmasterRangeRenderBackend.LineLayerChoice layer = TorchmasterRangeRenderBackend.activeLineLayer();
         //? if >=1.21.11 {
-        /*return bufferSource.getBuffer(LINE_LAYER);
+        /*if (layer == TorchmasterRangeRenderBackend.LineLayerChoice.CUSTOM_PIPELINE) {
+            return bufferSource.getBuffer(LINE_LAYER);
+        }
         *///?} else {
-        return bufferSource.getBuffer(RenderLayer.getLines());
+        if (layer == TorchmasterRangeRenderBackend.LineLayerChoice.VANILLA_LINES) {
+            return bufferSource.getBuffer(RenderLayer.getLines());
+        }
         //?}
+        throw new IllegalStateException("Unsupported range render line layer " + layer);
     }
 
     static void flushLines(VertexConsumerProvider.Immediate bufferSource)
     {
+        TorchmasterRangeRenderBackend.FlushTarget target = TorchmasterRangeRenderBackend.activeFlushTarget();
         //? if >=1.21.11 {
-        /*bufferSource.draw(LINE_LAYER);
+        /*if (target == TorchmasterRangeRenderBackend.FlushTarget.CUSTOM_PIPELINE) {
+            bufferSource.draw(LINE_LAYER);
+            return;
+        }
         *///?} else {
-        bufferSource.draw(RenderLayer.getLines());
+        if (target == TorchmasterRangeRenderBackend.FlushTarget.VANILLA_LINES) {
+            bufferSource.draw(RenderLayer.getLines());
+            return;
+        }
         //?}
+        throw new IllegalStateException("Unsupported range render flush target " + target);
     }
 
     static void translateToCamera(MatrixStack poseStack, Camera camera)
@@ -105,7 +119,7 @@ final class TorchmasterRangeRenderTarget
         final double y;
         final double z;
 
-        private CameraOffset(double x, double y, double z)
+        CameraOffset(double x, double y, double z)
         {
             this.x = x;
             this.y = y;
@@ -119,7 +133,7 @@ final class TorchmasterRangeRenderTarget
         final boolean enableBlend;
         final float lineWidth;
 
-        private LegacySessionState(boolean disableTexture, boolean enableBlend, float lineWidth)
+        LegacySessionState(boolean disableTexture, boolean enableBlend, float lineWidth)
         {
             this.disableTexture = disableTexture;
             this.enableBlend = enableBlend;
