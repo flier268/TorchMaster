@@ -23,9 +23,9 @@ class StonecutterSourcePolicyTest
     private static final Pattern MIXIN_FORBIDDEN_SPAWN_IMPORT = Pattern.compile(
             "^import\\s+net\\.xalcon\\.torchmaster\\.(domain\\.SpawnBlockingRules|minecraft\\.storage\\.|minecraft\\.adapter\\.MinecraftSpawnBlocker)");
     private static final Pattern CLIENT_RUNTIME_DETAIL = Pattern.compile(
-            "Torchmaster(LightRangeDisplay|LightRangeRenderer|LightScreen|ClientLifecycle|ScreenCompat|RangeBoxes|PanelRenderer|LineBoxRenderer|RangeRenderPlan|RangeLineSubmitter|RangeRenderSession|ConfigScreenLayout|ConfigEntries|ConfigWidgetRows)");
+            "Torchmaster(LightRangeDisplay|LightRangeRenderer|LightScreen|ClientLifecycle|ScreenCompat|ScreenRenderAdapter|RangeBoxes|PanelRenderer|LineBoxRenderer|RangeRenderPlan|RangeLineSubmitter|RangeRenderSession|RangeRenderTarget|ConfigScreenLayout|ConfigEntries|ConfigWidgetRows)");
     private static final Pattern STORAGE_RUNTIME_DETAIL = Pattern.compile(
-            "(SavedLightStore|SavedLightStoreStateFactory|MinecraftLightStoreAccess|LightStoreBridge|LightStoreConfigView)");
+            "(SavedLightStore|SavedLightStoreStateFactory|SavedLightStoreNbtBridge|MinecraftLightStoreAccess|LightStoreBridge|LightStoreConfigView)");
     private static final Pattern RUNTIME_REGISTRY_FACADE = Pattern.compile("getRegistryForLevel\\s*\\(");
     private static final Pattern RUNTIME_FILTER_GLOBAL = Pattern.compile("TorchmasterRuntime\\.(MegaTorchFilterRegistry|DreadLampFilterRegistry)");
     private static final Pattern RUNTIME_FILTER_VALIDATION = Pattern.compile("EntityFilterList::IsValidFilterString|EntityFilterList\\.IsValidFilterString");
@@ -36,6 +36,9 @@ class StonecutterSourcePolicyTest
     private static final Pattern CONFIG_SCREEN_DIRECT_WIDGET_STATE = Pattern.compile("setWidget[XY]\\s*\\(|\\.visible\\s*=|\\.active\\s*=");
     private static final Pattern RANGE_RENDERER_DIRECT_SESSION_DETAIL = Pattern.compile("TorchmasterLightRangeDisplay\\.snapshots\\s*\\(|RenderLayer\\.getLines\\s*\\(|WorldRenderer\\.drawBox\\s*\\(|\\.lineWidth\\s*\\(");
     private static final Pattern STORAGE_SERIALIZER_RUNTIME_LOGGER = Pattern.compile("TorchmasterRuntime\\.LOG");
+    private static final Pattern SCREEN_DIRECT_TEXT_DRAW = Pattern.compile("drawCenteredText|drawCenteredString|drawText\\s*\\(|drawString\\s*\\(");
+    private static final Pattern RANGE_SESSION_RENDER_TARGET_DETAIL = Pattern.compile("RenderLayer\\.getLines\\s*\\(|LINE_LAYER|bufferSource\\.draw\\s*\\(|RenderPipelines|RenderSetup|GlStateManager\\.");
+    private static final Pattern SAVED_LIGHT_STORE_DIRECT_SERIALIZER = Pattern.compile("SavedLightStoreSerializer\\.");
     private static final Pattern LOADER_GATED_FILE_START = Pattern.compile("//\\?\\s*(if|elif|else if)\\b.*\\b(fabric|forge|neoforge)\\b.*\\{");
 
     @Test
@@ -189,6 +192,35 @@ class StonecutterSourcePolicyTest
         Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/storage/SavedLightStoreSerializer.java");
 
         assertTrue(!hasStorageSerializerRuntimeLogger(path), () -> "Use storage-local logging instead of TorchmasterRuntime.LOG in storage serializer: " + path);
+    }
+
+    @Test
+    void screensDelegateTextDrawingToRenderAdapter() throws IOException
+    {
+        List<Path> violations = Arrays.asList(
+                        sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterLightScreen.java"),
+                        sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterConfigScreen.java"))
+                .stream()
+                .filter(StonecutterSourcePolicyTest::hasDirectScreenTextDraw)
+                .collect(Collectors.toList());
+
+        assertTrue(violations.isEmpty(), () -> "Use TorchmasterScreenRenderAdapter for centered/text labels in screen classes: " + violations);
+    }
+
+    @Test
+    void rangeRenderSessionDelegatesRenderTargetDetails() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterRangeRenderSession.java");
+
+        assertTrue(!hasRangeSessionRenderTargetDetail(path), () -> "Use TorchmasterRangeRenderTarget for render layer, flush, and legacy GL target details: " + path);
+    }
+
+    @Test
+    void savedLightStoreDelegatesNbtSerialization() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/storage/SavedLightStore.java");
+
+        assertTrue(!hasSavedLightStoreDirectSerializer(path), () -> "Use SavedLightStoreNbtBridge from PersistentState signatures instead of direct serializer calls: " + path);
     }
 
     @Test
@@ -358,6 +390,33 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> STORAGE_SERIALIZER_RUNTIME_LOGGER.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasDirectScreenTextDraw(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> SCREEN_DIRECT_TEXT_DRAW.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasRangeSessionRenderTargetDetail(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> RANGE_SESSION_RENDER_TARGET_DETAIL.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasSavedLightStoreDirectSerializer(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> SAVED_LIGHT_STORE_DIRECT_SERIALIZER.matcher(line).find());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }

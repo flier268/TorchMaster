@@ -95,13 +95,12 @@ public class SavedLightStore extends PersistentState implements LightStoreBridge
         return saveInto(compoundTag);
     }
     *///?} elif <1.16.5 {
-    /*@Override
-    public CompoundTag toTag(CompoundTag compoundTag)
-    {
-        SavedLightStoreSerializer.saveInto(compoundTag, lights);
-        return compoundTag;
-    }
-    *///?}
+	    /*@Override
+	    public CompoundTag toTag(CompoundTag compoundTag)
+	    {
+	        return SavedLightStoreNbtBridge.save(lights, compoundTag);
+	    }
+	    *///?}
 
     //? if >=1.16.5 && <1.17 {
     /*@Override
@@ -110,23 +109,22 @@ public class SavedLightStore extends PersistentState implements LightStoreBridge
         loadFrom(tag);
     }
     *///?} else if <1.16.5 {
-    /*@Override
-    public void fromTag(CompoundTag tag)
-    {
-        SavedLightStoreSerializer.loadInto(this.lights, tag);
-    }
-    *///?}
+	    /*@Override
+	    public void fromTag(CompoundTag tag)
+	    {
+	        SavedLightStoreNbtBridge.load(this.lights, tag);
+	    }
+	    *///?}
 
     //? if >=1.16.5 {
     NbtCompound saveInto(NbtCompound tag)
     {
-        SavedLightStoreSerializer.saveInto(tag, lights);
-        return tag;
+        return SavedLightStoreNbtBridge.save(lights, tag);
     }
 
     void loadFrom(NbtCompound tag)
     {
-        SavedLightStoreSerializer.loadInto(this.lights, tag);
+        SavedLightStoreNbtBridge.load(this.lights, tag);
     }
 //?}
 }

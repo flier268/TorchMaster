@@ -208,15 +208,15 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
 
         super.render(graphics, mouseX, mouseY, partialTick);
 
-        drawPanelFrame(graphics, left, top, right, bottom);
-        graphics.drawCenteredTextWithShadow(textRenderer, title, width / 2, 14, TorchmasterPanelRenderer.TITLE_COLOR);
+        TorchmasterScreenRenderAdapter.frame(graphics, left, top, right, bottom);
+        TorchmasterScreenRenderAdapter.centered(graphics, textRenderer, text("screen.torchmaster.config.title"), width / 2, 14, TorchmasterPanelRenderer.TITLE_COLOR);
 
         for (TorchmasterConfigWidgetRows.Row entry : entries) {
             if (entry.visible()) {
-                graphics.drawText(textRenderer, text(entry.translationKey()).asWidget(), left + 12, layout.compact() ? entry.y() : entry.y() + 6, TorchmasterPanelRenderer.LABEL_COLOR, false);
+                TorchmasterScreenRenderAdapter.label(graphics, textRenderer, text(entry.translationKey()), left + 12, layout.compact() ? entry.y() : entry.y() + 6, TorchmasterPanelRenderer.LABEL_COLOR);
             }
         }
-        graphics.drawCenteredTextWithShadow(textRenderer, status.asWidget(), width / 2, height - 48, statusColor);
+        TorchmasterScreenRenderAdapter.centered(graphics, textRenderer, status, width / 2, height - 48, statusColor);
     }
     //?} else if >=1.19.4 {
     /*@Override
@@ -230,15 +230,15 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
 
         super.render(poseStack, mouseX, mouseY, partialTick);
 
-        drawPanelFrame(poseStack, left, top, right, bottom);
-        drawCenteredTextWithShadow(poseStack, textRenderer, title, width / 2, 14, TorchmasterPanelRenderer.TITLE_COLOR);
+        TorchmasterScreenRenderAdapter.frame(poseStack, left, top, right, bottom);
+        TorchmasterScreenRenderAdapter.centered(poseStack, textRenderer, text("screen.torchmaster.config.title"), width / 2, 14, TorchmasterPanelRenderer.TITLE_COLOR, true);
 
         for (TorchmasterConfigWidgetRows.Row entry : entries) {
             if (entry.visible()) {
-                drawTextWithShadow(poseStack, textRenderer, text(entry.translationKey()).asWidget(), left + 12, layout.compact() ? entry.y() : entry.y() + 6, TorchmasterPanelRenderer.LABEL_COLOR);
+                TorchmasterScreenRenderAdapter.label(poseStack, textRenderer, text(entry.translationKey()), left + 12, layout.compact() ? entry.y() : entry.y() + 6, TorchmasterPanelRenderer.LABEL_COLOR);
             }
         }
-        drawCenteredTextWithShadow(poseStack, textRenderer, status.asWidget(), width / 2, height - 48, statusColor);
+        TorchmasterScreenRenderAdapter.centered(poseStack, textRenderer, status, width / 2, height - 48, statusColor, true);
     }
     *///?} else if >=1.16 {
     /*@Override
@@ -252,15 +252,15 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
 
         super.render(poseStack, mouseX, mouseY, partialTick);
 
-        drawPanelFrame(poseStack, left, top, right, bottom);
-        drawCenteredText(poseStack, textRenderer, title, width / 2, 14, TorchmasterPanelRenderer.TITLE_COLOR);
+        TorchmasterScreenRenderAdapter.frame(poseStack, left, top, right, bottom);
+        TorchmasterScreenRenderAdapter.centered(poseStack, textRenderer, text("screen.torchmaster.config.title"), width / 2, 14, TorchmasterPanelRenderer.TITLE_COLOR, false);
 
         for (TorchmasterConfigWidgetRows.Row entry : entries) {
             if (entry.visible()) {
-                drawTextWithShadow(poseStack, textRenderer, text(entry.translationKey()).asWidget(), left + 12, layout.compact() ? entry.y() : entry.y() + 6, TorchmasterPanelRenderer.LABEL_COLOR);
+                TorchmasterScreenRenderAdapter.label(poseStack, textRenderer, text(entry.translationKey()), left + 12, layout.compact() ? entry.y() : entry.y() + 6, TorchmasterPanelRenderer.LABEL_COLOR);
             }
         }
-        drawCenteredText(poseStack, textRenderer, status.asWidget(), width / 2, height - 48, statusColor);
+        TorchmasterScreenRenderAdapter.centered(poseStack, textRenderer, status, width / 2, height - 48, statusColor, false);
     }
     *///?} else {
     /*@Override
@@ -273,18 +273,18 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
         int bottom = layout.panelBottom();
 
         renderBackground();
-        fillPanel(TorchmasterPanelRenderer.background(left, top, right, bottom));
+        TorchmasterScreenRenderAdapter.fill(TorchmasterPanelRenderer.background(left, top, right, bottom));
         super.render(mouseX, mouseY, partialTick);
 
-        drawPanelFrame(left, top, right, bottom);
-        drawCenteredString(font, text("screen.torchmaster.config.title").asWidget(), width / 2, 14, TorchmasterPanelRenderer.TITLE_COLOR);
+        TorchmasterScreenRenderAdapter.frame(left, top, right, bottom);
+        TorchmasterScreenRenderAdapter.centered(font, text("screen.torchmaster.config.title"), width / 2, 14, TorchmasterPanelRenderer.TITLE_COLOR);
 
         for (TorchmasterConfigWidgetRows.Row entry : entries) {
             if (entry.visible()) {
-                drawString(font, text(entry.translationKey()).asWidget(), left + 12, layout.compact() ? entry.y() : entry.y() + 6, TorchmasterPanelRenderer.LABEL_COLOR);
+                TorchmasterScreenRenderAdapter.label(font, text(entry.translationKey()), left + 12, layout.compact() ? entry.y() : entry.y() + 6, TorchmasterPanelRenderer.LABEL_COLOR);
             }
         }
-        drawCenteredString(font, status.asWidget(), width / 2, height - 48, statusColor);
+        TorchmasterScreenRenderAdapter.centered(font, status, width / 2, height - 48, statusColor);
     }
     *///?}
 
@@ -294,19 +294,7 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
     {
         super.renderBackground(graphics, mouseX, mouseY, partialTick);
         TorchmasterConfigScreenLayout layout = layout();
-        fillPanel(graphics, TorchmasterPanelRenderer.background(layout.panelLeft(), layout.panelTop(), layout.panelRight(), layout.panelBottom()));
-    }
-
-    private void drawPanelFrame(DrawContext graphics, int left, int top, int right, int bottom)
-    {
-        for (TorchmasterPanelRenderer.Fill fill : TorchmasterPanelRenderer.frame(left, top, right, bottom)) {
-            fillPanel(graphics, fill);
-        }
-    }
-
-    private static void fillPanel(DrawContext graphics, TorchmasterPanelRenderer.Fill fill)
-    {
-        graphics.fill(fill.left, fill.top, fill.right, fill.bottom, fill.color);
+        TorchmasterScreenRenderAdapter.fill(graphics, TorchmasterPanelRenderer.background(layout.panelLeft(), layout.panelTop(), layout.panelRight(), layout.panelBottom()));
     }
     //?} else if >=1.20.6 {
     /*@Override
@@ -314,19 +302,7 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
     {
         super.renderBackground(graphics, mouseX, mouseY, partialTick);
         TorchmasterConfigScreenLayout layout = layout();
-        fillPanel(graphics, TorchmasterPanelRenderer.background(layout.panelLeft(), layout.panelTop(), layout.panelRight(), layout.panelBottom()));
-    }
-
-    private void drawPanelFrame(DrawContext graphics, int left, int top, int right, int bottom)
-    {
-        for (TorchmasterPanelRenderer.Fill fill : TorchmasterPanelRenderer.frame(left, top, right, bottom)) {
-            fillPanel(graphics, fill);
-        }
-    }
-
-    private static void fillPanel(DrawContext graphics, TorchmasterPanelRenderer.Fill fill)
-    {
-        graphics.fill(fill.left, fill.top, fill.right, fill.bottom, fill.color);
+        TorchmasterScreenRenderAdapter.fill(graphics, TorchmasterPanelRenderer.background(layout.panelLeft(), layout.panelTop(), layout.panelRight(), layout.panelBottom()));
     }
     *///?} else if >=1.20 {
     /*@Override
@@ -334,19 +310,7 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
     {
         super.renderBackground(graphics);
         TorchmasterConfigScreenLayout layout = layout();
-        fillPanel(graphics, TorchmasterPanelRenderer.background(layout.panelLeft(), layout.panelTop(), layout.panelRight(), layout.panelBottom()));
-    }
-
-    private void drawPanelFrame(DrawContext graphics, int left, int top, int right, int bottom)
-    {
-        for (TorchmasterPanelRenderer.Fill fill : TorchmasterPanelRenderer.frame(left, top, right, bottom)) {
-            fillPanel(graphics, fill);
-        }
-    }
-
-    private static void fillPanel(DrawContext graphics, TorchmasterPanelRenderer.Fill fill)
-    {
-        graphics.fill(fill.left, fill.top, fill.right, fill.bottom, fill.color);
+        TorchmasterScreenRenderAdapter.fill(graphics, TorchmasterPanelRenderer.background(layout.panelLeft(), layout.panelTop(), layout.panelRight(), layout.panelBottom()));
     }
     *///?} else if >=1.16 {
     /*@Override
@@ -354,32 +318,10 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
     {
         super.renderBackground(poseStack);
         TorchmasterConfigScreenLayout layout = layout();
-        fillPanel(poseStack, TorchmasterPanelRenderer.background(layout.panelLeft(), layout.panelTop(), layout.panelRight(), layout.panelBottom()));
-    }
-
-    private void drawPanelFrame(MatrixStack poseStack, int left, int top, int right, int bottom)
-    {
-        for (TorchmasterPanelRenderer.Fill fill : TorchmasterPanelRenderer.frame(left, top, right, bottom)) {
-            fillPanel(poseStack, fill);
-        }
-    }
-
-    private static void fillPanel(MatrixStack poseStack, TorchmasterPanelRenderer.Fill fill)
-    {
-        fill(poseStack, fill.left, fill.top, fill.right, fill.bottom, fill.color);
+        TorchmasterScreenRenderAdapter.fill(poseStack, TorchmasterPanelRenderer.background(layout.panelLeft(), layout.panelTop(), layout.panelRight(), layout.panelBottom()));
     }
     *///?} else {
-    /*private void drawPanelFrame(int left, int top, int right, int bottom)
-    {
-        for (TorchmasterPanelRenderer.Fill fill : TorchmasterPanelRenderer.frame(left, top, right, bottom)) {
-            fillPanel(fill);
-        }
-    }
-
-    private static void fillPanel(TorchmasterPanelRenderer.Fill fill)
-    {
-        fill(fill.left, fill.top, fill.right, fill.bottom, fill.color);
-    }
+    /*
     *///?}
 
     private TorchmasterConfigWidgetRows.WidgetFactory widgetFactory()
