@@ -5,7 +5,6 @@ import net.xalcon.torchmaster.port.EntityTypeKey;
 import net.xalcon.torchmaster.port.LightInfo;
 import net.xalcon.torchmaster.port.SpawnReason;
 import net.xalcon.torchmaster.port.Vec3View;
-import net.xalcon.torchmaster.port.WorldView;
 
 public interface LightStoreBridge
 {
@@ -26,8 +25,6 @@ public interface LightStoreBridge
      */
     void registerLight(String lightKey, LightEntry light);
     void unregisterLight(String lightKey);
-
-    void onGlobalTick(WorldView world);
 
     LightInfo[] getEntries();
 }

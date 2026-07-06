@@ -1,8 +1,6 @@
 package net.xalcon.torchmaster.minecraft.adapter;
 
 import net.minecraft.entity.EntityType;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.xalcon.torchmaster.minecraft.storage.LightStoreBridge;
@@ -28,12 +26,6 @@ public final class MinecraftSpawnBlocker {
         return MinecraftLightStoreAccess.get(level)
                 .map(store -> shouldBlockVillageSiege(store, position))
                 .orElse(false);
-    }
-
-    public static void tickStores(MinecraftServer server) {
-        for (ServerWorld level : server.getWorlds()) {
-            MinecraftLightStoreAccess.get(level).ifPresent(store -> store.onGlobalTick(MinecraftAdapterViews.world(level)));
-        }
     }
 
     static boolean shouldBlockEntity(LightStoreBridge store, EntityTypeKey entityType, Vec3View position, SpawnReason spawnReason) {

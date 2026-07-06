@@ -14,7 +14,6 @@ import net.xalcon.torchmaster.port.EntityTypeKey;
 import net.xalcon.torchmaster.port.LightInfo;
 import net.xalcon.torchmaster.port.SpawnReason;
 import net.xalcon.torchmaster.port.Vec3View;
-import net.xalcon.torchmaster.port.WorldView;
 
 public class SavedLightStore extends PersistentState implements LightStoreBridge
 {
@@ -57,12 +56,6 @@ public class SavedLightStore extends PersistentState implements LightStoreBridge
     {
         runtime.unregisterLight(lightKey);
         markDirty();
-    }
-
-    @Override
-    public void onGlobalTick(WorldView world)
-    {
-        // TODO: Rate limit cleanup once cleanup has a Minecraft-free world port.
     }
 
     @Override

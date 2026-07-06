@@ -69,6 +69,9 @@ class StonecutterSourcePolicyTest
     private static final Pattern SAVED_LIGHT_STORE_DIRECT_PLATFORM_GLUE = Pattern.compile("Services\\.PLATFORM|TorchmasterEntityFilters|new\\s+MinecraftConfigView\\s*\\(");
     private static final Pattern LIGHT_STORE_BRIDGE_DIRECT_MINECRAFT_LIGHT = Pattern.compile("MinecraftBlockingLight");
     private static final Pattern STORAGE_SERIALIZER_DIRECT_MINECRAFT_LIGHT = Pattern.compile("^import\\s+net\\.xalcon\\.torchmaster\\.minecraft\\.light\\.MinecraftBlockingLight");
+    private static final Pattern LIGHT_STORE_BRIDGE_DIRECT_GLOBAL_TICK = Pattern.compile("onGlobalTick\\s*\\(");
+    private static final Pattern SPAWN_BRIDGE_DIRECT_STORE_TICK = Pattern.compile("tickStores\\s*\\(");
+    private static final Pattern SAVED_LIGHT_STORE_DIRECT_CLEANUP_PLACEHOLDER = Pattern.compile("Rate limit cleanup|cleanup has a Minecraft-free world port|onGlobalTick\\s*\\(");
 
     @Test
     void loaderSourceRootsDoNotContainMinecraftVersionConditions() throws IOException
@@ -416,6 +419,30 @@ class StonecutterSourcePolicyTest
         Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/storage/SavedLightStoreSerializer.java");
 
         assertTrue(!hasStorageSerializerDirectMinecraftLight(path), () -> "Use PersistedLightEntry in storage serializer instead of importing MinecraftBlockingLight: " + path);
+    }
+
+    @Test
+    void lightStoreBridgeDoesNotRestoreGlobalTickHook() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/storage/LightStoreBridge.java");
+
+        assertTrue(!hasLightStoreBridgeDirectGlobalTick(path), () -> "Do not restore empty light-store global tick hooks to LightStoreBridge: " + path);
+    }
+
+    @Test
+    void spawnEventBridgeDoesNotCallStoreTickBridge() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/events/SpawnEventBridge.java");
+
+        assertTrue(!hasSpawnBridgeDirectStoreTick(path), () -> "Keep SpawnEventBridge.onServerLevelTickEnd as a compatibility no-op; do not route back into store ticking: " + path);
+    }
+
+    @Test
+    void savedLightStoreDoesNotKeepCleanupPlaceholder() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/storage/SavedLightStore.java");
+
+        assertTrue(!hasSavedLightStoreDirectCleanupPlaceholder(path), () -> "Remove empty cleanup placeholders from SavedLightStore instead of keeping fake extension points: " + path);
     }
 
     @Test
@@ -892,6 +919,33 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> STORAGE_SERIALIZER_DIRECT_MINECRAFT_LIGHT.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasLightStoreBridgeDirectGlobalTick(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> LIGHT_STORE_BRIDGE_DIRECT_GLOBAL_TICK.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasSpawnBridgeDirectStoreTick(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> SPAWN_BRIDGE_DIRECT_STORE_TICK.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasSavedLightStoreDirectCleanupPlaceholder(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> SAVED_LIGHT_STORE_DIRECT_CLEANUP_PLACEHOLDER.matcher(line).find());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }

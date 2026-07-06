@@ -8,7 +8,6 @@ import net.xalcon.torchmaster.port.EntityTypeKey;
 import net.xalcon.torchmaster.port.LightInfo;
 import net.xalcon.torchmaster.port.SpawnReason;
 import net.xalcon.torchmaster.port.Vec3View;
-import net.xalcon.torchmaster.port.WorldView;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -83,10 +82,6 @@ class BlockingLightLifecycleTest {
         @Override
         public void unregisterLight(String lightKey) {
             this.unregisteredKey = lightKey;
-        }
-
-        @Override
-        public void onGlobalTick(WorldView world) {
         }
 
         @Override

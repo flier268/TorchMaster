@@ -9,7 +9,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnBlocker;
 import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventHooks;
 
 import java.util.function.BooleanSupplier;
@@ -40,6 +39,6 @@ public class SpawnEventBridge
 
     public static void onServerLevelTickEnd(MinecraftServer server, BooleanSupplier haveTime)
     {
-        MinecraftSpawnBlocker.tickStores(server);
+        // No server tick work remains; keep this compatibility entrypoint for existing mixin wiring.
     }
 }
