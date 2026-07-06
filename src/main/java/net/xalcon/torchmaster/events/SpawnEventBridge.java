@@ -10,11 +10,9 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.xalcon.torchmaster.minecraft.adapter.MinecraftAdapterViews;
 import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnBlocker;
-import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnReasonAdapter;
-import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventContainers;
 import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventContext;
+import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventContextFactory;
 import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventRuntime;
 
 import java.util.function.BooleanSupplier;
@@ -35,14 +33,9 @@ public class SpawnEventBridge
         *///?} else {
         World level = entity.getEntityWorld();
         //?}
-        net.xalcon.torchmaster.port.SpawnReason reason = MinecraftSpawnReasonAdapter.toPort(spawnType);
-        MinecraftSpawnEventContext context = MinecraftSpawnEventContext.entity(
-                MinecraftAdapterViews.entityTypeKey(EntityType.getId(entity.getType())),
-                MinecraftAdapterViews.vec3(location),
-                reason,
-                MinecraftSpawnEventContainers.portResult(container));
+        MinecraftSpawnEventContext context = MinecraftSpawnEventContextFactory.entity(entity.getType(), location, spawnType, container);
         MinecraftSpawnEventRuntime.applyDeny(container, MinecraftSpawnEventRuntime.shouldDenyEntitySpawn(context,
-                () -> MinecraftSpawnBlocker.shouldBlockEntity(level, entity.getType(), location, reason)));
+                () -> MinecraftSpawnBlocker.shouldBlockEntity(level, entity.getType(), location, context.spawnReason())));
     }
 
     public static void onPlayerSpawnPhantoms(PlayerEntity player, final Vec3d location, final EventResultContainer container)
@@ -53,7 +46,7 @@ public class SpawnEventBridge
         World level = player.getEntityWorld();
         //?}
 
-        net.xalcon.torchmaster.port.SpawnReason reason = MinecraftSpawnReasonAdapter.toPort(
+        MinecraftSpawnEventContext context = MinecraftSpawnEventContextFactory.phantom(location,
                 //? if fabric && forge && >=1.21.2 {
                 /*EntitySpawnReason.NATURAL
                 *///?} else {
@@ -62,12 +55,7 @@ public class SpawnEventBridge
                 //? if <1.16.5
                 //SpawnType.NATURAL
                 //?}
-                );
-        MinecraftSpawnEventContext context = MinecraftSpawnEventContext.phantom(
-                MinecraftAdapterViews.entityTypeKey(EntityType.getId(EntityType.PHANTOM)),
-                MinecraftAdapterViews.vec3(location),
-                reason,
-                MinecraftSpawnEventContainers.portResult(container));
+                , container);
         MinecraftSpawnEventRuntime.applyDeny(container, MinecraftSpawnEventRuntime.shouldDenyPhantomSpawn(context,
                 () -> MinecraftSpawnBlocker.shouldBlockEntity(
                         level,
@@ -77,14 +65,12 @@ public class SpawnEventBridge
                         //? if <1.21.11
                         player.getPos()
                         ,
-                        reason)));
+                        context.spawnReason())));
     }
 
     public static void onVillageSiege(World level, Vec3d attemptedSpawnPos, EventResultContainer container)
     {
-        MinecraftSpawnEventContext context = MinecraftSpawnEventContext.villageSiege(
-                MinecraftAdapterViews.vec3(attemptedSpawnPos),
-                MinecraftSpawnEventContainers.portResult(container));
+        MinecraftSpawnEventContext context = MinecraftSpawnEventContextFactory.villageSiege(attemptedSpawnPos, container);
         MinecraftSpawnEventRuntime.applyDeny(container, MinecraftSpawnEventRuntime.shouldDenyVillageSiege(context,
                 () -> MinecraftSpawnBlocker.shouldBlockVillageSiege(level, attemptedSpawnPos)));
     }

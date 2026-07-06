@@ -23,7 +23,7 @@ class StonecutterSourcePolicyTest
     private static final Pattern MIXIN_FORBIDDEN_SPAWN_IMPORT = Pattern.compile(
             "^import\\s+net\\.xalcon\\.torchmaster\\.(domain\\.SpawnBlockingRules|minecraft\\.storage\\.|minecraft\\.adapter\\.MinecraftSpawnBlocker)");
     private static final Pattern CLIENT_RUNTIME_DETAIL = Pattern.compile(
-            "Torchmaster(LightRangeDisplay|LightRangeRenderer|LightScreen|LightScreenPresenter|ClientLifecycle|ClientEventAdapter|ScreenCompat|ScreenRenderAdapter|ScreenRenderPlan|RangeBoxes|PanelRenderer|LineBoxRenderer|RangeRenderPlan|RangeLineSubmitter|LatestLineSubmitter|WorldRendererLineSubmitter|LegacyLineSubmitter|RangeRenderSession|RangeRenderTarget|ConfigScreenLayout|ConfigEntries|ConfigWidgetRows|ConfigScreenActions|ConfigScreenPresenter)");
+            "Torchmaster(LightRangeDisplay|LightRangeRenderer|LightScreen|LightScreenPresenter|ClientLifecycle|ClientEventAdapter|ScreenCompat|ScreenRenderAdapter|ScreenRenderPlan|RangeBoxes|PanelRenderer|LineBoxRenderer|RangeRenderPlan|RangeLineSubmitter|LatestLineSubmitter|WorldRendererLineSubmitter|LegacyLineSubmitter|RangeRenderSession|RangeRenderTarget|LegacyRangeRenderTarget|ConfigScreenLayout|ConfigEntries|ConfigWidgetRows|ConfigScreenActions|ConfigScreenPresenter|ConfigRuntimeAccess)");
     private static final Pattern STORAGE_RUNTIME_DETAIL = Pattern.compile(
             "(SavedLightStore|SavedLightStoreStateFactory|SavedLightStoreStateBridge|SavedLightStoreNbtBridge|MinecraftLightStoreAccess|LightStoreBridge|LightStoreConfigView)");
     private static final Pattern RUNTIME_REGISTRY_FACADE = Pattern.compile("getRegistryForLevel\\s*\\(");
@@ -59,6 +59,9 @@ class StonecutterSourcePolicyTest
     private static final Pattern LOADER_HANDLER_DIRECT_RESULT_MAPPING = Pattern.compile("EventResult\\.|switch\\s*\\(");
     private static final Pattern SPAWN_RUNTIME_DIRECT_PLATFORM_GLUE = Pattern.compile(
             "^import\\s+net\\.xalcon\\.torchmaster\\.(TorchmasterRuntime|platform\\.Services)|new\\s+MinecraftConfigView\\s*\\(");
+    private static final Pattern SPAWN_BRIDGE_DIRECT_CONTEXT_BUILD = Pattern.compile("MinecraftSpawnEventContext\\.(entity|phantom|villageSiege)\\s*\\(|MinecraftAdapterViews\\.(entityTypeKey|vec3)\\s*\\(");
+    private static final Pattern RANGE_TARGET_DIRECT_LEGACY_API = Pattern.compile("GlStateManager\\.|Tessellator\\.getInstance\\s*\\(|VertexFormats\\.POSITION_COLOR|buffer\\.begin\\s*\\(");
+    private static final Pattern CONFIG_CONTROLLER_DIRECT_RUNTIME = Pattern.compile("^import\\s+net\\.xalcon\\.torchmaster\\.TorchmasterRuntime|TorchmasterRuntime\\.");
 
     @Test
     void loaderSourceRootsDoNotContainMinecraftVersionConditions() throws IOException
@@ -403,6 +406,30 @@ class StonecutterSourcePolicyTest
         Path path = sourcePath("src/main/java/net/xalcon/torchmaster/events/SpawnEventBridge.java");
 
         assertTrue(!hasSpawnBridgeDirectContainerResult(path), () -> "Use MinecraftSpawnEventContainers.portResult from SpawnEventBridge instead of direct container.getResult(): " + path);
+    }
+
+    @Test
+    void spawnEventBridgeDelegatesContextConstruction() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/events/SpawnEventBridge.java");
+
+        assertTrue(!hasSpawnBridgeDirectContextBuild(path), () -> "Use MinecraftSpawnEventContextFactory from SpawnEventBridge instead of hand-built context conversion: " + path);
+    }
+
+    @Test
+    void rangeRenderTargetDelegatesLegacyApi() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterRangeRenderTarget.java");
+
+        assertTrue(!hasRangeTargetDirectLegacyApi(path), () -> "Use TorchmasterLegacyRangeRenderTarget for legacy GL/Tessellator setup: " + path);
+    }
+
+    @Test
+    void configScreenControllerDelegatesRuntimeAccess() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterConfigScreenController.java");
+
+        assertTrue(!hasConfigControllerDirectRuntime(path), () -> "Use TorchmasterConfigRuntimeAccess instead of TorchmasterRuntime from config screen controller: " + path);
     }
 
     @Test
@@ -793,6 +820,33 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> SPAWN_BRIDGE_DIRECT_CONTAINER_RESULT.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasSpawnBridgeDirectContextBuild(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> SPAWN_BRIDGE_DIRECT_CONTEXT_BUILD.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasRangeTargetDirectLegacyApi(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> RANGE_TARGET_DIRECT_LEGACY_API.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasConfigControllerDirectRuntime(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> CONFIG_CONTROLLER_DIRECT_RUNTIME.matcher(line).find());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }

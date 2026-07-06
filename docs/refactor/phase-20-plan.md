@@ -1,35 +1,33 @@
-# Phase 20 Plan：Spawn Bridge 薄化 + Render Legacy Branch 深拆 + Config Runtime Facade 收斂
+# Phase 20 Completion Record
 
-## Summary
+## Completed
 
-Phase 20 should target higher-impact maintenance hotspots after Phase 19's package cleanup. The focus is to make `SpawnEventBridge`, range legacy render handling, and config runtime access thinner without changing player-visible behavior or business rules.
+- Added `MinecraftSpawnEventContextFactory` so `SpawnEventBridge` no longer hand-builds spawn contexts from Minecraft ids, positions, reasons, and event containers.
+- Kept `SpawnEventBridge` public signatures stable while thinning method bodies to Minecraft world/entity extraction, context factory calls, and runtime deny application.
+- Added `TorchmasterLegacyRangeRenderTarget` for `<1.15` GL/Tessellator target setup and teardown.
+- Kept `TorchmasterRangeRenderTarget` focused on modern/latest line buffer, flush, camera translation, and legacy helper delegation.
+- Added `TorchmasterConfigRuntimeAccess` as the config screen specific runtime facade and removed direct `TorchmasterRuntime` usage from `TorchmasterConfigScreenController`.
+- Added tests and source policy checks for spawn context construction, legacy render target boundaries, and config runtime access.
 
-## Key Changes
+## Remaining Coupling
 
-- **Spawn Bridge 薄化**
-  - Add Minecraft-facing context builder helpers under `minecraft.spawn`.
-  - Keep `SpawnEventBridge` public signatures stable, but reduce each method body to world/entity extraction, context builder call, and runtime deny application.
-  - Keep spawn/blocking rules in `domain` and shared runtime helpers; do not move rules into mixins, wrappers, or loader handlers.
+- `SpawnEventBridge` still exposes public Minecraft event signatures and still owns world/entity extraction.
+- `FabricSpawnEventHooks` still calls the public spawn bridge facade instead of a narrower spawn runtime adapter.
+- `TorchmasterRangeRenderTarget` still owns modern/latest render layer and flush API branches.
+- `TorchmasterConfigScreenController` still owns save/reset/status orchestration, though runtime lookup is now behind a client-local facade.
 
-- **Render Legacy Branch 深拆**
-  - Split `<1.15` legacy GL setup/teardown from `TorchmasterRangeRenderTarget` into a narrow legacy target helper.
-  - Keep `TorchmasterRangeRenderBackendDescriptor` as the source of line width, camera offset, layer, flush, and legacy flags.
-  - Keep `TorchmasterRangeRenderSession` free of render layer, buffer flush, and GL branch decisions.
+## Verification Matrix
 
-- **Config Runtime Facade 收斂**
-  - Add a client-local config runtime facade for config screen controller access to config/reload.
-  - `TorchmasterConfigScreenController` should depend on that facade instead of directly importing `TorchmasterRuntime`.
-  - Do not merge this with storage or spawn runtime services; each helper should stay purpose-specific.
+- `./gradlew :1.21.1-fabric:test :1.14.4-forge:test :1.20.6-neoforge:test :1.21.11-fabric:test`
+- `./gradlew :1.14.4-fabric:test :1.21.11-fabric:test`
+- `./gradlew build`
+- `./gradlew "Reset active project"`
+- Reset後 `./gradlew :1.21.1-fabric:test`
+- `git diff --check`
 
-## Tests
+## Anti-Regression Notes
 
-- Add source policy checks that `SpawnEventBridge` does not hand-build full context rules beyond Minecraft value extraction.
-- Add focused tests for context builder output and config runtime facade behavior using test doubles.
-- Extend range render target/backend tests for legacy target descriptor behavior.
-- Run the same representative matrix, full build, reset active project, reset後 active test, and `git diff --check`.
-
-## Constraints
-
-- Do not change spawn/light rules, config keys, TOML format, render color/alpha/line width, NBT schema, or storage id.
-- Do not move Minecraft APIs into `domain` or `port`.
-- Do not use reflection, edit generated sources, or modify staged state.
+- Do not rebuild spawn event contexts directly in `SpawnEventBridge`; use `MinecraftSpawnEventContextFactory`.
+- Do not restore Fabric spawn wrapper facades or put spawn rules in mixins.
+- Do not put legacy GL/Tessellator setup back into `TorchmasterRangeRenderTarget`.
+- Do not make config screen controller import or call `TorchmasterRuntime` directly.

@@ -2,7 +2,6 @@ package net.xalcon.torchmaster.client;
 
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
 import net.xalcon.torchmaster.config.TorchmasterTomlConfig;
-import net.xalcon.torchmaster.TorchmasterRuntime;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,20 +13,7 @@ final class TorchmasterConfigScreenController
     private static final int SAVED_COLOR = 0xFF55FF55;
     private static final int RESET_COLOR = 0xFFFFFF55;
     private static final int DEFAULT_STATUS_COLOR = 0xFFA0A0A0;
-    private static final ConfigRuntime DEFAULT_RUNTIME = new ConfigRuntime()
-    {
-        @Override
-        public ITorchmasterConfig config()
-        {
-            return TorchmasterRuntime.getConfig();
-        }
-
-        @Override
-        public void reload()
-        {
-            TorchmasterRuntime.onWorldLoaded();
-        }
-    };
+    private static final ConfigRuntime DEFAULT_RUNTIME = TorchmasterConfigRuntimeAccess.DEFAULT;
 
     private final List<TorchmasterConfigWidgetRows.Row> rows;
     private int scrollOffset;

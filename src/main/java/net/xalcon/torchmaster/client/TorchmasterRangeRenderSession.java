@@ -65,7 +65,7 @@ final class TorchmasterRangeRenderSession
             return;
         }
 
-        TorchmasterRangeRenderTarget.LegacyTarget target = TorchmasterRangeRenderTarget.beginLegacy();
+        TorchmasterLegacyRangeRenderTarget.LegacyTarget target = TorchmasterRangeRenderTarget.beginLegacy();
         BufferBuilder buffer = target.buffer;
         for (TorchmasterRangeRenderPlan.Entry entry : plan(level).entries()) {
             TorchmasterRangeLineSubmitter.submitBox(camera, buffer, entry.box, entry.style);

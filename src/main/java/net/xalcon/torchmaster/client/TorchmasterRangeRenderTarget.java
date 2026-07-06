@@ -1,12 +1,7 @@
 package net.xalcon.torchmaster.client;
 
-//? if <1.15 {
-/*import com.mojang.blaze3d.platform.GlStateManager;
-*///?}
 //? if >=1.21.11
 //import net.minecraft.client.gl.RenderPipelines;
-//? if <1.15
-/*import net.minecraft.client.render.BufferBuilder;*/
 import net.minecraft.client.render.Camera;
 //? if >=1.15
 import net.minecraft.client.render.RenderLayer;
@@ -16,10 +11,6 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 //? if >=1.15
 import net.minecraft.client.render.VertexConsumerProvider;
-//? if <1.15
-/*import net.minecraft.client.render.Tessellator;*/
-//? if <1.15
-/*import net.minecraft.client.render.VertexFormats;*/
 //? if >=1.15
 import net.minecraft.client.util.math.MatrixStack;
 
@@ -85,47 +76,14 @@ final class TorchmasterRangeRenderTarget
         poseStack.translate(offset.x, offset.y, offset.z);
     }
     //?} else {
-    /*static LegacyTarget beginLegacy()
+    /*static TorchmasterLegacyRangeRenderTarget.LegacyTarget beginLegacy()
     {
-        TorchmasterRangeRenderBackendDescriptor.LegacySessionState state = legacySessionState();
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.getBuffer();
-        if (state.disableTexture) {
-            GlStateManager.disableTexture();
-        }
-        if (state.enableBlend) {
-            GlStateManager.enableBlend();
-        }
-        GlStateManager.lineWidth(state.lineWidth);
-        buffer.begin(1, VertexFormats.POSITION_COLOR);
-        return new LegacyTarget(tessellator, buffer, state);
+        return TorchmasterLegacyRangeRenderTarget.begin(legacySessionState());
     }
 
-    static void endLegacy(LegacyTarget target)
+    static void endLegacy(TorchmasterLegacyRangeRenderTarget.LegacyTarget target)
     {
-        target.tessellator.draw();
-        if (target.state.enableBlend) {
-            GlStateManager.disableBlend();
-        }
-        if (target.state.disableTexture) {
-            GlStateManager.enableTexture();
-        }
-    }
-    *///?}
-
-    //? if <1.15 {
-    /*static final class LegacyTarget
-    {
-        final Tessellator tessellator;
-        final BufferBuilder buffer;
-        final TorchmasterRangeRenderBackendDescriptor.LegacySessionState state;
-
-        private LegacyTarget(Tessellator tessellator, BufferBuilder buffer, TorchmasterRangeRenderBackendDescriptor.LegacySessionState state)
-        {
-            this.tessellator = tessellator;
-            this.buffer = buffer;
-            this.state = state;
-        }
+        TorchmasterLegacyRangeRenderTarget.end(target);
     }
     *///?}
 }
