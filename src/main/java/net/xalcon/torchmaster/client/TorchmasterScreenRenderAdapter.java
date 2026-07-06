@@ -5,6 +5,8 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.font.TextRenderer;
 //? if >=1.16 && <1.20
 //import net.minecraft.client.util.math.MatrixStack;
+//? if >=1.16 && <1.20
+//import net.minecraft.text.Text;
 
 final class TorchmasterScreenRenderAdapter
 {
@@ -65,7 +67,7 @@ final class TorchmasterScreenRenderAdapter
 
     static void centered(MatrixStack poseStack, TextRenderer textRenderer, CompatText text, int x, int y, int color, boolean shadow)
     {
-        Object widgetText = text.asWidget();
+        Text widgetText = text.asWidget();
         int drawX = x - textRenderer.getWidth(widgetText) / 2;
         if (shadow) {
             textRenderer.drawWithShadow(poseStack, widgetText, drawX, y, color);

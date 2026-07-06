@@ -25,7 +25,11 @@ import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.Event;
 *///?} else if forge && >=1.15 {
-/*import net.minecraftforge.client.event.RenderWorldLastEvent;
+/*//? if >=1.18 {
+import net.minecraftforge.client.event.RenderLevelLastEvent;
+//?} else {
+import net.minecraftforge.client.event.RenderWorldLastEvent;
+//?}
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.Event;
 *///?} else if forge {
@@ -128,7 +132,7 @@ public final class TorchmasterClientEventAdapter
 
     public static void onForgeRenderLevelStage(RenderLevelStageEvent event)
     {
-        if (!isAfterTranslucentStage(event.getStage().name())) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
             return;
         }
         //? if >=1.20.6 {
@@ -138,6 +142,28 @@ public final class TorchmasterClientEventAdapter
         //?} else {
         /^TorchmasterClientLifecycle.renderCurrentRange(event.getPoseStack());^/
         //?}
+    }
+    *///?} else if forge && >=1.18 {
+    /*public static void onForgeEvent(Event event)
+    {
+        if (event instanceof TickEvent.ClientTickEvent) {
+            onForgeClientTick((TickEvent.ClientTickEvent) event);
+        } else if (event instanceof RenderLevelLastEvent) {
+            onForgeRenderLevelLast((RenderLevelLastEvent) event);
+        }
+    }
+
+    public static void onForgeClientTick(TickEvent.ClientTickEvent event)
+    {
+        if (!isEndTickPhase(event.phase.name())) {
+            return;
+        }
+        TorchmasterClientLifecycle.onEndClientTick();
+    }
+
+    public static void onForgeRenderLevelLast(RenderLevelLastEvent event)
+    {
+        TorchmasterClientLifecycle.renderCurrentRange(event.getPoseStack());
     }
     *///?} else if forge && >=1.15 {
     /*public static void onForgeEvent(Event event)
