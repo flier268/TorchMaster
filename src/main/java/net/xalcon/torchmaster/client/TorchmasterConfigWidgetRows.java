@@ -126,6 +126,11 @@ final class TorchmasterConfigWidgetRows
             return definition.translationKey();
         }
 
+        String unitKey()
+        {
+            return definition.unitKey();
+        }
+
         int y()
         {
             return y;

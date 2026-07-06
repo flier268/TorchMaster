@@ -33,15 +33,16 @@ class TorchmasterScreenRenderPlanTest
     {
         TorchmasterConfigScreenLayout layout = new TorchmasterConfigScreenLayout(800, 240);
         TestRow hidden = new TestRow("hidden.key", 48, 48, false);
-        TestRow visible = new TestRow("visible.key", 80, 80, true);
+        TestRow visible = new TestRow("visible.key", "visible.unit", 80, 80, true);
 
         TorchmasterScreenRenderPlan plan = TorchmasterConfigScreenPresenter.plan(layout, Arrays.asList(hidden, visible),
                 CompatText.translatable("status.key"), 0xFF55FF55);
 
         assertCentered(plan.centeredLabels()[0], "screen.torchmaster.config.title", 400, 14, TorchmasterPanelRenderer.TITLE_COLOR);
         assertCentered(plan.centeredLabels()[1], "status.key", 400, 192, 0xFF55FF55);
-        assertEquals(1, plan.leftLabels().length);
+        assertEquals(2, plan.leftLabels().length);
         assertLeft(plan.leftLabels()[0], "visible.key", layout.panelLeft() + 12, 86, TorchmasterPanelRenderer.LABEL_COLOR);
+        assertLeft(plan.leftLabels()[1], "visible.unit", layout.fieldX(), 70, TorchmasterPanelRenderer.UNIT_COLOR);
     }
 
     private static void assertCentered(TorchmasterScreenRenderPlan.CenteredLabel label, String key, int x, int y, int color)
@@ -65,7 +66,12 @@ class TorchmasterScreenRenderPlanTest
     {
         private TestRow(String translationKey, int baseY, int y, boolean visible)
         {
-            super(TorchmasterConfigEntries.EntryDefinition.integer(translationKey, 0), baseY);
+            this(translationKey, "", baseY, y, visible);
+        }
+
+        private TestRow(String translationKey, String unitKey, int baseY, int y, boolean visible)
+        {
+            super(TorchmasterConfigEntries.EntryDefinition.integer(translationKey, 0, unitKey), baseY);
             this.y = y;
             this.visible = visible;
         }

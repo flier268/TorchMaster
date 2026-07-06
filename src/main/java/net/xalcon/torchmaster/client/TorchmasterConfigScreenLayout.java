@@ -100,6 +100,11 @@ final class TorchmasterConfigScreenLayout
         return compact ? rowY + 16 : rowY;
     }
 
+    int unitLabelY(int rowY)
+    {
+        return compact ? rowY + 4 : rowY - 10;
+    }
+
     int booleanButtonWidth()
     {
         return compact ? fieldWidth : BUTTON_WIDTH;

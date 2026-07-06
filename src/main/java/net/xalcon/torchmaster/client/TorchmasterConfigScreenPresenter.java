@@ -26,6 +26,13 @@ final class TorchmasterConfigScreenPresenter
                         left + 12,
                         layout.compact() ? row.y() : row.y() + 6,
                         TorchmasterPanelRenderer.LABEL_COLOR));
+                if (!row.unitKey().isEmpty()) {
+                    labels.add(TorchmasterScreenRenderPlan.left(
+                            CompatText.translatable(row.unitKey()),
+                            layout.fieldX(),
+                            layout.unitLabelY(row.y()),
+                            TorchmasterPanelRenderer.UNIT_COLOR));
+                }
             }
         }
         return new TorchmasterScreenRenderPlan(

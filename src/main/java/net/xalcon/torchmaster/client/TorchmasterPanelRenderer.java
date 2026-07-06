@@ -7,6 +7,7 @@ public final class TorchmasterPanelRenderer
     public static final int FRAME_DARK_COLOR = 0xFF202020;
     public static final int TITLE_COLOR = 0xFFFFFFFF;
     public static final int LABEL_COLOR = 0xFFE0E0E0;
+    public static final int UNIT_COLOR = 0xFFAAAAAA;
     public static final int RANGE_COLOR = 0xFFA0FFA0;
 
     private TorchmasterPanelRenderer()
