@@ -47,6 +47,9 @@ class StonecutterSourcePolicyTest
     private static final Pattern CONFIG_SCREEN_DIRECT_BOTTOM_BUTTON_GEOMETRY = Pattern.compile("bottomButtonWidth\\s*\\(|buttonGap|totalButtonWidth|buttonX\\s*=|button\\([^\\n]*(screen\\.torchmaster\\.config\\.(save|reset)|gui\\.done)");
     private static final Pattern STORAGE_STATE_OLD_BRIDGE_NAMES = Pattern.compile("\\b(writeState|readState)\\s*\\(");
     private static final Pattern LOADER_GATED_FILE_START = Pattern.compile("//\\?\\s*(if|elif|else if)\\b.*\\b(fabric|forge|neoforge)\\b.*\\{");
+    private static final Pattern LOADER_CLIENT_ENTRYPOINT_LIFECYCLE_IMPORT = Pattern.compile("TorchmasterClientLifecycle");
+    private static final Pattern CONFIG_SCREEN_DIRECT_ACTION_OR_SAVE = Pattern.compile("private\\s+void\\s+(save|reset)\\s*\\(|setStatus\\s*\\(|TorchmasterTomlConfig|TorchmasterConfigEntries\\.collector\\s*\\(|TorchmasterRuntime\\.onWorldLoaded\\s*\\(");
+    private static final Pattern STORAGE_FACTORY_DIRECT_STATE_GLUE = Pattern.compile("new\\s+SavedLightStore\\s*\\(|SavedLightStore::new|SavedLightStoreStateBridge\\.read\\s*\\(");
 
     @Test
     void loaderSourceRootsDoNotContainMinecraftVersionConditions() throws IOException
@@ -298,6 +301,20 @@ class StonecutterSourcePolicyTest
     }
 
     @Test
+    void loaderClientEntrypointsDoNotImportClientLifecycle() throws IOException
+    {
+        List<Path> violations = Arrays.asList(
+                        sourcePath("src/forge/java/net/xalcon/torchmaster/TorchmasterForgeClient.java"),
+                        sourcePath("src/neoforge/java/net/xalcon/torchmaster/TorchmasterNeoforgeClient.java"))
+                .stream()
+                .filter(Files::exists)
+                .filter(StonecutterSourcePolicyTest::hasLoaderClientEntrypointLifecycleImport)
+                .collect(Collectors.toList());
+
+        assertTrue(violations.isEmpty(), () -> "Loader client entrypoints should initialize through TorchmasterClientEventAdapter, not TorchmasterClientLifecycle: " + violations);
+    }
+
+    @Test
     void configScreenDelegatesBottomButtonGeometry() throws IOException
     {
         Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterConfigScreen.java");
@@ -316,6 +333,22 @@ class StonecutterSourcePolicyTest
                 .collect(Collectors.toList());
 
         assertTrue(violations.isEmpty(), () -> "Use SavedLightStoreStateBridge instead of writeState/readState methods: " + violations);
+    }
+
+    @Test
+    void configScreenDelegatesActionsAndSaveToController() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterConfigScreen.java");
+
+        assertTrue(!hasConfigScreenDirectActionOrSave(path), () -> "Use TorchmasterConfigScreenController for config save/reset/status orchestration: " + path);
+    }
+
+    @Test
+    void savedLightStoreStateFactoryDelegatesStateGlueToBridge() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/storage/SavedLightStoreStateFactory.java");
+
+        assertTrue(!hasStorageFactoryDirectStateGlue(path), () -> "Use SavedLightStoreStateBridge for state create/load glue from the factory: " + path);
     }
 
     @Test
@@ -575,6 +608,33 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> STORAGE_STATE_OLD_BRIDGE_NAMES.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasLoaderClientEntrypointLifecycleImport(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> LOADER_CLIENT_ENTRYPOINT_LIFECYCLE_IMPORT.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasConfigScreenDirectActionOrSave(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> CONFIG_SCREEN_DIRECT_ACTION_OR_SAVE.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasStorageFactoryDirectStateGlue(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> STORAGE_FACTORY_DIRECT_STATE_GLUE.matcher(line).find());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }

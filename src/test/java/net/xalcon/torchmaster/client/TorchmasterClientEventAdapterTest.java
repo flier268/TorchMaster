@@ -28,4 +28,11 @@ class TorchmasterClientEventAdapterTest
         assertTrue(TorchmasterClientEventAdapter.shouldCopyForgePoseStack(true));
         assertFalse(TorchmasterClientEventAdapter.shouldCopyForgePoseStack(false));
     }
+
+    @Test
+    void forgeAndNeoforgeInitializersInstallSharedClientLifecycle()
+    {
+        TorchmasterClientEventAdapter.initializeForgeClient();
+        TorchmasterClientEventAdapter.initializeNeoForgeClient();
+    }
 }

@@ -69,6 +69,16 @@ public final class TorchmasterClientEventAdapter
         TorchmasterClientLifecycle.onEndClientTick();
     }
 
+    public static void initializeForgeClient()
+    {
+        TorchmasterClientLifecycle.installLightScreenOpener();
+    }
+
+    public static void initializeNeoForgeClient()
+    {
+        TorchmasterClientLifecycle.installLightScreenOpener();
+    }
+
     //? if fabric {
     public static void initializeFabricClient()
     {

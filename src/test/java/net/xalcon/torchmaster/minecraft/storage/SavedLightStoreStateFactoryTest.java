@@ -34,7 +34,7 @@ class SavedLightStoreStateFactoryTest
         SavedLightStore store = new SavedLightStore();
         store.registerLight("MT_1_64_2", new TestLight(new BlockPosView(1, 64, 2)));
         //? if >=1.16.5 {
-        NbtCompound tag = SavedLightStoreStateBridge.write(store, new NbtCompound());
+        NbtCompound tag = SavedLightStoreStateBridge.write(store);
         SavedLightStore loaded = SavedLightStoreStateFactory.load(tag);
         //?} else {
         /*CompoundTag tag = store.toTag(new CompoundTag());

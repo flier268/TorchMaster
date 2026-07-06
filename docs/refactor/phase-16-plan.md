@@ -1,34 +1,33 @@
-# Phase 16 Refactor Plan
+# Phase 16 Completion Record
 
-## Targets
+## Completed
 
-- Client entrypoint source-root strategy.
-  - Audit whether Fabric/Forge/NeoForge client entrypoint classes can move to loader roots after Phase 15 adapter extraction.
-  - If event signatures still require Stonecutter processing, keep classes in `src/main` and further narrow adapter methods instead of moving prematurely.
-- Config widget descriptor cleanup.
-  - Move remaining widget factory/action dispatch wiring into typed descriptors where feasible.
-  - Preserve button order, text keys, scroll behavior, field validation, and TOML save format.
-- Storage PersistentState branch cleanup.
-  - Shrink `SavedLightStore` override bodies while keeping `SavedLightStoreStateFactory` and `SavedLightStoreStateBridge` as the only state glue.
-  - Keep NBT, Codec, PersistentState, RegistryWrapper, and serializer details in `minecraft.storage`.
-- Runtime accessor monitoring.
-  - Keep `TorchmasterEntityFilters` as the only filter registry accessor.
-  - Keep policy blocking any new `TorchmasterRuntime` filter facade.
+- Forge and NeoForge client entrypoints now initialize through `TorchmasterClientEventAdapter`, so loader roots only keep loader annotations, base event types, and adapter delegation.
+- Config screen save/reset/scroll/status orchestration moved into `TorchmasterConfigScreenController`; `TorchmasterConfigScreen` keeps Minecraft screen lifecycle, widget factory, render, keyboard, mouse, and close overrides.
+- `SavedLightStoreStateBridge` now owns state creation and NBT load/write glue; `SavedLightStoreStateFactory` only selects the version-specific PersistentState API path.
+- Policy tests now block client entrypoints from importing `TorchmasterClientLifecycle`, block config screen save/reset orchestration from returning to the screen class, and block state factory direct store construction/read glue.
 
-## Verification Plan
+## Remaining Coupling
 
-- Add focused tests for any entrypoint policy, widget descriptor, or storage bridge change.
-- Run:
+- `TorchmasterClientEventAdapter` still contains Fabric/Forge/NeoForge render/tick version branches; this is intentional because loader roots are not Stonecutter-processed.
+- `TorchmasterConfigScreen` still owns Minecraft widget construction through `WidgetFactory` and screen override signatures.
+- `SavedLightStore` still owns PersistentState override signatures, including legacy NBT method names.
+- Spawn event bridge still mixes runtime config lookup, logging, Minecraft spawn event values, and shared spawn decision calls.
+
+## Verification
+
+- Required representative matrix:
   - `./gradlew :1.21.1-fabric:test :1.14.4-forge:test :1.20.6-neoforge:test :1.21.11-fabric:test`
-  - `./gradlew :1.14.4-fabric:test :1.21.11-fabric:test` if client/render branches change
+  - `./gradlew :1.14.4-fabric:test :1.21.11-fabric:test`
+  - `./gradlew build`
   - `./gradlew "Reset active project"`
   - reset後 `./gradlew :1.21.1-fabric:test`
   - `git diff --check`
-- Confirm active project returns to `1.21.1-fabric`.
+- Confirm `stonecutter.gradle.kts` active project and `settings.gradle.kts` `vcsVersion` are both `1.21.1-fabric`.
 
-## Anti-Regression Rules
+## Anti-Regression
 
-- Business rules stay shared and version-neutral.
-- Loader roots must not duplicate client render, storage, filter, or content details.
-- Do not use reflection or generated source edits.
-- Do not modify staged state outside explicit commit flow.
+- Do not import `TorchmasterClientLifecycle` from loader client entrypoints; initialize through `TorchmasterClientEventAdapter`.
+- Do not move config save/reset/status orchestration back into `TorchmasterConfigScreen`.
+- Do not create loader-specific screen, render, storage, content, or filter logic copies.
+- Do not use reflection, generated source edits, or direct staged-state git operations.

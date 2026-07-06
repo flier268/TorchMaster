@@ -12,6 +12,32 @@ final class SavedLightStoreStateBridge
     {
     }
 
+    static SavedLightStore create()
+    {
+        return new SavedLightStore();
+    }
+
+    //? if >=1.16.5
+    static SavedLightStore load(NbtCompound tag)
+    //? if <1.16.5
+    //static SavedLightStore load(CompoundTag tag)
+    {
+        SavedLightStore store = create();
+        read(store, tag);
+        return store;
+    }
+
+    //? if >=1.16.5
+    static NbtCompound write(SavedLightStore store)
+    //? if <1.16.5
+    //static CompoundTag write(SavedLightStore store)
+    {
+        //? if >=1.16.5
+        return write(store, new NbtCompound());
+        //? if <1.16.5
+        //return write(store, new CompoundTag());
+    }
+
     //? if >=1.16.5
     static NbtCompound write(SavedLightStore store, NbtCompound tag)
     //? if <1.16.5

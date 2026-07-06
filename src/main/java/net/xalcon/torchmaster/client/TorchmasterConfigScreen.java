@@ -7,22 +7,13 @@ import net.minecraft.client.gui.screen.Screen;
 //import net.minecraft.client.input.KeyInput;
 //? if >=1.16 && <1.20
 //import net.minecraft.client.util.math.MatrixStack;
-import net.xalcon.torchmaster.TorchmasterRuntime;
-import net.xalcon.torchmaster.config.ITorchmasterConfig;
-import net.xalcon.torchmaster.config.TorchmasterTomlConfig;
 import org.lwjgl.glfw.GLFW;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class TorchmasterConfigScreen extends TorchmasterScreenCompat
 {
     private static final int BUTTON_HEIGHT = 20;
     private final Screen parent;
-    private final List<TorchmasterConfigWidgetRows.Row> entries = new ArrayList<>();
-    private int scrollOffset;
-    private CompatText status = emptyText();
-    private int statusColor = 0xFFA0A0A0;
+    private final TorchmasterConfigScreenController controller = new TorchmasterConfigScreenController();
 
     public TorchmasterConfigScreen(Screen parent)
     {
@@ -38,70 +29,23 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
     @Override
     protected void init()
     {
-        entries.clear();
-        ITorchmasterConfig config = TorchmasterRuntime.getConfig();
+        TorchmasterConfigScreenLayout layout = layout();
+        controller.initialize(layout, height, BUTTON_HEIGHT, widgetFactory());
 
-	    TorchmasterConfigScreenLayout layout = layout();
-	    entries.addAll(TorchmasterConfigWidgetRows.create(TorchmasterConfigEntries.fromConfig(config), layout, BUTTON_HEIGHT, widgetFactory()));
-
-	    for (TorchmasterConfigScreenActions.ButtonDescriptor action : TorchmasterConfigScreenActions.bottomButtons(layout, height, BUTTON_HEIGHT)) {
-	        addCompatWidget(button(action.x, action.y, action.width, action.height, text(action.translationKey), button -> runAction(action.action)));
-	    }
-
-	    updateEntryPositions();
-	}
-
-    private void runAction(TorchmasterConfigScreenActions.Action action)
-    {
-        switch (action) {
-            case SAVE:
-                save();
-                break;
-            case RESET:
-                reset();
-                break;
-            case DONE:
-                closeScreen();
-                break;
-            default:
-                throw new IllegalStateException("Unsupported config action " + action);
+        for (TorchmasterConfigScreenActions.ButtonDescriptor action : controller.bottomButtons(layout, height, BUTTON_HEIGHT)) {
+            addCompatWidget(button(action.x, action.y, action.width, action.height, text(action.translationKey), button -> handleAction(action.action)));
         }
     }
 
-    private void save()
+    private void handleAction(TorchmasterConfigScreenActions.Action action)
     {
-        ITorchmasterConfig loadedConfig = TorchmasterRuntime.getConfig();
-        if (!(loadedConfig instanceof TorchmasterTomlConfig)) {
-            setStatus("screen.torchmaster.config.unsupported", 0xFFFF5555);
-            return;
+        TorchmasterConfigScreenController.ActionOutcome outcome = controller.runAction(action, TorchmasterConfigScreenController.runtime());
+        if (outcome == TorchmasterConfigScreenController.ActionOutcome.REBUILD_WIDGETS) {
+            clearCompatWidgets();
+            init();
+        } else if (outcome == TorchmasterConfigScreenController.ActionOutcome.CLOSE_SCREEN) {
+            closeScreen();
         }
-
-        TorchmasterConfigEntries.Collector collector = TorchmasterConfigEntries.collector();
-        for (TorchmasterConfigWidgetRows.Row entry : entries) {
-            TorchmasterConfigEntries.ReadResult result = entry.read(collector);
-            if (!result.isSuccess()) {
-                setStatus(result.errorKey(), 0xFFFF5555);
-                return;
-            }
-        }
-
-        collector.toDraft().saveTo((TorchmasterTomlConfig)loadedConfig);
-        TorchmasterRuntime.onWorldLoaded();
-        setStatus("screen.torchmaster.config.saved", 0xFF55FF55);
-    }
-
-    private void reset()
-    {
-        scrollOffset = 0;
-        clearCompatWidgets();
-        init();
-        setStatus("screen.torchmaster.config.reverted", 0xFFFFFF55);
-    }
-
-    private void setStatus(String translationKey, int color)
-    {
-        status = text(translationKey);
-        statusColor = color;
     }
 
     private void closeScreen()
@@ -150,7 +94,7 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
     public boolean keyPressed(KeyInput event)
     {
         if (event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER) {
-            save();
+            handleAction(TorchmasterConfigScreenActions.Action.SAVE);
             return true;
         }
         return super.keyPressed(event);
@@ -160,7 +104,7 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
     public boolean keyPressed(KeyEvent event)
     {
         if (event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER) {
-            save();
+            handleAction(TorchmasterConfigScreenActions.Action.SAVE);
             return true;
         }
         return super.keyPressed(event);
@@ -170,7 +114,7 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
     public boolean keyPressed(int keyCode, int scanCode, int modifiers)
     {
         if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
-            save();
+            handleAction(TorchmasterConfigScreenActions.Action.SAVE);
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
@@ -193,15 +137,7 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
 
     private boolean scroll(double delta)
     {
-        TorchmasterConfigScreenLayout layout = layout();
-        scrollOffset = TorchmasterConfigWidgetRows.scrollOffset(scrollOffset, delta, entries.size(), layout, height);
-        updateEntryPositions();
-        return true;
-    }
-
-    private void updateEntryPositions()
-    {
-        TorchmasterConfigWidgetRows.updatePositions(entries, layout(), scrollOffset, height, BUTTON_HEIGHT);
+        return controller.scroll(delta, layout(), height, BUTTON_HEIGHT);
     }
 
     private TorchmasterConfigScreenLayout layout()
@@ -277,7 +213,7 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
 
     private TorchmasterScreenRenderPlan renderPlan()
     {
-        return TorchmasterConfigScreenPresenter.plan(layout(), entries, status, statusColor);
+        return controller.renderPlan(layout());
     }
 
     private TorchmasterConfigWidgetRows.WidgetFactory widgetFactory()

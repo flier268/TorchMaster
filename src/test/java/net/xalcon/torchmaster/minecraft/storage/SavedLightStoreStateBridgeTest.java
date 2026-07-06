@@ -57,6 +57,21 @@ class SavedLightStoreStateBridgeTest
         assertTrue(loaded.getLight("MT_1_64_2").isPresent());
     }
 
+    @Test
+    void loadCreatesStoreAndRestoresLights()
+    {
+        SavedLightStore store = SavedLightStoreStateBridge.create();
+        store.registerLight("MT_1_64_2", new TestLight(new BlockPosView(1, 64, 2)));
+        //? if >=1.16.5
+        NbtCompound tag = SavedLightStoreStateBridge.write(store, new NbtCompound());
+        //? if <1.16.5
+        //CompoundTag tag = SavedLightStoreStateBridge.write(store, new CompoundTag());
+
+        SavedLightStore loaded = SavedLightStoreStateBridge.load(tag);
+
+        assertTrue(loaded.getLight("MT_1_64_2").isPresent());
+    }
+
     private static final class TestLight implements MinecraftBlockingLight
     {
         private final BlockPosView position;
