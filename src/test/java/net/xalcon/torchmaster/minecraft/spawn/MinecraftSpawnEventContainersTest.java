@@ -1,7 +1,8 @@
-package net.xalcon.torchmaster.minecraft.adapter;
+package net.xalcon.torchmaster.minecraft.spawn;
 
 import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
+import net.xalcon.torchmaster.port.EventResultPort;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,6 +17,7 @@ class MinecraftSpawnEventContainersTest
         EventResultContainer container = MinecraftSpawnEventContainers.defaultContainer();
 
         assertEquals(EventResult.DEFAULT, MinecraftSpawnEventContainers.result(container));
+        assertEquals(EventResultPort.DEFAULT, MinecraftSpawnEventContainers.portResult(container));
     }
 
     @Test

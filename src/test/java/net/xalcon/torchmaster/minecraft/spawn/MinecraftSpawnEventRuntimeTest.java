@@ -1,4 +1,4 @@
-package net.xalcon.torchmaster.minecraft.adapter;
+package net.xalcon.torchmaster.minecraft.spawn;
 
 import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
@@ -138,7 +138,7 @@ class MinecraftSpawnEventRuntimeTest
         };
     }
 
-    private static final class TestServices implements MinecraftRuntimeServices
+    private static final class TestServices implements MinecraftSpawnRuntimeServices
     {
         private final ConfigView config;
 

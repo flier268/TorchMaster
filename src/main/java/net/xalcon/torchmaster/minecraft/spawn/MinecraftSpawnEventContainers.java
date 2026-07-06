@@ -1,7 +1,9 @@
-package net.xalcon.torchmaster.minecraft.adapter;
+package net.xalcon.torchmaster.minecraft.spawn;
 
 import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftEventResultAdapter;
+import net.xalcon.torchmaster.port.EventResultPort;
 
 import java.util.function.Consumer;
 
@@ -24,6 +26,11 @@ public final class MinecraftSpawnEventContainers
     public static EventResult result(EventResultContainer container)
     {
         return container.getResult();
+    }
+
+    public static EventResultPort portResult(EventResultContainer container)
+    {
+        return MinecraftEventResultAdapter.toPort(result(container));
     }
 
     public static EventResult invokeDefault(Consumer<EventResultContainer> callback)

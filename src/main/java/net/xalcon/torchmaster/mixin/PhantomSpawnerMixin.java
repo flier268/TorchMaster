@@ -11,7 +11,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.SpawnHelper;
 import net.minecraft.world.spawner.PhantomSpawner;
 import net.xalcon.torchmaster.minecraft.adapter.MinecraftEventResultDecisions;
-import net.xalcon.torchmaster.utils.NaturalSpawnerWrapper;
+import net.xalcon.torchmaster.minecraft.spawn.FabricSpawnEventHooks;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -58,7 +58,7 @@ public abstract class PhantomSpawnerMixin {
             return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType);
 
         return MinecraftEventResultDecisions.resolve(
-                NaturalSpawnerWrapper.isValidEmptySpawnBlock(player),
+                FabricSpawnEventHooks.checkPhantomSpawn(player),
                 () -> SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType));
     }
 
@@ -88,7 +88,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.SpawnHelper;
 import net.minecraft.world.spawner.PhantomSpawner;
 import net.xalcon.torchmaster.minecraft.adapter.MinecraftEventResultDecisions;
-import net.xalcon.torchmaster.utils.NaturalSpawnerWrapper;
+import net.xalcon.torchmaster.minecraft.spawn.FabricSpawnEventHooks;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -126,7 +126,7 @@ public abstract class PhantomSpawnerMixin {
             return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType);
 
         return MinecraftEventResultDecisions.resolve(
-                NaturalSpawnerWrapper.isValidEmptySpawnBlock(player),
+                FabricSpawnEventHooks.checkPhantomSpawn(player),
                 () -> SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType));
     }
 
@@ -148,7 +148,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.SpawnHelper;
 import net.minecraft.world.gen.PhantomSpawner;
 import net.xalcon.torchmaster.minecraft.adapter.MinecraftEventResultDecisions;
-import net.xalcon.torchmaster.utils.NaturalSpawnerWrapper;
+import net.xalcon.torchmaster.minecraft.spawn.FabricSpawnEventHooks;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -186,7 +186,7 @@ public abstract class PhantomSpawnerMixin {
             return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType);
 
         return MinecraftEventResultDecisions.resolve(
-                NaturalSpawnerWrapper.isValidEmptySpawnBlock(player),
+                FabricSpawnEventHooks.checkPhantomSpawn(player),
                 () -> SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType));
     }
 
@@ -207,7 +207,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.SpawnHelper;
 import net.minecraft.world.gen.PhantomSpawner;
 import net.xalcon.torchmaster.minecraft.adapter.MinecraftEventResultDecisions;
-import net.xalcon.torchmaster.utils.NaturalSpawnerWrapper;
+import net.xalcon.torchmaster.minecraft.spawn.FabricSpawnEventHooks;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -245,7 +245,7 @@ public abstract class PhantomSpawnerMixin {
             return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState);
 
         return MinecraftEventResultDecisions.resolve(
-                NaturalSpawnerWrapper.isValidEmptySpawnBlock(player),
+                FabricSpawnEventHooks.checkPhantomSpawn(player),
                 () -> SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState));
     }
 

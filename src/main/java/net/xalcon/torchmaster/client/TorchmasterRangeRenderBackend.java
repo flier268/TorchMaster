@@ -6,32 +6,37 @@ final class TorchmasterRangeRenderBackend
     {
     }
 
-    static LineLayerChoice activeLineLayer()
+    static TorchmasterRangeRenderBackendDescriptor active()
+    {
+        return new TorchmasterRangeRenderBackendDescriptor(activeLineLayer(), activeFlushTarget(), activeLegacySessionState(), lineWidth());
+    }
+
+    static TorchmasterRangeRenderBackendDescriptor.LineLayerChoice activeLineLayer()
     {
         //? if >=1.21.11 {
-        /*return LineLayerChoice.CUSTOM_PIPELINE;
+        /*return TorchmasterRangeRenderBackendDescriptor.LineLayerChoice.CUSTOM_PIPELINE;
         *///?} else {
-        return LineLayerChoice.VANILLA_LINES;
+        return TorchmasterRangeRenderBackendDescriptor.LineLayerChoice.VANILLA_LINES;
         //?}
     }
 
-    static FlushTarget activeFlushTarget()
+    static TorchmasterRangeRenderBackendDescriptor.FlushTarget activeFlushTarget()
     {
         //? if >=1.21.11 {
-        /*return FlushTarget.CUSTOM_PIPELINE;
+        /*return TorchmasterRangeRenderBackendDescriptor.FlushTarget.CUSTOM_PIPELINE;
         *///?} else {
-        return FlushTarget.VANILLA_LINES;
+        return TorchmasterRangeRenderBackendDescriptor.FlushTarget.VANILLA_LINES;
         //?}
     }
 
-    static TorchmasterRangeRenderTarget.CameraOffset cameraOffset(double x, double y, double z)
+    static TorchmasterRangeRenderBackendDescriptor.CameraOffset cameraOffset(double x, double y, double z)
     {
-        return new TorchmasterRangeRenderTarget.CameraOffset(-x, -y, -z);
+        return active().cameraOffset(x, y, z);
     }
 
-    static TorchmasterRangeRenderTarget.LegacySessionState legacySessionState()
+    static TorchmasterRangeRenderBackendDescriptor.LegacySessionState legacySessionState()
     {
-        return new TorchmasterRangeRenderTarget.LegacySessionState(true, true, TorchmasterLineBoxRenderer.LINE_WIDTH);
+        return active().legacySessionState();
     }
 
     static float lineWidth()
@@ -39,15 +44,8 @@ final class TorchmasterRangeRenderBackend
         return TorchmasterLineBoxRenderer.LINE_WIDTH;
     }
 
-    enum LineLayerChoice
+    private static TorchmasterRangeRenderBackendDescriptor.LegacySessionState activeLegacySessionState()
     {
-        VANILLA_LINES,
-        CUSTOM_PIPELINE
-    }
-
-    enum FlushTarget
-    {
-        VANILLA_LINES,
-        CUSTOM_PIPELINE
+        return new TorchmasterRangeRenderBackendDescriptor.LegacySessionState(true, true, lineWidth());
     }
 }

@@ -11,11 +11,11 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.xalcon.torchmaster.minecraft.adapter.MinecraftAdapterViews;
-import net.xalcon.torchmaster.minecraft.adapter.MinecraftEventResultAdapter;
 import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnBlocker;
-import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnEventContext;
-import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnEventRuntime;
 import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnReasonAdapter;
+import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventContainers;
+import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventContext;
+import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventRuntime;
 
 import java.util.function.BooleanSupplier;
 
@@ -40,7 +40,7 @@ public class SpawnEventBridge
                 MinecraftAdapterViews.entityTypeKey(EntityType.getId(entity.getType())),
                 MinecraftAdapterViews.vec3(location),
                 reason,
-                MinecraftEventResultAdapter.toPort(container.getResult()));
+                MinecraftSpawnEventContainers.portResult(container));
         MinecraftSpawnEventRuntime.applyDeny(container, MinecraftSpawnEventRuntime.shouldDenyEntitySpawn(context,
                 () -> MinecraftSpawnBlocker.shouldBlockEntity(level, entity.getType(), location, reason)));
     }
@@ -67,7 +67,7 @@ public class SpawnEventBridge
                 MinecraftAdapterViews.entityTypeKey(EntityType.getId(EntityType.PHANTOM)),
                 MinecraftAdapterViews.vec3(location),
                 reason,
-                MinecraftEventResultAdapter.toPort(container.getResult()));
+                MinecraftSpawnEventContainers.portResult(container));
         MinecraftSpawnEventRuntime.applyDeny(container, MinecraftSpawnEventRuntime.shouldDenyPhantomSpawn(context,
                 () -> MinecraftSpawnBlocker.shouldBlockEntity(
                         level,
@@ -84,7 +84,7 @@ public class SpawnEventBridge
     {
         MinecraftSpawnEventContext context = MinecraftSpawnEventContext.villageSiege(
                 MinecraftAdapterViews.vec3(attemptedSpawnPos),
-                MinecraftEventResultAdapter.toPort(container.getResult()));
+                MinecraftSpawnEventContainers.portResult(container));
         MinecraftSpawnEventRuntime.applyDeny(container, MinecraftSpawnEventRuntime.shouldDenyVillageSiege(context,
                 () -> MinecraftSpawnBlocker.shouldBlockVillageSiege(level, attemptedSpawnPos)));
     }

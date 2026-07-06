@@ -4,7 +4,7 @@ import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerSpawnPhantomsEvent;
 import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
-import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnEventContainers;
+import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventContainers;
 
 final class NeoforgeSpawnEventResults
 {

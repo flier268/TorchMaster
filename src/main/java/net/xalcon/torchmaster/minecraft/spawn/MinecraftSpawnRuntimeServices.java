@@ -1,12 +1,13 @@
-package net.xalcon.torchmaster.minecraft.adapter;
+package net.xalcon.torchmaster.minecraft.spawn;
 
 import net.xalcon.torchmaster.TorchmasterRuntime;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftConfigView;
 import net.xalcon.torchmaster.platform.Services;
 import net.xalcon.torchmaster.port.ConfigView;
 
-public interface MinecraftRuntimeServices
+public interface MinecraftSpawnRuntimeServices
 {
-    MinecraftRuntimeServices DEFAULT = new MinecraftRuntimeServices()
+    MinecraftSpawnRuntimeServices DEFAULT = new MinecraftSpawnRuntimeServices()
     {
         @Override
         public ConfigView config()

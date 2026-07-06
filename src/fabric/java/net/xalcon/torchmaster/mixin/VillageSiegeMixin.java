@@ -5,7 +5,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.village.ZombieSiegeManager;
 import net.xalcon.torchmaster.events.SpawnEventBridge;
-import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnEventContainers;
+import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventContainers;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;

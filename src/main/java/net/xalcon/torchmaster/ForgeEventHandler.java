@@ -8,7 +8,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.xalcon.torchmaster.events.EventResultContainer;
 import net.xalcon.torchmaster.events.SpawnEventBridge;
-import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnEventContainers;
+import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventContainers;
 
 @Mod.EventBusSubscriber(modid = Constants.MOD_ID)
 public class ForgeEventHandler

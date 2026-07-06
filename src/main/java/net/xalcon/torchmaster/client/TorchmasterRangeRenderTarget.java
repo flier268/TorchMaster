@@ -32,12 +32,12 @@ final class TorchmasterRangeRenderTarget
     {
     }
 
-    static CameraOffset cameraOffset(double x, double y, double z)
+    static TorchmasterRangeRenderBackendDescriptor.CameraOffset cameraOffset(double x, double y, double z)
     {
         return TorchmasterRangeRenderBackend.cameraOffset(x, y, z);
     }
 
-    static LegacySessionState legacySessionState()
+    static TorchmasterRangeRenderBackendDescriptor.LegacySessionState legacySessionState()
     {
         return TorchmasterRangeRenderBackend.legacySessionState();
     }
@@ -45,13 +45,13 @@ final class TorchmasterRangeRenderTarget
     //? if >=1.15 {
     static VertexConsumer lineBuffer(VertexConsumerProvider bufferSource)
     {
-        TorchmasterRangeRenderBackend.LineLayerChoice layer = TorchmasterRangeRenderBackend.activeLineLayer();
+        TorchmasterRangeRenderBackendDescriptor.LineLayerChoice layer = TorchmasterRangeRenderBackend.active().lineLayer();
         //? if >=1.21.11 {
-        /*if (layer == TorchmasterRangeRenderBackend.LineLayerChoice.CUSTOM_PIPELINE) {
+        /*if (layer == TorchmasterRangeRenderBackendDescriptor.LineLayerChoice.CUSTOM_PIPELINE) {
             return bufferSource.getBuffer(LINE_LAYER);
         }
         *///?} else {
-        if (layer == TorchmasterRangeRenderBackend.LineLayerChoice.VANILLA_LINES) {
+        if (layer == TorchmasterRangeRenderBackendDescriptor.LineLayerChoice.VANILLA_LINES) {
             return bufferSource.getBuffer(RenderLayer.getLines());
         }
         //?}
@@ -60,14 +60,14 @@ final class TorchmasterRangeRenderTarget
 
     static void flushLines(VertexConsumerProvider.Immediate bufferSource)
     {
-        TorchmasterRangeRenderBackend.FlushTarget target = TorchmasterRangeRenderBackend.activeFlushTarget();
+        TorchmasterRangeRenderBackendDescriptor.FlushTarget target = TorchmasterRangeRenderBackend.active().flushTarget();
         //? if >=1.21.11 {
-        /*if (target == TorchmasterRangeRenderBackend.FlushTarget.CUSTOM_PIPELINE) {
+        /*if (target == TorchmasterRangeRenderBackendDescriptor.FlushTarget.CUSTOM_PIPELINE) {
             bufferSource.draw(LINE_LAYER);
             return;
         }
         *///?} else {
-        if (target == TorchmasterRangeRenderBackend.FlushTarget.VANILLA_LINES) {
+        if (target == TorchmasterRangeRenderBackendDescriptor.FlushTarget.VANILLA_LINES) {
             bufferSource.draw(RenderLayer.getLines());
             return;
         }
@@ -78,16 +78,16 @@ final class TorchmasterRangeRenderTarget
     static void translateToCamera(MatrixStack poseStack, Camera camera)
     {
         //? if >=1.21.11 {
-        /*CameraOffset offset = cameraOffset(camera.getCameraPos().x, camera.getCameraPos().y, camera.getCameraPos().z);
+        /*TorchmasterRangeRenderBackendDescriptor.CameraOffset offset = cameraOffset(camera.getCameraPos().x, camera.getCameraPos().y, camera.getCameraPos().z);
         *///?} else {
-        CameraOffset offset = cameraOffset(camera.getPos().x, camera.getPos().y, camera.getPos().z);
+        TorchmasterRangeRenderBackendDescriptor.CameraOffset offset = cameraOffset(camera.getPos().x, camera.getPos().y, camera.getPos().z);
         //?}
         poseStack.translate(offset.x, offset.y, offset.z);
     }
     //?} else {
     /*static LegacyTarget beginLegacy()
     {
-        LegacySessionState state = legacySessionState();
+        TorchmasterRangeRenderBackendDescriptor.LegacySessionState state = legacySessionState();
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.getBuffer();
         if (state.disableTexture) {
@@ -113,42 +113,14 @@ final class TorchmasterRangeRenderTarget
     }
     *///?}
 
-    static final class CameraOffset
-    {
-        final double x;
-        final double y;
-        final double z;
-
-        CameraOffset(double x, double y, double z)
-        {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
-    }
-
-    static final class LegacySessionState
-    {
-        final boolean disableTexture;
-        final boolean enableBlend;
-        final float lineWidth;
-
-        LegacySessionState(boolean disableTexture, boolean enableBlend, float lineWidth)
-        {
-            this.disableTexture = disableTexture;
-            this.enableBlend = enableBlend;
-            this.lineWidth = lineWidth;
-        }
-    }
-
     //? if <1.15 {
     /*static final class LegacyTarget
     {
         final Tessellator tessellator;
         final BufferBuilder buffer;
-        final LegacySessionState state;
+        final TorchmasterRangeRenderBackendDescriptor.LegacySessionState state;
 
-        private LegacyTarget(Tessellator tessellator, BufferBuilder buffer, LegacySessionState state)
+        private LegacyTarget(Tessellator tessellator, BufferBuilder buffer, TorchmasterRangeRenderBackendDescriptor.LegacySessionState state)
         {
             this.tessellator = tessellator;
             this.buffer = buffer;

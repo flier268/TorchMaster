@@ -6,7 +6,7 @@ package net.xalcon.torchmaster;
 import net.minecraftforge.event.entity.living.MobSpawnEvent;
 import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
-import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnEventContainers;
+import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventContainers;
 
 final class ForgeSpawnEventResults
 {

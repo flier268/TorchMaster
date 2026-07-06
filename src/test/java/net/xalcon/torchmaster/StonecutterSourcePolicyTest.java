@@ -54,6 +54,8 @@ class StonecutterSourcePolicyTest
     private static final Pattern RANGE_TARGET_DIRECT_BACKEND_DECISION = Pattern.compile("new\\s+(CameraOffset|LegacySessionState)\\s*\\(|TorchmasterLineBoxRenderer\\.LINE_WIDTH");
     private static final Pattern STORAGE_OVERRIDE_DIRECT_NBT_BRIDGE = Pattern.compile("SavedLightStore(NbtBridge|Serializer)\\.");
     private static final Pattern FABRIC_WRAPPER_DIRECT_EVENT_CONTAINER = Pattern.compile("EventResultContainer|new\\s+EventResultContainer\\s*\\(|\\.getResult\\s*\\(");
+    private static final Pattern SPAWN_BRIDGE_DIRECT_CONTAINER_RESULT = Pattern.compile("\\.getResult\\s*\\(");
+    private static final Pattern UTILS_SPAWN_HOOK_IMPLEMENTATION = Pattern.compile("SpawnEventBridge|MinecraftSpawnEventContainers|MinecraftSpawnBlocker");
     private static final Pattern LOADER_HANDLER_DIRECT_RESULT_MAPPING = Pattern.compile("EventResult\\.|switch\\s*\\(");
     private static final Pattern SPAWN_RUNTIME_DIRECT_PLATFORM_GLUE = Pattern.compile(
             "^import\\s+net\\.xalcon\\.torchmaster\\.(TorchmasterRuntime|platform\\.Services)|new\\s+MinecraftConfigView\\s*\\(");
@@ -386,8 +388,6 @@ class StonecutterSourcePolicyTest
     void fabricWrappersDelegateEventContainers() throws IOException
     {
         List<Path> violations = Arrays.asList(
-                        sourcePath("src/main/java/net/xalcon/torchmaster/utils/MobWrapper.java"),
-                        sourcePath("src/main/java/net/xalcon/torchmaster/utils/NaturalSpawnerWrapper.java"),
                         sourcePath("src/fabric/java/net/xalcon/torchmaster/mixin/VillageSiegeMixin.java"))
                 .stream()
                 .filter(Files::exists)
@@ -395,6 +395,41 @@ class StonecutterSourcePolicyTest
                 .collect(Collectors.toList());
 
         assertTrue(violations.isEmpty(), () -> "Use MinecraftSpawnEventContainers from Fabric wrappers/mixins instead of direct EventResultContainer handling: " + violations);
+    }
+
+    @Test
+    void spawnEventBridgeDoesNotReadContainerResultDirectly() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/events/SpawnEventBridge.java");
+
+        assertTrue(!hasSpawnBridgeDirectContainerResult(path), () -> "Use MinecraftSpawnEventContainers.portResult from SpawnEventBridge instead of direct container.getResult(): " + path);
+    }
+
+    @Test
+    void utilsSpawnWrappersStayThinFacades() throws IOException
+    {
+        List<Path> violations = Arrays.asList(
+                        sourcePath("src/main/java/net/xalcon/torchmaster/utils/MobWrapper.java"),
+                        sourcePath("src/main/java/net/xalcon/torchmaster/utils/NaturalSpawnerWrapper.java"))
+                .stream()
+                .filter(Files::exists)
+                .filter(StonecutterSourcePolicyTest::hasUtilsSpawnHookImplementation)
+                .collect(Collectors.toList());
+
+        assertTrue(violations.isEmpty(), () -> "Keep Fabric spawn hook implementation in minecraft.spawn helpers, not utils wrapper facades: " + violations);
+    }
+
+    @Test
+    void oldFabricSpawnWrappersStayRemoved()
+    {
+        List<Path> violations = Arrays.asList(
+                        Paths.get("src/main/java/net/xalcon/torchmaster/utils/MobWrapper.java"),
+                        Paths.get("src/main/java/net/xalcon/torchmaster/utils/NaturalSpawnerWrapper.java"))
+                .stream()
+                .filter(Files::exists)
+                .collect(Collectors.toList());
+
+        assertTrue(violations.isEmpty(), () -> "Use FabricSpawnEventHooks directly from Fabric mixins instead of restoring old wrapper facades: " + violations);
     }
 
     @Test
@@ -415,9 +450,9 @@ class StonecutterSourcePolicyTest
     @Test
     void spawnRuntimeDelegatesPlatformGlue() throws IOException
     {
-        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/adapter/MinecraftSpawnEventRuntime.java");
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/spawn/MinecraftSpawnEventRuntime.java");
 
-        assertTrue(!hasSpawnRuntimeDirectPlatformGlue(path), () -> "Use MinecraftRuntimeServices for config view and logging glue: " + path);
+        assertTrue(!hasSpawnRuntimeDirectPlatformGlue(path), () -> "Use MinecraftSpawnRuntimeServices for config view and logging glue: " + path);
     }
 
     @Test
@@ -749,6 +784,24 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> FABRIC_WRAPPER_DIRECT_EVENT_CONTAINER.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasSpawnBridgeDirectContainerResult(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> SPAWN_BRIDGE_DIRECT_CONTAINER_RESULT.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasUtilsSpawnHookImplementation(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> UTILS_SPAWN_HOOK_IMPLEMENTATION.matcher(line).find());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }

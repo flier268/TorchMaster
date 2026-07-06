@@ -9,7 +9,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerSpawnPhantomsEvent;
 import net.neoforged.neoforge.event.village.VillageSiegeEvent;
 import net.xalcon.torchmaster.events.EventResultContainer;
 import net.xalcon.torchmaster.events.SpawnEventBridge;
-import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnEventContainers;
+import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventContainers;
 
 @EventBusSubscriber(modid = Constants.MOD_ID)
 public class NeoforgeEventHandler

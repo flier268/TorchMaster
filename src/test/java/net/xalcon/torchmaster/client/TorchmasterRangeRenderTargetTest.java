@@ -10,7 +10,7 @@ class TorchmasterRangeRenderTargetTest
     @Test
     void cameraOffsetTranslatesWorldOppositeCamera()
     {
-        TorchmasterRangeRenderTarget.CameraOffset offset = TorchmasterRangeRenderTarget.cameraOffset(1.5, -2.0, 3.25);
+        TorchmasterRangeRenderBackendDescriptor.CameraOffset offset = TorchmasterRangeRenderTarget.cameraOffset(1.5, -2.0, 3.25);
 
         assertEquals(-1.5, offset.x, 0.0001);
         assertEquals(2.0, offset.y, 0.0001);
@@ -20,7 +20,7 @@ class TorchmasterRangeRenderTargetTest
     @Test
     void legacySessionStateKeepsLineRenderingSetup()
     {
-        TorchmasterRangeRenderTarget.LegacySessionState state = TorchmasterRangeRenderTarget.legacySessionState();
+        TorchmasterRangeRenderBackendDescriptor.LegacySessionState state = TorchmasterRangeRenderTarget.legacySessionState();
 
         assertTrue(state.disableTexture);
         assertTrue(state.enableBlend);

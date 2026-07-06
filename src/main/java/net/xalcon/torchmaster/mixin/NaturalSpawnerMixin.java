@@ -6,7 +6,7 @@ import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.world.SpawnHelper;
 import net.minecraft.world.WorldAccess;
 import net.xalcon.torchmaster.minecraft.adapter.MinecraftEventResultDecisions;
-import net.xalcon.torchmaster.utils.MobWrapper;
+import net.xalcon.torchmaster.minecraft.spawn.FabricSpawnEventHooks;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -24,7 +24,7 @@ public abstract class NaturalSpawnerMixin
     private static boolean torchmaster_isValidPositionForMob_checkSpawnRules(MobEntity mob, WorldAccess level, SpawnReason spawnReason)
     {
         return MinecraftEventResultDecisions.resolve(
-                MobWrapper.checkSpawnRules(mob, spawnReason),
+                FabricSpawnEventHooks.checkSpawnRules(mob, spawnReason),
                 () -> mob.canSpawn(level, spawnReason));
     }
 
@@ -47,7 +47,7 @@ public abstract class NaturalSpawnerMixin
     private static boolean torchmaster_spawnMobsForChunkGeneration_checkSpawnRules(MobEntity mob, WorldAccess level, SpawnReason spawnReason)
     {
         return MinecraftEventResultDecisions.resolve(
-                MobWrapper.checkSpawnRules(mob, spawnReason),
+                FabricSpawnEventHooks.checkSpawnRules(mob, spawnReason),
                 () -> mob.canSpawn(level, spawnReason));
     }
 }
@@ -57,7 +57,7 @@ import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.SpawnHelper;
 import net.xalcon.torchmaster.minecraft.adapter.MinecraftEventResultDecisions;
-import net.xalcon.torchmaster.utils.MobWrapper;
+import net.xalcon.torchmaster.minecraft.spawn.FabricSpawnEventHooks;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -75,7 +75,7 @@ public abstract class NaturalSpawnerMixin
     private static boolean torchmaster_isValidPositionForMob_checkSpawnRules(MobEntity mob, IWorld level, SpawnType spawnReason)
     {
         return MinecraftEventResultDecisions.resolve(
-                MobWrapper.checkSpawnRules(mob, spawnReason),
+                FabricSpawnEventHooks.checkSpawnRules(mob, spawnReason),
                 () -> mob.canSpawn(level, spawnReason));
     }
 
@@ -89,7 +89,7 @@ public abstract class NaturalSpawnerMixin
     private static boolean torchmaster_spawnMobsForChunkGeneration_checkSpawnRules(MobEntity mob, IWorld level, SpawnType spawnReason)
     {
         return MinecraftEventResultDecisions.resolve(
-                MobWrapper.checkSpawnRules(mob, spawnReason),
+                FabricSpawnEventHooks.checkSpawnRules(mob, spawnReason),
                 () -> mob.canSpawn(level, spawnReason));
     }
 }

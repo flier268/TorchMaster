@@ -11,18 +11,18 @@ class TorchmasterRangeRenderBackendTest
     void activeBackendUsesExpectedLineLayerAndFlushTarget()
     {
         //? if >=1.21.11 {
-        /*assertEquals(TorchmasterRangeRenderBackend.LineLayerChoice.CUSTOM_PIPELINE, TorchmasterRangeRenderBackend.activeLineLayer());
-        assertEquals(TorchmasterRangeRenderBackend.FlushTarget.CUSTOM_PIPELINE, TorchmasterRangeRenderBackend.activeFlushTarget());
+        /*assertEquals(TorchmasterRangeRenderBackendDescriptor.LineLayerChoice.CUSTOM_PIPELINE, TorchmasterRangeRenderBackend.active().lineLayer());
+        assertEquals(TorchmasterRangeRenderBackendDescriptor.FlushTarget.CUSTOM_PIPELINE, TorchmasterRangeRenderBackend.active().flushTarget());
         *///?} else {
-        assertEquals(TorchmasterRangeRenderBackend.LineLayerChoice.VANILLA_LINES, TorchmasterRangeRenderBackend.activeLineLayer());
-        assertEquals(TorchmasterRangeRenderBackend.FlushTarget.VANILLA_LINES, TorchmasterRangeRenderBackend.activeFlushTarget());
+        assertEquals(TorchmasterRangeRenderBackendDescriptor.LineLayerChoice.VANILLA_LINES, TorchmasterRangeRenderBackend.active().lineLayer());
+        assertEquals(TorchmasterRangeRenderBackendDescriptor.FlushTarget.VANILLA_LINES, TorchmasterRangeRenderBackend.active().flushTarget());
         //?}
     }
 
     @Test
     void cameraOffsetTranslatesWorldOppositeCamera()
     {
-        TorchmasterRangeRenderTarget.CameraOffset offset = TorchmasterRangeRenderBackend.cameraOffset(1.5, -2.0, 3.25);
+        TorchmasterRangeRenderBackendDescriptor.CameraOffset offset = TorchmasterRangeRenderBackend.active().cameraOffset(1.5, -2.0, 3.25);
 
         assertEquals(-1.5, offset.x, 0.0001);
         assertEquals(2.0, offset.y, 0.0001);
@@ -32,11 +32,12 @@ class TorchmasterRangeRenderBackendTest
     @Test
     void legacySessionStateKeepsLineRenderingSetup()
     {
-        TorchmasterRangeRenderTarget.LegacySessionState state = TorchmasterRangeRenderBackend.legacySessionState();
+        TorchmasterRangeRenderBackendDescriptor descriptor = TorchmasterRangeRenderBackend.active();
+        TorchmasterRangeRenderBackendDescriptor.LegacySessionState state = descriptor.legacySessionState();
 
         assertTrue(state.disableTexture);
         assertTrue(state.enableBlend);
         assertEquals(TorchmasterLineBoxRenderer.LINE_WIDTH, state.lineWidth, 0.0001);
-        assertEquals(TorchmasterLineBoxRenderer.LINE_WIDTH, TorchmasterRangeRenderBackend.lineWidth(), 0.0001);
+        assertEquals(TorchmasterLineBoxRenderer.LINE_WIDTH, descriptor.lineWidth(), 0.0001);
     }
 }

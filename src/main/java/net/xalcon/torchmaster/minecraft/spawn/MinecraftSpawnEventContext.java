@@ -1,4 +1,4 @@
-package net.xalcon.torchmaster.minecraft.adapter;
+package net.xalcon.torchmaster.minecraft.spawn;
 
 import net.xalcon.torchmaster.port.EntityTypeKey;
 import net.xalcon.torchmaster.port.EventResultPort;
