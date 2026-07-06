@@ -1,26 +1,34 @@
 package net.xalcon.torchmaster.blocks;
 
-import net.minecraft.core.BlockPos;
-//? if >=1.21
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+//? if >=1.16.5
+import net.minecraft.block.ShapeContext;
+import net.minecraft.block.entity.BlockEntity;
+//? if >=1.16.5 {
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtIntArray;
+//?} else {
+/*import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntArrayTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LightLayer;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.Heightmap;
-//? if >=1.21.6 {
-/*import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 *///?}
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
-//? if >=1.21
-import net.minecraft.world.phys.shapes.CollisionContext;
+//? if >=1.20.6
+import net.minecraft.registry.RegistryWrapper;
+//? if >=1.21.11
+//import net.minecraft.storage.ReadView;
+//? if >=1.21.11
+//import net.minecraft.storage.WriteView;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.Heightmap;
+import net.minecraft.world.LightType;
+//? if >=1.16.5
+import net.minecraft.world.RaycastContext;
+//? if <1.16.5
+//import net.minecraft.world.RayTraceContext;
+import net.minecraft.world.World;
 import net.xalcon.torchmaster.Constants;
 import net.xalcon.torchmaster.TorchmasterContent;
 import net.xalcon.torchmaster.TorchmasterRuntime;
@@ -46,11 +54,11 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
         super(TorchmasterContent.tileFeralFlareLantern.get(), pos, state);
 	//?} else {
         /*super(TorchmasterContent.tileFeralFlareLantern.get());
-        this.setPosition(pos);
+        this.setPos(pos);
         *///?}
     }
 
-    //? if >=1.21.5 {
+    //? if fabric && forge && >=1.21.5 {
     /*@Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
@@ -70,62 +78,83 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
         int radius = config.getFeralFlareRadius();
         int diameter = radius * 2;
 
-        int x = (radius - this.level.random.nextInt(diameter)) + this.worldPosition.getX();
-        int y = (radius - this.level.random.nextInt(diameter)) + this.worldPosition.getY();
-        int z = (radius - this.level.random.nextInt(diameter)) + this.worldPosition.getZ();
+        int x = (radius - this.world.random.nextInt(diameter)) + this.pos.getX();
+        int y = (radius - this.world.random.nextInt(diameter)) + this.pos.getY();
+        int z = (radius - this.world.random.nextInt(diameter)) + this.pos.getZ();
 
         // limit height - upper bounds
         BlockPos targetPos = new BlockPos(x, y, z);
-        int surfaceHeight = this.level.getHeight(Heightmap.Types.WORLD_SURFACE, targetPos.getX(), targetPos.getZ());
+        //? if >=1.15 {
+        int surfaceHeight = this.world.getTopY(Heightmap.Type.WORLD_SURFACE, targetPos.getX(), targetPos.getZ());
+        //?} else {
+        /*int surfaceHeight = this.world.getTop(Heightmap.Type.WORLD_SURFACE, targetPos.getX(), targetPos.getZ());
+        *///?}
         if (targetPos.getY() > surfaceHeight + 4)
         {
             //? if >=1.17 {
-            targetPos = targetPos.atY(surfaceHeight).above(4);
+            targetPos = targetPos.withY(surfaceHeight).up(4);
 //?} else {
             /*targetPos = new BlockPos(targetPos.getX(), surfaceHeight + 4, targetPos.getZ());
             *///?}
         }
 
         // dont try to place blocks outside of the world height
-        int worldHeightCap = level.getHeight();
+        //? if >=1.16.5 {
+        int worldHeightCap = world.getHeight();
+        //?} else {
+        /*int worldHeightCap = world.getEffectiveHeight();
+        *///?}
         if(targetPos.getY() > worldHeightCap)
             targetPos = new BlockPos(targetPos.getX(), worldHeightCap - 1, targetPos.getZ());
 
-        if(!this.level.isLoaded(targetPos)) return;
+        //? if >=1.21.11 {
+        /*if(!this.world.isInBuildLimit(targetPos)) return;
+        *///?} else {
+        if(!this.world.canSetBlock(targetPos)) return;
+        //?}
 
-        if (this.level.isEmptyBlock(targetPos) && FeralFlareLightPlanner.shouldPlaceLight(
+        if (this.world.isAir(targetPos) && FeralFlareLightPlanner.shouldPlaceLight(
                 this.childLights.size(),
                 config.getFeralFlareLanternLightCountHardcap(),
-                this.level.getBrightness(LightLayer.BLOCK, targetPos),
+                this.world.getLightLevel(LightType.BLOCK, targetPos),
                 config.getFeralFlareMinLightLevel()))
         {
             if(this.useLineOfSight)
             {
-                Vec3 start = new Vec3(targetPos.getX(), targetPos.getY(), targetPos.getZ()).add(0.5, 0.5, 0.5);
-                Vec3 end = new Vec3(this.worldPosition.getX(), this.worldPosition.getY(), this.worldPosition.getZ()).add(0.5, 0.5, 0.5);
-                //? if >=1.21 {
-                ClipContext rtxCtx = new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, CollisionContext.empty());
+                Vec3d start = new Vec3d(targetPos.getX(), targetPos.getY(), targetPos.getZ()).add(0.5, 0.5, 0.5);
+                Vec3d end = new Vec3d(this.pos.getX(), this.pos.getY(), this.pos.getZ()).add(0.5, 0.5, 0.5);
+                //? if >=1.16.5 {
+                RaycastContext rtxCtx = new RaycastContext(start, end, RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.ANY,
+                        //? if >=1.20.6
+                        ShapeContext.absent()
+                        //? if <1.20.6
+                        //null
+                );
 //?} else {
-                /*ClipContext rtxCtx = new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.ANY, null);
+                /*RayTraceContext rtxCtx = new RayTraceContext(start, end, RayTraceContext.ShapeType.COLLIDER, RayTraceContext.FluidHandling.ANY, null);
                 *///?}
-                BlockHitResult rtResult = level.clip(rtxCtx);
+                //? if >=1.16.5 {
+                BlockHitResult rtResult = world.raycast(rtxCtx);
+                //?} else {
+                /*BlockHitResult rtResult = world.rayTrace(rtxCtx);
+                *///?}
 
                 if(rtResult.getType() == BlockHitResult.Type.BLOCK)
                 {
                     BlockPos hitPos = rtResult.getBlockPos();
-                    if(!(hitPos.getX() == this.worldPosition.getX() && hitPos.getY() == this.worldPosition.getY() && hitPos.getZ() == this.worldPosition.getZ()))
+                    if(!(hitPos.getX() == this.pos.getX() && hitPos.getY() == this.pos.getY() && hitPos.getZ() == this.pos.getZ()))
                         return;
                 }
             }
 
             //? if >=1.17 {
-            if(this.level.setBlock(targetPos, TorchmasterContent.blockInvisibleLight.get().defaultBlockState(), Block.UPDATE_ALL))
+            if(this.world.setBlockState(targetPos, TorchmasterContent.blockInvisibleLight.get().getDefaultState(), Block.NOTIFY_ALL))
 //?} else {
-            /*if(this.level.setBlock(targetPos, TorchmasterContent.blockInvisibleLight.get().defaultBlockState(), 3))
+            /*if(this.world.setBlockState(targetPos, TorchmasterContent.blockInvisibleLight.get().getDefaultState(), 3))
             *///?}
             {
                 this.childLights.add(targetPos);
-                this.setChanged();
+                this.markDirty();
             }
         }
 
@@ -133,7 +162,7 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
         {
             this.checkIndex = (this.checkIndex + 1) % this.childLights.size();
             BlockPos pos = this.childLights.get(this.checkIndex);
-            BlockState block = level.getBlockState(pos);
+            BlockState block = world.getBlockState(pos);
             if(FeralFlareLightPlanner.shouldRemoveChildLight(
                     MinecraftAdapterViews.blockPos(pos),
                     block.getBlock() instanceof InvisibleLightBlock))
@@ -145,7 +174,7 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
         }
     }
 
-    public static <T extends BlockEntity> void dispatchTickBlockEntity(Level level, BlockPos pos, BlockState state, T blockEntity)
+    public static <T extends BlockEntity> void dispatchTickBlockEntity(World level, BlockPos pos, BlockState state, T blockEntity)
     {
         if(blockEntity instanceof FeralFlareLanternBlockEntity)
             ((FeralFlareLanternBlockEntity)blockEntity).tick();
@@ -174,7 +203,20 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
     //    super.handleUpdateTag(tag);
     //}
 
-    //? if >=1.21.6 {
+    //? if >=1.21.11 {
+    /*@Override
+    protected void writeData(WriteView output)
+    {
+        super.writeData(output);
+        int[] childLightsEncoded = new int[this.childLights.size()];
+        for(int i = 0; i < this.childLights.size(); i++)
+            childLightsEncoded[i] = encodePosition(this.pos, this.childLights.get(i));
+
+        output.putIntArray("lights", childLightsEncoded);
+        output.putInt("ticks", this.ticks);
+        output.putBoolean("useLoS", this.useLineOfSight);
+    }
+*///?} elif fabric && forge && >=1.21.6 {
     /*@Override
     protected void saveAdditional(ValueOutput output)
     {
@@ -187,7 +229,7 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
         output.putInt("ticks", this.ticks);
         output.putBoolean("useLoS", this.useLineOfSight);
     }
-    *///?} elif >=1.21.5 {
+    *///?} elif fabric && forge && >=1.21.5 {
     /*@Override
     protected void saveAdditional(CompoundTag nbt, HolderLookup.Provider pRegistries)
     {
@@ -200,40 +242,54 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
         nbt.putInt("ticks", this.ticks);
         nbt.putBoolean("useLoS", this.useLineOfSight);
     }
-    *///?} elif >=1.21 {
+    *///?} elif >=1.20.6 {
     @Override
-    protected void saveAdditional(CompoundTag nbt, HolderLookup.Provider pRegistries)
+    protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup pRegistries)
     {
-        super.saveAdditional(nbt, pRegistries);
+        super.writeNbt(nbt, pRegistries);
         List<Integer> childLightsEncoded = new ArrayList<>(this.childLights.size());
         for(BlockPos child : this.childLights)
-            childLightsEncoded.add(encodePosition(this.worldPosition, child));
+            childLightsEncoded.add(encodePosition(this.pos, child));
 
-        nbt.put("lights", new IntArrayTag(childLightsEncoded));
+        nbt.put("lights", new NbtIntArray(childLightsEncoded));
         nbt.putInt("ticks", this.ticks);
         nbt.putBoolean("useLoS", this.useLineOfSight);
     }
 //?} elif >=1.18 {
     /*@Override
-    protected void saveAdditional(CompoundTag nbt)
+    protected void writeNbt(NbtCompound nbt)
     {
-        super.saveAdditional(nbt);
+        super.writeNbt(nbt);
         List<Integer> childLightsEncoded = new ArrayList<>(this.childLights.size());
         for(BlockPos child : this.childLights)
-            childLightsEncoded.add(encodePosition(this.worldPosition, child));
+            childLightsEncoded.add(encodePosition(this.pos, child));
 
-        nbt.put("lights", new IntArrayTag(childLightsEncoded));
+        nbt.put("lights", new NbtIntArray(childLightsEncoded));
         nbt.putInt("ticks", this.ticks);
         nbt.putBoolean("useLoS", this.useLineOfSight);
     }
-    *///?} else {
+    *///?} elif >=1.16.5 {
     /*@Override
-    public CompoundTag save(CompoundTag nbt)
+    public NbtCompound writeNbt(NbtCompound nbt)
     {
-        super.save(nbt);
+        super.writeNbt(nbt);
         List<Integer> childLightsEncoded = new ArrayList<>(this.childLights.size());
         for(BlockPos child : this.childLights)
-            childLightsEncoded.add(encodePosition(this.worldPosition, child));
+            childLightsEncoded.add(encodePosition(this.pos, child));
+
+        nbt.put("lights", new NbtIntArray(childLightsEncoded));
+        nbt.putInt("ticks", this.ticks);
+        nbt.putBoolean("useLoS", this.useLineOfSight);
+        return nbt;
+    }
+    *///?} else {
+    /*@Override
+    public CompoundTag toTag(CompoundTag nbt)
+    {
+        super.toTag(nbt);
+        List<Integer> childLightsEncoded = new ArrayList<>(this.childLights.size());
+        for(BlockPos child : this.childLights)
+            childLightsEncoded.add(encodePosition(this.pos, child));
 
         nbt.put("lights", new IntArrayTag(childLightsEncoded));
         nbt.putInt("ticks", this.ticks);
@@ -242,7 +298,21 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
     }
     *///?}
 
-    //? if >=1.21.6 {
+    //? if >=1.21.11 {
+    /*@Override
+    protected void readData(ReadView input)
+    {
+        this.childLights.clear();
+        input.getOptionalIntArray("lights").ifPresent(lightsEncoded -> {
+            BlockPos origin = this.pos;
+            for(int encodedLight : lightsEncoded)
+                this.childLights.add(decodePosition(origin, encodedLight));
+        });
+        this.ticks = input.getInt("ticks", 0);
+        this.useLineOfSight = input.getBoolean("useLoS", false);
+        super.readData(input);
+    }
+*///?} elif fabric && forge && >=1.21.6 {
     /*@Override
     protected void loadAdditional(ValueInput input)
     {
@@ -256,7 +326,7 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
         this.useLineOfSight = input.getBooleanOr("useLoS", false);
         super.loadAdditional(input);
     }
-    *///?} elif >=1.21.5 {
+    *///?} elif fabric && forge && >=1.21.5 {
     /*@Override
     public void loadAdditional(CompoundTag nbt, HolderLookup.Provider pRegistries)
     {
@@ -270,53 +340,69 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
         this.useLineOfSight = nbt.getBooleanOr("useLoS", false);
         super.loadAdditional(nbt, pRegistries);
     }
-    *///?} elif >=1.21 {
+    *///?} elif >=1.20.6 {
     @Override
-    public void loadAdditional(CompoundTag nbt, HolderLookup.Provider pRegistries)
+    public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup pRegistries)
     {
         this.childLights.clear();
-        if(nbt.getTagType("lights") == Tag.TAG_INT_ARRAY)
+        if(nbt.getType("lights") == NbtElement.INT_ARRAY_TYPE)
         {
-            BlockPos origin = this.worldPosition;
-            int[] lightsEncoded = ((IntArrayTag) nbt.get("lights")).getAsIntArray();
+            BlockPos origin = this.pos;
+            int[] lightsEncoded = ((NbtIntArray) nbt.get("lights")).getIntArray();
             for(int encodedLight : lightsEncoded)
                 this.childLights.add(decodePosition(origin, encodedLight));
         }
         this.ticks = nbt.getInt("ticks");
         this.useLineOfSight = nbt.getBoolean("useLoS");
-        super.loadAdditional(nbt, pRegistries);
+        super.readNbt(nbt, pRegistries);
     }
 //?} elif >=1.17 {
     /*@Override
-    public void load(CompoundTag nbt)
+    public void readNbt(NbtCompound nbt)
     {
         this.childLights.clear();
-        if(nbt.getTagType("lights") == Tag.TAG_INT_ARRAY)
+        if(nbt.getType("lights") == 11)
         {
-            BlockPos origin = this.worldPosition;
-            int[] lightsEncoded = ((IntArrayTag) nbt.get("lights")).getAsIntArray();
+            BlockPos origin = this.pos;
+            int[] lightsEncoded = ((NbtIntArray) nbt.get("lights")).getIntArray();
             for(int encodedLight : lightsEncoded)
                 this.childLights.add(decodePosition(origin, encodedLight));
         }
         this.ticks = nbt.getInt("ticks");
         this.useLineOfSight = nbt.getBoolean("useLoS");
-        super.load(nbt);
+        super.readNbt(nbt);
+    }
+    *///?} elif >=1.16.5 {
+    /*@Override
+    public void fromTag(BlockState state, NbtCompound nbt)
+    {
+        this.childLights.clear();
+        if(nbt.getType("lights") == 11)
+        {
+            BlockPos origin = this.pos;
+            int[] lightsEncoded = ((NbtIntArray) nbt.get("lights")).getIntArray();
+            for(int encodedLight : lightsEncoded)
+                this.childLights.add(decodePosition(origin, encodedLight));
+        }
+        this.ticks = nbt.getInt("ticks");
+        this.useLineOfSight = nbt.getBoolean("useLoS");
+        super.fromTag(state, nbt);
     }
     *///?} else {
     /*@Override
-    public void load(BlockState state, CompoundTag nbt)
+    public void fromTag(CompoundTag nbt)
     {
         this.childLights.clear();
-        if(nbt.getTagType("lights") == 11)
+        if(nbt.getType("lights") == 11)
         {
-            BlockPos origin = new BlockPos(nbt.getInt("x"), nbt.getInt("y"),nbt.getInt("z"));
-            int[] lightsEncoded = ((IntArrayTag) nbt.get("lights")).getAsIntArray();
+            BlockPos origin = this.pos;
+            int[] lightsEncoded = ((IntArrayTag) nbt.get("lights")).getIntArray();
             for(int encodedLight : lightsEncoded)
                 this.childLights.add(decodePosition(origin, encodedLight));
         }
         this.ticks = nbt.getInt("ticks");
         this.useLineOfSight = nbt.getBoolean("useLoS");
-        super.load(state, nbt);
+        super.fromTag(nbt);
     }
     *///?}
 
@@ -336,9 +422,9 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
     {
         TorchmasterRuntime.LOG.info("Current: {}, New: {}", useLineOfSight, state);
         this.useLineOfSight = state;
-        this.setChanged();
-        BlockState blockState = this.level.getBlockState(this.worldPosition);
-        this.level.sendBlockUpdated(this.worldPosition, blockState, blockState, 3);
+        this.markDirty();
+        BlockState blockState = this.world.getBlockState(this.pos);
+        this.world.updateListeners(this.pos, blockState, blockState, 3);
     }
 
     public boolean shouldUseLineOfSight()
@@ -353,9 +439,9 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
         ) return;
         for(BlockPos pos : this.childLights)
         {
-            if (this.level.getBlockState(pos).getBlock() == TorchmasterContent.blockInvisibleLight.get())
+            if (this.world.getBlockState(pos).getBlock() == TorchmasterContent.blockInvisibleLight.get())
             {
-                this.level.removeBlock(pos, false);
+                this.world.removeBlock(pos, false);
             }
         }
         this.childLights.clear();
@@ -375,10 +461,14 @@ public class FeralFlareLanternBlockEntity extends BlockEntity
 
     private boolean isClientSide()
     {
-        //? if >=1.21.9 {
+        //? if fabric && forge && >=1.21.9 {
         /*return this.level.isClientSide();
         *///?} else {
-        return this.level.isClientSide;
+        //? if >=1.21.11
+        //return this.world.isClient()
+        //? if <1.21.11
+        return this.world.isClient
+        ;
         //?}
     }
 }

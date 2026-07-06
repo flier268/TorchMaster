@@ -1,9 +1,9 @@
 package net.xalcon.torchmaster.mixin;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.ai.village.VillageSiege;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.village.ZombieSiegeManager;
 import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
 import net.xalcon.torchmaster.events.SpawnEventBridge;
@@ -19,25 +19,25 @@ import org.spongepowered.asm.mixin.injection.Redirect;
  *
  * This code is untested - how the fuck to we force a village siege?!
  */
-@Mixin(VillageSiege.class)
+@Mixin(ZombieSiegeManager.class)
 public abstract class VillageSiegeMixin
 {
-    @Invoker("findRandomSpawnPos")
-    protected abstract Vec3 torchmaster_callFindRandomSpawnPos(ServerLevel level, BlockPos pos);
+    @Invoker("getSpawnVector")
+    protected abstract Vec3d torchmaster_callFindRandomSpawnPos(ServerWorld level, BlockPos pos);
 
     @Redirect(
-            method = "tryToSetupSiege(Lnet/minecraft/server/level/ServerLevel;)Z",
+            method = "spawn(Lnet/minecraft/server/world/ServerWorld;)Z",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/entity/ai/village/VillageSiege;findRandomSpawnPos(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/Vec3;"
+                    target = "Lnet/minecraft/village/ZombieSiegeManager;getSpawnVector(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/util/math/Vec3d;"
             )
     )
-    private Vec3 torchmaster_tryToSetupSiege_findRandomSpawnPos(VillageSiege siege, ServerLevel level, BlockPos pos)
+    private Vec3d torchmaster_tryToSetupSiege_findRandomSpawnPos(ZombieSiegeManager siege, ServerWorld level, BlockPos pos)
     {
-        var result = torchmaster_callFindRandomSpawnPos(level, pos);
+        Vec3d result = torchmaster_callFindRandomSpawnPos(level, pos);
         if(result != null)
         {
-            var container = new EventResultContainer(EventResult.DEFAULT);
+            EventResultContainer container = new EventResultContainer(EventResult.DEFAULT);
             SpawnEventBridge.onVillageSiege(level, result, container);
             if(container.getResult() == EventResult.DENY)
                 return null;

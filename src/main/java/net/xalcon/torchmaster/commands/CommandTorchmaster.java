@@ -3,19 +3,19 @@ package net.xalcon.torchmaster.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-//? if >=1.19.3 {
-import net.minecraft.core.registries.BuiltInRegistries;
-//?} else {
-/*import net.minecraft.core.Registry;
-*///?}
-import net.minecraft.network.chat.Component;
+//? if >=1.19.3
+import net.minecraft.registry.Registries;
 //? if <1.19 {
-/*import net.minecraft.network.chat.TranslatableComponent;
+/*import net.minecraft.text.TranslatableText;
 *///?}
+//? if <1.19.3
+//import net.minecraft.util.registry.Registry;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.world.ServerWorld;
+//? if >=1.19
+import net.minecraft.text.Text;
 import net.xalcon.torchmaster.Constants;
 import net.xalcon.torchmaster.TorchmasterRuntime;
 import net.xalcon.torchmaster.port.LightInfo;
@@ -28,22 +28,28 @@ public class CommandTorchmaster
         DUMP_TORCHES("torchdump")
             {
                 @Override
-                public int execute(CommandContext<CommandSourceStack> ctx)
+                public int execute(CommandContext<ServerCommandSource> ctx)
                 {
-                    CommandSourceStack source = ctx.getSource();
+                    ServerCommandSource source = ctx.getSource();
+                    //? if >=1.17.1
                     MinecraftServer server = source.getServer();
+                    //? if <1.17.1
+                    //MinecraftServer server = source.getMinecraftServer();
                     TorchmasterRuntime.LOG.info("#################################");
                     TorchmasterRuntime.LOG.info("# Torchmaster Torch Dump Start  #");
                     TorchmasterRuntime.LOG.info("#################################");
-                    for(ServerLevel level: server.getAllLevels())
+                    for(ServerWorld level: server.getWorlds())
                     {
                         TorchmasterRuntime.getRegistryForLevel(level).ifPresent(container ->
                         {
                             TorchmasterRuntime.LOG.info("Torches in dimension {}:",
-                                    //? if >=1.21.11 {
+                                    //? if fabric && forge && >=1.21.11 {
                                     /*level.dimension().identifier()
                                     *///?} else {
-                                    level.dimension().location()
+                                    //? if >=1.17
+                                    level.getRegistryKey().getValue()
+                                    //? if <1.17
+                                    //"overworld"
                                     //?}
                             );
                             for(LightInfo torch: container.getEntries())
@@ -55,11 +61,11 @@ public class CommandTorchmaster
                     TorchmasterRuntime.LOG.info("#################################");
 
                     //? if >=1.20 {
-                    source.sendSuccess(() -> Component.translatable(Constants.MOD_ID + ".command.torch_dump.completed"), false);
+                    source.sendFeedback(() -> Text.translatable(Constants.MOD_ID + ".command.torch_dump.completed"), false);
 //?} elif >=1.19 {
-                    /*source.sendSuccess(Component.translatable(Constants.MOD_ID + ".command.torch_dump.completed"), false);
+                    /*source.sendFeedback(Text.translatable(Constants.MOD_ID + ".command.torch_dump.completed"), false);
 *///?} else {
-                    /*source.sendSuccess(new TranslatableComponent(Constants.MOD_ID + ".command.torch_dump.completed"), false);
+                    /*source.sendFeedback(new TranslatableText(Constants.MOD_ID + ".command.torch_dump.completed"), false);
                     *///?}
                     return 0;
                 }
@@ -67,17 +73,17 @@ public class CommandTorchmaster
         DUMP_ENTITIES("entitydump")
             {
                 @Override
-                public int execute(CommandContext<CommandSourceStack> ctx)
+                public int execute(CommandContext<ServerCommandSource> ctx)
                 {
-                    CommandSourceStack source = ctx.getSource();
+                    ServerCommandSource source = ctx.getSource();
                     TorchmasterRuntime.LOG.info("#################################");
                     TorchmasterRuntime.LOG.info("# Torchmaster Entity Dump Start #");
                     TorchmasterRuntime.LOG.info("#################################");
                     TorchmasterRuntime.LOG.info("List of registered entities:");
                     //? if >=1.19.3 {
-                    BuiltInRegistries.ENTITY_TYPE.stream().map(BuiltInRegistries.ENTITY_TYPE::getKey).forEach(loc ->
+                    Registries.ENTITY_TYPE.stream().map(Registries.ENTITY_TYPE::getId).forEach(loc ->
 //?} else {
-                    /*Registry.ENTITY_TYPE.stream().map(Registry.ENTITY_TYPE::getKey).forEach(loc ->
+                    /*Registry.ENTITY_TYPE.stream().map(Registry.ENTITY_TYPE::getId).forEach(loc ->
                     *///?}
                             TorchmasterRuntime.LOG.info("  {}", loc));
 
@@ -92,11 +98,11 @@ public class CommandTorchmaster
                     TorchmasterRuntime.LOG.info("# Torchmaster Entity Dump End   #");
                     TorchmasterRuntime.LOG.info("#################################");
                     //? if >=1.20 {
-                    source.sendSuccess(() -> Component.translatable(Constants.MOD_ID + ".command.entity_dump.completed"), false);
+                    source.sendFeedback(() -> Text.translatable(Constants.MOD_ID + ".command.entity_dump.completed"), false);
 //?} elif >=1.19 {
-                    /*source.sendSuccess(Component.translatable(Constants.MOD_ID + ".command.entity_dump.completed"), false);
+                    /*source.sendFeedback(Text.translatable(Constants.MOD_ID + ".command.entity_dump.completed"), false);
 *///?} else {
-                    /*source.sendSuccess(new TranslatableComponent(Constants.MOD_ID + ".command.entity_dump.completed"), false);
+                    /*source.sendFeedback(new TranslatableText(Constants.MOD_ID + ".command.entity_dump.completed"), false);
                     *///?}
                     return 0;
                 }
@@ -109,7 +115,7 @@ public class CommandTorchmaster
             this.translationKey = translationKey;
         }
 
-        public abstract int execute(CommandContext<CommandSourceStack> ctx);
+        public abstract int execute(CommandContext<ServerCommandSource> ctx);
 
         public String getTranslationKey()
         {
@@ -118,19 +124,19 @@ public class CommandTorchmaster
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static void register(CommandDispatcher<CommandSourceStack> dispatcher)
+    public static void register(CommandDispatcher<ServerCommandSource> dispatcher)
     {
-        LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal("torchmaster");
+        LiteralArgumentBuilder<ServerCommandSource> command = CommandManager.literal("torchmaster");
         for (SubCommands subCommand : SubCommands.values())
         {
-            command.then(Commands.literal(subCommand.getTranslationKey()).executes(subCommand::execute));
+            command.then(CommandManager.literal(subCommand.getTranslationKey()).executes(subCommand::execute));
         }
 
         dispatcher.register(
             //? if >=1.21.11 {
-            /*(LiteralArgumentBuilder) command.requires(Commands.hasPermission(Commands.LEVEL_ADMINS))
+            /*(LiteralArgumentBuilder) command.requires(CommandManager.requirePermissionLevel(CommandManager.ADMINS_CHECK))
             *///?} else {
-            (LiteralArgumentBuilder) ((LiteralArgumentBuilder) command.requires((cmdSrc) -> cmdSrc.hasPermission(2)))
+            (LiteralArgumentBuilder) ((LiteralArgumentBuilder) command.requires((cmdSrc) -> cmdSrc.hasPermissionLevel(2)))
                 .executes((ctx) -> 0)
             //?}
         );

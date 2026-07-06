@@ -1,24 +1,30 @@
-//? if >=1.16 {
 package net.xalcon.torchmaster.client;
 
-import net.minecraft.client.Minecraft;
-//? if >=1.20 {
-import net.minecraft.client.gui.GuiGraphics;
-//?} else {
-/*import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.MinecraftClient;
+//? if >=1.20
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.ButtonWidget;
+//? if <1.16
+/*import net.minecraft.client.resource.language.I18n;*/
+//? if >=1.16 && <1.20
+//import net.minecraft.client.util.math.MatrixStack;
+//? if >=1.19.4
+import net.minecraft.registry.RegistryKey;
+//? if >=1.16.5 && <1.19.4
+//import net.minecraft.util.registry.RegistryKey;
+//? if >=1.16
+import net.minecraft.text.Text;
+//? if <1.16
+/*import net.minecraft.text.TranslatableText;*/
+//? if >=1.16 && <1.19 {
+/*import net.minecraft.text.LiteralText;
 *///?}
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
-//? if <1.19 {
-/*import net.minecraft.network.chat.TextComponent;
-*///?}
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.level.Level;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.xalcon.torchmaster.TorchmasterRuntime;
 import net.xalcon.torchmaster.blocks.LightType;
-import net.xalcon.torchmaster.config.ITorchmasterConfig;
+//? if >=1.16
 import net.xalcon.torchmaster.minecraft.adapter.MinecraftText;
 
 public class TorchmasterLightScreen extends Screen
@@ -31,198 +37,321 @@ public class TorchmasterLightScreen extends Screen
 
     private final Screen parent;
     private final BlockPos pos;
-    private final ResourceKey<Level> dimension;
-    private final LightType lightType;
-    private final int radius;
-    private Button visibilityButton;
+    //? if >=1.16.5
+    private final RegistryKey<World> dimension;
+    //? if <1.16.5
+    //private final Object dimension;
+    private final TorchmasterLightScreenModel model;
+    private ButtonWidget visibilityButton;
 
-    private TorchmasterLightScreen(Screen parent, BlockPos pos, ResourceKey<Level> dimension, LightType lightType)
+    private TorchmasterLightScreen(Screen parent, BlockPos pos,
+            //? if >=1.16.5
+            RegistryKey<World> dimension
+            //? if <1.16.5
+            //Object dimension
+            , LightType lightType)
     {
-        super(text("screen.torchmaster.light.title"));
+        //? if >=1.16 {
+        super(text(TorchmasterLightScreenModel.TITLE_KEY));
+        //?} else {
+        /*super(new TranslatableText(TorchmasterLightScreenModel.TITLE_KEY));
+        *///?}
         this.parent = parent;
-        this.pos = pos.immutable();
+        this.pos = pos.toImmutable();
         this.dimension = dimension;
-        this.lightType = lightType;
-        this.radius = radiusFor(lightType, TorchmasterRuntime.getConfig());
+        this.model = new TorchmasterLightScreenModel(lightType, TorchmasterRuntime.getConfig());
     }
 
-    public static void open(BlockPos pos, ResourceKey<Level> dimension, LightType lightType)
+    public static void open(BlockPos pos,
+            //? if >=1.16.5
+            RegistryKey<World> dimension
+            //? if <1.16.5
+            //Object dimension
+            , LightType lightType)
     {
-        Minecraft minecraft = Minecraft.getInstance();
-        minecraft.setScreen(new TorchmasterLightScreen(minecraft.screen, pos, dimension, lightType));
+        MinecraftClient minecraft = MinecraftClient.getInstance();
+        //? if >=1.17.1 {
+        minecraft.setScreen(new TorchmasterLightScreen(minecraft.currentScreen, pos, dimension, lightType));
+        //?} else {
+        /*minecraft.openScreen(new TorchmasterLightScreen(minecraft.currentScreen, pos, dimension, lightType));
+        *///?}
     }
 
     @Override
     protected void init()
     {
-        int centerX = width / 2;
-        int top = Math.max(20, (height - PANEL_HEIGHT) / 2);
-        int right = (width + PANEL_WIDTH) / 2;
-        addCompatWidget(button(right - SETTINGS_BUTTON_SIZE - 8, top + 8, SETTINGS_BUTTON_SIZE, SETTINGS_BUTTON_SIZE, literal("⚙"),
-                ignored -> minecraft.setScreen(new TorchmasterConfigScreen(this))));
-        visibilityButton = button(centerX - BUTTON_WIDTH / 2, top + 54, BUTTON_WIDTH, BUTTON_HEIGHT, visibilityLabel(),
+        TorchmasterLightScreenLayout layout = layout();
+        addCompatWidget(button(layout.panelRight() - SETTINGS_BUTTON_SIZE - 8, layout.panelTop() + 8, SETTINGS_BUTTON_SIZE, SETTINGS_BUTTON_SIZE, literal("\u2699"),
+                ignored -> openConfigScreen()));
+        visibilityButton = button(layout.centerX() - BUTTON_WIDTH / 2, layout.panelTop() + 54, BUTTON_WIDTH, BUTTON_HEIGHT, visibilityLabel(),
                 ignored -> toggleVisibility());
         addCompatWidget(visibilityButton);
-        addCompatWidget(button(centerX - 50, top + 84, 100, BUTTON_HEIGHT, text("gui.done"), ignored -> onClose()));
+        addCompatWidget(button(layout.centerX() - 50, layout.panelTop() + 84, 100, BUTTON_HEIGHT, text("gui.done"), ignored -> closeScreen()));
     }
 
     private void toggleVisibility()
     {
-        TorchmasterLightRangeDisplay.toggle(dimension, pos, lightType, radius);
+        TorchmasterLightRangeDisplay.toggle(dimension, pos, model.lightType(), model.radius());
         visibilityButton.setMessage(visibilityLabel());
     }
 
-    private Component visibilityLabel()
+    private void openConfigScreen()
     {
-        return text(TorchmasterLightRangeDisplay.isVisible(dimension, pos)
-                ? "screen.torchmaster.light.hideRange"
-                : "screen.torchmaster.light.showRange");
+        //? if >=1.17.1 {
+        client.setScreen(new TorchmasterConfigScreen(this));
+        //?} else if >=1.16 {
+        /*client.openScreen(new TorchmasterConfigScreen(this));
+        *///?} else {
+        /*minecraft.openScreen(new TorchmasterConfigScreen(this));
+        *///?}
     }
 
+    private void closeScreen()
+    {
+        //? if >=1.18
+        close();
+        //? if >=1.17.1 && <1.18 {
+        /*client.setScreen(parent);
+        *///?}
+        //? if <1.17.1 {
+        /*onClose();
+        *///?}
+    }
+
+    //? if >=1.16
+    private Text visibilityLabel()
+    //? if <1.16
+    //private String visibilityLabel()
+    {
+        return text(model.visibilityButtonKey(TorchmasterLightRangeDisplay.isVisible(dimension, pos)));
+    }
+
+    //? if >=1.18 {
     @Override
+    public void close()
+    {
+        client.setScreen(parent);
+    }
+    //?}
+    //? if >=1.17.1 && <1.18 {
+    /*@Override
     public void onClose()
     {
-        minecraft.setScreen(parent);
+        client.setScreen(parent);
     }
+    *///?}
+    //? if >=1.16 && <1.17.1 {
+    /*@Override
+    public void onClose()
+    {
+        client.openScreen(parent);
+    }
+    *///?}
+    //? if <1.16 {
+    /*@Override
+    public void onClose()
+    {
+        minecraft.openScreen(parent);
+    }
+    *///?}
 
     //? if >=1.20 {
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick)
+    public void render(DrawContext graphics, int mouseX, int mouseY, float partialTick)
     {
-        int left = (width - PANEL_WIDTH) / 2;
-        int top = Math.max(20, (height - PANEL_HEIGHT) / 2);
-        int right = left + PANEL_WIDTH;
-        int bottom = top + PANEL_HEIGHT;
-
+        drawPanelBackground(graphics, mouseX, mouseY, partialTick);
         super.render(graphics, mouseX, mouseY, partialTick);
-
-        drawPanelFrame(graphics, left, top, right, bottom);
-        graphics.drawCenteredString(font, title, width / 2, top + 10, 0xFFFFFFFF);
-        graphics.drawCenteredString(font, blockName(), width / 2, top + 28, 0xFFE0E0E0);
-        graphics.drawCenteredString(font, text("screen.torchmaster.light.range", radius), width / 2, top + 42, 0xFFA0FFA0);
+        drawPanelFrame(graphics);
+        drawPanelLabels(graphics);
     }
-    //?} else {
+    //?} else if >=1.16 {
     /*@Override
-    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick)
+    public void render(MatrixStack poseStack, int mouseX, int mouseY, float partialTick)
     {
-        int left = (width - PANEL_WIDTH) / 2;
-        int top = Math.max(20, (height - PANEL_HEIGHT) / 2);
-        int right = left + PANEL_WIDTH;
-        int bottom = top + PANEL_HEIGHT;
-
+        drawPanelBackground(poseStack);
         super.render(poseStack, mouseX, mouseY, partialTick);
-
-        drawPanelFrame(poseStack, left, top, right, bottom);
-        drawCenteredString(poseStack, font, title, width / 2, top + 10, 0xFFFFFFFF);
-        drawCenteredString(poseStack, font, blockName(), width / 2, top + 28, 0xFFE0E0E0);
-        drawCenteredString(poseStack, font, text("screen.torchmaster.light.range", radius), width / 2, top + 42, 0xFFA0FFA0);
-    }
-    *///?}
-
-    //? if >=1.21 {
-    @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick)
-    {
-        super.renderBackground(graphics, mouseX, mouseY, partialTick);
-        int left = (width - PANEL_WIDTH) / 2;
-        int top = Math.max(20, (height - PANEL_HEIGHT) / 2);
-        graphics.fill(left, top, left + PANEL_WIDTH, top + PANEL_HEIGHT, 0xAA101010);
-    }
-
-    private void drawPanelFrame(GuiGraphics graphics, int left, int top, int right, int bottom)
-    {
-        graphics.fill(left, top, right, top + 1, 0xFF404040);
-        graphics.fill(left, top, left + 1, bottom, 0xFF404040);
-        graphics.fill(left, bottom - 1, right, bottom, 0xFF202020);
-        graphics.fill(right - 1, top, right, bottom, 0xFF202020);
-    }
-    //?} else if >=1.20 {
-    /*@Override
-    public void renderBackground(GuiGraphics graphics)
-    {
-        super.renderBackground(graphics);
-        int left = (width - PANEL_WIDTH) / 2;
-        int top = Math.max(20, (height - PANEL_HEIGHT) / 2);
-        graphics.fill(left, top, left + PANEL_WIDTH, top + PANEL_HEIGHT, 0xAA101010);
-    }
-
-    private void drawPanelFrame(GuiGraphics graphics, int left, int top, int right, int bottom)
-    {
-        graphics.fill(left, top, right, top + 1, 0xFF404040);
-        graphics.fill(left, top, left + 1, bottom, 0xFF404040);
-        graphics.fill(left, bottom - 1, right, bottom, 0xFF202020);
-        graphics.fill(right - 1, top, right, bottom, 0xFF202020);
+        drawPanelFrame(poseStack);
+        drawPanelLabels(poseStack);
     }
     *///?} else {
     /*@Override
-    public void renderBackground(PoseStack poseStack)
+    public void render(int mouseX, int mouseY, float partialTick)
     {
-        super.renderBackground(poseStack);
-        int left = (width - PANEL_WIDTH) / 2;
-        int top = Math.max(20, (height - PANEL_HEIGHT) / 2);
-        fill(poseStack, left, top, left + PANEL_WIDTH, top + PANEL_HEIGHT, 0xAA101010);
-    }
-
-    private void drawPanelFrame(PoseStack poseStack, int left, int top, int right, int bottom)
-    {
-        fill(poseStack, left, top, right, top + 1, 0xFF404040);
-        fill(poseStack, left, top, left + 1, bottom, 0xFF404040);
-        fill(poseStack, left, bottom - 1, right, bottom, 0xFF202020);
-        fill(poseStack, right - 1, top, right, bottom, 0xFF202020);
+        drawPanelBackground();
+        super.render(mouseX, mouseY, partialTick);
+        drawPanelFrame();
+        drawPanelLabels();
     }
     *///?}
 
-    private Component blockName()
+    private TorchmasterLightScreenLayout layout()
     {
-        return text(lightType == LightType.MegaTorch ? "block.torchmaster.megatorch" : "block.torchmaster.dreadlamp");
+        return new TorchmasterLightScreenLayout(width, height, PANEL_WIDTH, PANEL_HEIGHT);
     }
 
-    private static int radiusFor(LightType lightType, ITorchmasterConfig config)
+    private int panelLeft()
     {
-        return lightType == LightType.MegaTorch ? config.getMegaTorchRadius() : config.getDreadLampRadius();
+        return layout().panelLeft();
     }
 
-    private Button addCompatWidget(Button widget)
+    private int panelTop()
+    {
+        return layout().panelTop();
+    }
+
+    private int panelRight()
+    {
+        return layout().panelRight();
+    }
+
+    private int panelBottom()
+    {
+        return layout().panelBottom();
+    }
+
+    //? if >=1.20 {
+    private void drawPanelBackground(DrawContext graphics, int mouseX, int mouseY, float partialTick)
+    {
+        //? if >=1.21 {
+        renderInGameBackground(graphics);
+        //?} else if >=1.20.6 {
+        /*
+        super.renderBackground(graphics, mouseX, mouseY, partialTick);
+        *///?} else {
+        /*
+        super.renderBackground(graphics);
+        *///?}
+        graphics.fill(panelLeft(), panelTop(), panelRight(), panelBottom(), 0xAA101010);
+    }
+    //?} else if >=1.16 {
+    /*private void drawPanelBackground(MatrixStack poseStack)
+    {
+        super.renderBackground(poseStack);
+        fill(poseStack, panelLeft(), panelTop(), panelRight(), panelBottom(), 0xAA101010);
+    }
+
+    private void drawPanelFrame(MatrixStack poseStack)
+    {
+        fill(poseStack, panelLeft(), panelTop(), panelRight(), panelTop() + 1, 0xFF404040);
+        fill(poseStack, panelLeft(), panelTop(), panelLeft() + 1, panelBottom(), 0xFF404040);
+        fill(poseStack, panelLeft(), panelBottom() - 1, panelRight(), panelBottom(), 0xFF202020);
+        fill(poseStack, panelRight() - 1, panelTop(), panelRight(), panelBottom(), 0xFF202020);
+    }
+
+    private void drawPanelLabels(MatrixStack poseStack)
+    {
+        //? if >=1.19.4 {
+        drawCenteredTextWithShadow(poseStack, textRenderer, title, width / 2, panelTop() + 10, 0xFFFFFFFF);
+        drawCenteredTextWithShadow(poseStack, textRenderer, blockName(), width / 2, panelTop() + 28, 0xFFE0E0E0);
+        drawCenteredTextWithShadow(poseStack, textRenderer, text(TorchmasterLightScreenModel.RANGE_KEY, model.radius()), width / 2, panelTop() + 42, 0xFFA0FFA0);
+        //?} else {
+        /^drawCenteredText(poseStack, textRenderer, title, width / 2, panelTop() + 10, 0xFFFFFFFF);
+        drawCenteredText(poseStack, textRenderer, blockName(), width / 2, panelTop() + 28, 0xFFE0E0E0);
+        drawCenteredText(poseStack, textRenderer, text(TorchmasterLightScreenModel.RANGE_KEY, model.radius()), width / 2, panelTop() + 42, 0xFFA0FFA0);
+        ^///?}
+    }
+    *///?} else {
+    /*private void drawPanelBackground()
+    {
+        renderBackground();
+        fill(panelLeft(), panelTop(), panelRight(), panelBottom(), 0xAA101010);
+    }
+
+    private void drawPanelFrame()
+    {
+        fill(panelLeft(), panelTop(), panelRight(), panelTop() + 1, 0xFF404040);
+        fill(panelLeft(), panelTop(), panelLeft() + 1, panelBottom(), 0xFF404040);
+        fill(panelLeft(), panelBottom() - 1, panelRight(), panelBottom(), 0xFF202020);
+        fill(panelRight() - 1, panelTop(), panelRight(), panelBottom(), 0xFF202020);
+    }
+
+    private void drawPanelLabels()
+    {
+        drawCenteredString(font, text(TorchmasterLightScreenModel.TITLE_KEY), width / 2, panelTop() + 10, 0xFFFFFFFF);
+        drawCenteredString(font, blockName(), width / 2, panelTop() + 28, 0xFFE0E0E0);
+        drawCenteredString(font, text(TorchmasterLightScreenModel.RANGE_KEY, model.radius()), width / 2, panelTop() + 42, 0xFFA0FFA0);
+    }
+    *///?}
+
+    //? if >=1.20 {
+    private void drawPanelFrame(DrawContext graphics)
+    {
+        graphics.fill(panelLeft(), panelTop(), panelRight(), panelTop() + 1, 0xFF404040);
+        graphics.fill(panelLeft(), panelTop(), panelLeft() + 1, panelBottom(), 0xFF404040);
+        graphics.fill(panelLeft(), panelBottom() - 1, panelRight(), panelBottom(), 0xFF202020);
+        graphics.fill(panelRight() - 1, panelTop(), panelRight(), panelBottom(), 0xFF202020);
+    }
+
+    private void drawPanelLabels(DrawContext graphics)
+    {
+        graphics.drawCenteredTextWithShadow(textRenderer, title, width / 2, panelTop() + 10, 0xFFFFFFFF);
+        graphics.drawCenteredTextWithShadow(textRenderer, blockName(), width / 2, panelTop() + 28, 0xFFE0E0E0);
+        graphics.drawCenteredTextWithShadow(textRenderer, text(TorchmasterLightScreenModel.RANGE_KEY, model.radius()), width / 2, panelTop() + 42, 0xFFA0FFA0);
+    }
+    //?}
+
+    //? if >=1.16
+    private Text blockName()
+    //? if <1.16
+    //private String blockName()
+    {
+        return text(model.blockKey());
+    }
+
+    private ButtonWidget addCompatWidget(ButtonWidget widget)
     {
         //? if >=1.17 {
-        return addRenderableWidget(widget);
+        return addDrawableChild(widget);
         //?} else {
         /*return addButton(widget);
         *///?}
     }
 
-    private static Button button(int x, int y, int width, int height, Component label, Button.OnPress onPress)
+    //? if >=1.16
+    private static ButtonWidget button(int x, int y, int width, int height, Text label, ButtonWidget.PressAction onPress)
+    //? if <1.16
+    //private static ButtonWidget button(int x, int y, int width, int height, String label, ButtonWidget.PressAction onPress)
     {
         //? if >=1.19.4 {
-        return Button.builder(label, onPress).bounds(x, y, width, height).build();
+        return ButtonWidget.builder(label, onPress).dimensions(x, y, width, height).build();
         //?} else {
-        /*return new Button(x, y, width, height, label, onPress);
+        /*return new ButtonWidget(x, y, width, height, label, onPress);
         *///?}
     }
 
-    private static Component text(String translationKey)
+    //? if >=1.16
+    private static Text text(String translationKey)
+    //? if <1.16
+    //private static String text(String translationKey)
     {
+        //? if >=1.16 {
         return MinecraftText.translatable(translationKey);
-    }
-
-    private static Component text(String translationKey, Object value)
-    {
-        return MinecraftText.translatable(translationKey, value);
-    }
-
-    private static Component literal(String value)
-    {
-        return MinecraftText.literal(value);
-    }
-
-    @SuppressWarnings("unused")
-    private static Component emptyText()
-    {
-        //? if >=1.19 {
-        return Component.empty();
         //?} else {
-        /*return new TextComponent("");
+        /*return I18n.translate(translationKey);
+        *///?}
+    }
+
+    //? if >=1.16
+    private static Text text(String translationKey, Object value)
+    //? if <1.16
+    //private static String text(String translationKey, Object value)
+    {
+        //? if >=1.16 {
+        return MinecraftText.translatable(translationKey, value);
+        //?} else {
+        /*return I18n.translate(translationKey, value);
+        *///?}
+    }
+
+    //? if >=1.16
+    private static Text literal(String value)
+    //? if <1.16
+    //private static String literal(String value)
+    {
+        //? if >=1.16 {
+        return MinecraftText.literal(value);
+        //?} else {
+        /*return value;
         *///?}
     }
 }
-//?}

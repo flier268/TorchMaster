@@ -1,9 +1,6 @@
 package net.xalcon.torchmaster;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
-import net.xalcon.torchmaster.commands.CommandTorchmaster;
 
 public class TorchmasterFabric implements ModInitializer {
 
@@ -16,12 +13,7 @@ public class TorchmasterFabric implements ModInitializer {
 
         // Use Fabric to bootstrap the Common mod.
         TorchmasterRuntime.init();
-
-        ServerWorldEvents.LOAD.register((server, world) ->
-        {
-            TorchmasterRuntime.onWorldLoaded();
-        });
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> CommandTorchmaster.register(dispatcher));
+        TorchmasterRuntime.onWorldLoaded();
     }
 
 

@@ -1,137 +1,97 @@
 package net.xalcon.torchmaster.mixin;
 
-//? if fabric && >=1.21.9 {
-/*import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.NaturalSpawner;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.PhantomSpawner;
-import net.minecraft.world.level.material.FluidState;
+//? if fabric && >=1.20.6 {
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.EntityType;
+import net.minecraft.fluid.FluidState;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.BlockView;
+import net.minecraft.world.SpawnHelper;
+import net.minecraft.world.spawner.PhantomSpawner;
 import net.xalcon.torchmaster.utils.NaturalSpawnerWrapper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+//? if >=1.21.11
+//import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+//? if <1.21.11
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PhantomSpawner.class)
 public abstract class PhantomSpawnerMixin {
-    private static final ThreadLocal<ServerPlayer> torchmaster$currentPhantomPlayer = new ThreadLocal<>();
+    private static final ThreadLocal<ServerPlayerEntity> torchmaster$currentPhantomPlayer = new ThreadLocal<>();
 
     @Redirect(
-            method = "tick(Lnet/minecraft/server/level/ServerLevel;Z)V",
+            //? if >=1.21.11
+            //method = "spawn(Lnet/minecraft/server/world/ServerWorld;Z)V",
+            //? if <1.21.11
+            method = "spawn(Lnet/minecraft/server/world/ServerWorld;ZZ)I",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/server/level/ServerPlayer;blockPosition()Lnet/minecraft/core/BlockPos;"
+                    target = "Lnet/minecraft/server/network/ServerPlayerEntity;getBlockPos()Lnet/minecraft/util/math/BlockPos;"
             )
     )
-    private BlockPos torchmaster_tick_playerBlockPosition(ServerPlayer player)
+    private BlockPos torchmaster_tick_playerBlockPosition(ServerPlayerEntity player)
     {
         torchmaster$currentPhantomPlayer.set(player);
-        return player.blockPosition();
+        return player.getBlockPos();
     }
 
     @Redirect(
-            method = "tick(Lnet/minecraft/server/level/ServerLevel;Z)V",
+            //? if >=1.21.11
+            //method = "spawn(Lnet/minecraft/server/world/ServerWorld;Z)V",
+            //? if <1.21.11
+            method = "spawn(Lnet/minecraft/server/world/ServerWorld;ZZ)I",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/level/NaturalSpawner;isValidEmptySpawnBlock(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;Lnet/minecraft/world/entity/EntityType;)Z"
+                    target = "Lnet/minecraft/world/SpawnHelper;isClearForSpawn(Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/fluid/FluidState;Lnet/minecraft/entity/EntityType;)Z"
             )
     )
-    private static boolean torchmaster_tick_NaturalSpawner__isValidEmptySpawnBlock(BlockGetter block, BlockPos pos, BlockState blockState, FluidState fluidState, EntityType<?> entityType)
+    private boolean torchmaster_tick_NaturalSpawner__isValidEmptySpawnBlock(BlockView block, BlockPos pos, BlockState blockState, FluidState fluidState, EntityType<?> entityType)
     {
-        ServerPlayer player = torchmaster$currentPhantomPlayer.get();
+        ServerPlayerEntity player = torchmaster$currentPhantomPlayer.get();
         if(player == null)
-            return NaturalSpawner.isValidEmptySpawnBlock(block, pos, blockState, fluidState, entityType);
+            return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType);
 
-        return switch(NaturalSpawnerWrapper.isValidEmptySpawnBlock(player))
-        {
-            case DEFAULT -> NaturalSpawner.isValidEmptySpawnBlock(block, pos, blockState, fluidState, entityType);
-            case ALLOW -> true;
-            case DENY -> false;
-        };
+        switch(NaturalSpawnerWrapper.isValidEmptySpawnBlock(player)) {
+            case ALLOW:
+                return true;
+            case DENY:
+                return false;
+            case DEFAULT:
+            default:
+                return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType);
+        }
     }
 
-    @Inject(method = "tick(Lnet/minecraft/server/level/ServerLevel;Z)V", at = @At("RETURN"))
-    private void torchmaster_tick_clearCurrentPlayer(ServerLevel level, boolean spawnEnemies, CallbackInfo ci)
+    //? if >=1.21.11 {
+    /*@Inject(method = "spawn(Lnet/minecraft/server/world/ServerWorld;Z)V", at = @At("RETURN"))
+    private void torchmaster_tick_clearCurrentPlayer(ServerWorld level, boolean spawnEnemies, CallbackInfo ci)
     {
         torchmaster$currentPhantomPlayer.remove();
     }
-}
-*///?} else if fabric && >=1.21.5 {
-/*import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.NaturalSpawner;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.PhantomSpawner;
-import net.minecraft.world.level.material.FluidState;
-import net.xalcon.torchmaster.utils.NaturalSpawnerWrapper;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-@Mixin(PhantomSpawner.class)
-public abstract class PhantomSpawnerMixin {
-    private static final ThreadLocal<ServerPlayer> torchmaster$currentPhantomPlayer = new ThreadLocal<>();
-
-    @Redirect(
-            method = "tick(Lnet/minecraft/server/level/ServerLevel;ZZ)V",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/server/level/ServerPlayer;blockPosition()Lnet/minecraft/core/BlockPos;"
-            )
-    )
-    private BlockPos torchmaster_tick_playerBlockPosition(ServerPlayer player)
-    {
-        torchmaster$currentPhantomPlayer.set(player);
-        return player.blockPosition();
-    }
-
-    @Redirect(
-            method = "tick(Lnet/minecraft/server/level/ServerLevel;ZZ)V",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/level/NaturalSpawner;isValidEmptySpawnBlock(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;Lnet/minecraft/world/entity/EntityType;)Z"
-            )
-    )
-    private static boolean torchmaster_tick_NaturalSpawner__isValidEmptySpawnBlock(BlockGetter block, BlockPos pos, BlockState blockState, FluidState fluidState, EntityType<?> entityType)
-    {
-        ServerPlayer player = torchmaster$currentPhantomPlayer.get();
-        if(player == null)
-            return NaturalSpawner.isValidEmptySpawnBlock(block, pos, blockState, fluidState, entityType);
-
-        return switch(NaturalSpawnerWrapper.isValidEmptySpawnBlock(player))
-        {
-            case DEFAULT -> NaturalSpawner.isValidEmptySpawnBlock(block, pos, blockState, fluidState, entityType);
-            case ALLOW -> true;
-            case DENY -> false;
-        };
-    }
-
-    @Inject(method = "tick(Lnet/minecraft/server/level/ServerLevel;ZZ)V", at = @At("RETURN"))
-    private void torchmaster_tick_clearCurrentPlayer(ServerLevel level, boolean spawnEnemies, boolean spawnFriendlies, CallbackInfo ci)
+    *///?} else {
+    @Inject(method = "spawn(Lnet/minecraft/server/world/ServerWorld;ZZ)I", at = @At("RETURN"))
+    private void torchmaster_tick_clearCurrentPlayer(ServerWorld level, boolean spawnEnemies, boolean spawnFriendlies, CallbackInfoReturnable<Integer> cir)
     {
         torchmaster$currentPhantomPlayer.remove();
     }
+    //?}
 }
-*///?} else if fabric && >=1.21 {
-/*import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.NaturalSpawner;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.PhantomSpawner;
-import net.minecraft.world.level.material.FluidState;
+//?} else if fabric && >=1.18.2 {
+/*import net.minecraft.block.BlockState;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.fluid.FluidState;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.BlockView;
+import net.minecraft.world.SpawnHelper;
+import net.minecraft.world.spawner.PhantomSpawner;
 import net.xalcon.torchmaster.utils.NaturalSpawnerWrapper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -141,59 +101,126 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PhantomSpawner.class)
 public abstract class PhantomSpawnerMixin {
-    private static final ThreadLocal<ServerPlayer> torchmaster$currentPhantomPlayer = new ThreadLocal<>();
+    private static final ThreadLocal<ServerPlayerEntity> torchmaster$currentPhantomPlayer = new ThreadLocal<>();
 
     @Redirect(
-            method = "tick(Lnet/minecraft/server/level/ServerLevel;ZZ)I",
+            method = "spawn(Lnet/minecraft/server/world/ServerWorld;ZZ)I",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/server/level/ServerPlayer;blockPosition()Lnet/minecraft/core/BlockPos;"
+                    target = "Lnet/minecraft/entity/player/PlayerEntity;getBlockPos()Lnet/minecraft/util/math/BlockPos;"
             )
     )
-    private BlockPos torchmaster_tick_playerBlockPosition(ServerPlayer player)
+    private BlockPos torchmaster_tick_playerBlockPosition(PlayerEntity player)
     {
-        torchmaster$currentPhantomPlayer.set(player);
-        return player.blockPosition();
+        torchmaster$currentPhantomPlayer.set((ServerPlayerEntity) player);
+        return player.getBlockPos();
     }
 
     @Redirect(
-            method = "tick(Lnet/minecraft/server/level/ServerLevel;ZZ)I",
+            method = "spawn(Lnet/minecraft/server/world/ServerWorld;ZZ)I",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/level/NaturalSpawner;isValidEmptySpawnBlock(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;Lnet/minecraft/world/entity/EntityType;)Z"
+                    target = "Lnet/minecraft/world/SpawnHelper;isClearForSpawn(Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/fluid/FluidState;Lnet/minecraft/entity/EntityType;)Z"
             )
     )
-    private static boolean torchmaster_tick_NaturalSpawner__isValidEmptySpawnBlock(BlockGetter block, BlockPos pos, BlockState blockState, FluidState fluidState, EntityType<?> entityType)
+    private boolean torchmaster_tick_NaturalSpawner__isValidEmptySpawnBlock(BlockView block, BlockPos pos, BlockState blockState, FluidState fluidState, EntityType<?> entityType)
     {
-        ServerPlayer player = torchmaster$currentPhantomPlayer.get();
+        ServerPlayerEntity player = torchmaster$currentPhantomPlayer.get();
         if(player == null)
-            return NaturalSpawner.isValidEmptySpawnBlock(block, pos, blockState, fluidState, entityType);
+            return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType);
 
-        return switch(NaturalSpawnerWrapper.isValidEmptySpawnBlock(player))
-        {
-            case DEFAULT -> NaturalSpawner.isValidEmptySpawnBlock(block, pos, blockState, fluidState, entityType);
-            case ALLOW -> true;
-            case DENY -> false;
-        };
+        switch(NaturalSpawnerWrapper.isValidEmptySpawnBlock(player)) {
+            case ALLOW:
+                return true;
+            case DENY:
+                return false;
+            case DEFAULT:
+            default:
+                return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType);
+        }
     }
 
-    @Inject(method = "tick(Lnet/minecraft/server/level/ServerLevel;ZZ)I", at = @At("RETURN"))
-    private void torchmaster_tick_clearCurrentPlayer(ServerLevel level, boolean spawnEnemies, boolean spawnFriendlies, CallbackInfoReturnable<Integer> cir)
+    @Inject(method = "spawn(Lnet/minecraft/server/world/ServerWorld;ZZ)I", at = @At("RETURN"))
+    private void torchmaster_tick_clearCurrentPlayer(ServerWorld level, boolean spawnEnemies, boolean spawnFriendlies, CallbackInfoReturnable<Integer> cir)
+    {
+        torchmaster$currentPhantomPlayer.remove();
+    }
+}
+*///?} else if fabric && >=1.16.5 {
+/*import net.minecraft.block.BlockState;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.fluid.FluidState;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.BlockView;
+import net.minecraft.world.SpawnHelper;
+import net.minecraft.world.gen.PhantomSpawner;
+import net.xalcon.torchmaster.utils.NaturalSpawnerWrapper;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+@Mixin(PhantomSpawner.class)
+public abstract class PhantomSpawnerMixin {
+    private static final ThreadLocal<ServerPlayerEntity> torchmaster$currentPhantomPlayer = new ThreadLocal<>();
+
+    @Redirect(
+            method = "spawn(Lnet/minecraft/server/world/ServerWorld;ZZ)I",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/entity/player/PlayerEntity;getBlockPos()Lnet/minecraft/util/math/BlockPos;"
+            )
+    )
+    private BlockPos torchmaster_tick_playerBlockPosition(PlayerEntity player)
+    {
+        torchmaster$currentPhantomPlayer.set((ServerPlayerEntity) player);
+        return player.getBlockPos();
+    }
+
+    @Redirect(
+            method = "spawn(Lnet/minecraft/server/world/ServerWorld;ZZ)I",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/SpawnHelper;isClearForSpawn(Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/fluid/FluidState;Lnet/minecraft/entity/EntityType;)Z"
+            )
+    )
+    private boolean torchmaster_tick_NaturalSpawner__isValidEmptySpawnBlock(BlockView block, BlockPos pos, BlockState blockState, FluidState fluidState, EntityType<?> entityType)
+    {
+        ServerPlayerEntity player = torchmaster$currentPhantomPlayer.get();
+        if(player == null)
+            return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType);
+
+        switch(NaturalSpawnerWrapper.isValidEmptySpawnBlock(player)) {
+            case ALLOW:
+                return true;
+            case DENY:
+                return false;
+            case DEFAULT:
+            default:
+                return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType);
+        }
+    }
+
+    @Inject(method = "spawn(Lnet/minecraft/server/world/ServerWorld;ZZ)I", at = @At("RETURN"))
+    private void torchmaster_tick_clearCurrentPlayer(ServerWorld level, boolean spawnEnemies, boolean spawnFriendlies, CallbackInfoReturnable<Integer> cir)
     {
         torchmaster$currentPhantomPlayer.remove();
     }
 }
 *///?} else if fabric {
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.NaturalSpawner;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.PhantomSpawner;
-import net.minecraft.world.level.material.FluidState;
+/*import net.minecraft.block.BlockState;
+import net.minecraft.entity.Entity;
+import net.minecraft.fluid.FluidState;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.BlockView;
+import net.minecraft.world.SpawnHelper;
+import net.minecraft.world.gen.PhantomSpawner;
 import net.xalcon.torchmaster.utils.NaturalSpawnerWrapper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -203,46 +230,49 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PhantomSpawner.class)
 public abstract class PhantomSpawnerMixin {
-    private static final ThreadLocal<ServerPlayer> torchmaster$currentPhantomPlayer = new ThreadLocal<>();
+    private static final ThreadLocal<ServerPlayerEntity> torchmaster$currentPhantomPlayer = new ThreadLocal<>();
 
     @Redirect(
-            method = "tick(Lnet/minecraft/server/level/ServerLevel;ZZ)I",
+            method = "spawn(Lnet/minecraft/server/world/ServerWorld;ZZ)I",
             at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/entity/player/Player;blockPosition()Lnet/minecraft/core/BlockPos;"
+                    value = "NEW",
+                    target = "net/minecraft/util/math/BlockPos"
             )
     )
-    private BlockPos torchmaster_tick_playerBlockPosition(Player player)
+    private BlockPos torchmaster_tick_playerBlockPosition(Entity player)
     {
-        torchmaster$currentPhantomPlayer.set((ServerPlayer) player);
-        return player.blockPosition();
+        torchmaster$currentPhantomPlayer.set((ServerPlayerEntity) player);
+        return new BlockPos(player);
     }
 
     @Redirect(
-            method = "tick(Lnet/minecraft/server/level/ServerLevel;ZZ)I",
+            method = "spawn(Lnet/minecraft/server/world/ServerWorld;ZZ)I",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/level/NaturalSpawner;isValidEmptySpawnBlock(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/material/FluidState;Lnet/minecraft/world/entity/EntityType;)Z"
+                    target = "Lnet/minecraft/world/SpawnHelper;isClearForSpawn(Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/fluid/FluidState;)Z"
             )
     )
-    private static boolean torchmaster_tick_NaturalSpawner__isValidEmptySpawnBlock(BlockGetter block, BlockPos pos, BlockState blockState, FluidState fluidState, EntityType<?> entityType)
+    private boolean torchmaster_tick_NaturalSpawner__isValidEmptySpawnBlock(BlockView block, BlockPos pos, BlockState blockState, FluidState fluidState)
     {
-        ServerPlayer player = torchmaster$currentPhantomPlayer.get();
+        ServerPlayerEntity player = torchmaster$currentPhantomPlayer.get();
         if(player == null)
-            return NaturalSpawner.isValidEmptySpawnBlock(block, pos, blockState, fluidState, entityType);
+            return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState);
 
-        return switch(NaturalSpawnerWrapper.isValidEmptySpawnBlock(player))
-        {
-            case DEFAULT -> NaturalSpawner.isValidEmptySpawnBlock(block, pos, blockState, fluidState, entityType);
-            case ALLOW -> true;
-            case DENY -> false;
-        };
+        switch(NaturalSpawnerWrapper.isValidEmptySpawnBlock(player)) {
+            case ALLOW:
+                return true;
+            case DENY:
+                return false;
+            case DEFAULT:
+            default:
+                return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState);
+        }
     }
 
-    @Inject(method = "tick(Lnet/minecraft/server/level/ServerLevel;ZZ)I", at = @At("RETURN"))
-    private void torchmaster_tick_clearCurrentPlayer(ServerLevel level, boolean spawnEnemies, boolean spawnFriendlies, CallbackInfoReturnable<Integer> cir)
+    @Inject(method = "spawn(Lnet/minecraft/server/world/ServerWorld;ZZ)I", at = @At("RETURN"))
+    private void torchmaster_tick_clearCurrentPlayer(ServerWorld level, boolean spawnEnemies, boolean spawnFriendlies, CallbackInfoReturnable<Integer> cir)
     {
         torchmaster$currentPhantomPlayer.remove();
     }
 }
-//?}
+*///?}

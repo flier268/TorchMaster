@@ -1,7 +1,7 @@
 package net.xalcon.torchmaster;
 
 //? if forge && >=1.19.4 {
-/*import net.minecraft.world.phys.Vec3;
+/*import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.event.entity.living.MobSpawnEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -21,7 +21,7 @@ public class ForgeEventHandler
         SpawnEventBridge.onCheckSpawn(
                 event.getSpawnType(),
                 event.getEntity(),
-                new Vec3(event.getX(), event.getY(), event.getZ()),
+                new Vec3d(event.getX(), event.getY(), event.getZ()),
                 container);
 
         if(container.getResult() == EventResult.DENY)
@@ -31,7 +31,7 @@ public class ForgeEventHandler
     }
 }
 *///?} else if forge {
-/*import net.minecraft.world.phys.Vec3;
+/*import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -52,7 +52,7 @@ public class ForgeEventHandler
         SpawnEventBridge.onCheckSpawn(
                 event.getSpawnReason(),
                 event.getEntity(),
-                new Vec3(event.getX(), event.getY(), event.getZ()),
+                new Vec3d(event.getX(), event.getY(), event.getZ()),
                 container);
 
         event.setResult(toForgeResult(container.getResult()));

@@ -1,23 +1,22 @@
 package net.xalcon.torchmaster.platform;
 
-import net.minecraft.resources.ResourceKey;
-//? if >=1.21.11 {
-/*import net.minecraft.resources.Identifier;
-*///?} else {
-import net.minecraft.resources.ResourceLocation;
-//?}
-
 import java.util.function.Supplier;
+//? if >=1.19.3
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.util.Identifier;
 
 public interface RegistryObject<T> extends Supplier<T>
 {
 
     /**
-     * Gets the {@link ResourceKey} of the registry of the object wrapped.
+     * Gets the registry key of the object wrapped where the active version exposes one.
      *
-     * @return the {@link ResourceKey} of the registry
+     * @return the registry key
      */
-    ResourceKey<T> getResourceKey();
+    //? if >=1.19.3
+    RegistryKey<T> getResourceKey();
+    //? if <1.19.3
+    //Object getResourceKey();
 
     /**
      * Gets the id of the object.
@@ -27,7 +26,7 @@ public interface RegistryObject<T> extends Supplier<T>
     //? if >=1.21.11 {
     /*Identifier getId();
     *///?} else {
-    ResourceLocation getId();
+    Identifier getId();
     //?}
 
     /**

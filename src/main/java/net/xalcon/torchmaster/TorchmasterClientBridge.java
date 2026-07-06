@@ -1,8 +1,11 @@
 package net.xalcon.torchmaster;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.level.Level;
+//? if >=1.19.4
+import net.minecraft.registry.RegistryKey;
+//? if >=1.16.5 <1.19.4
+/*import net.minecraft.util.registry.RegistryKey;*/
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.xalcon.torchmaster.blocks.LightType;
 
 public final class TorchmasterClientBridge
@@ -19,7 +22,10 @@ public final class TorchmasterClientBridge
         lightScreenOpener = opener;
     }
 
-    public static void openLightScreen(BlockPos pos, ResourceKey<Level> dimension, LightType lightType)
+    //? if >=1.16.5
+    public static void openLightScreen(BlockPos pos, RegistryKey<World> dimension, LightType lightType)
+    //? if <1.16.5
+    //public static void openLightScreen(BlockPos pos, Object dimension, LightType lightType)
     {
         lightScreenOpener.open(pos, dimension, lightType);
     }
@@ -27,6 +33,9 @@ public final class TorchmasterClientBridge
     @FunctionalInterface
     public interface LightScreenOpener
     {
-        void open(BlockPos pos, ResourceKey<Level> dimension, LightType lightType);
+        //? if >=1.16.5
+        void open(BlockPos pos, RegistryKey<World> dimension, LightType lightType);
+        //? if <1.16.5
+        //void open(BlockPos pos, Object dimension, LightType lightType);
     }
 }

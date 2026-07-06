@@ -1,17 +1,12 @@
 package net.xalcon.torchmaster.minecraft.adapter;
 
-//? if >=1.21.2 {
-/*import net.minecraft.world.entity.EntitySpawnReason;
-*///?} else {
-import net.minecraft.world.entity.MobSpawnType;
-//?}
 import net.xalcon.torchmaster.port.SpawnReason;
 
 public final class MinecraftSpawnReasonAdapter {
     private MinecraftSpawnReasonAdapter() {
     }
 
-    //? if >=1.21.2 {
+    //? if fabric && forge && >=1.21.2 {
     /*public static SpawnReason toPort(EntitySpawnReason spawnType) {
         switch (spawnType) {
             case SPAWN_ITEM_USE:
@@ -53,8 +48,14 @@ public final class MinecraftSpawnReasonAdapter {
         }
     }
     *///?} else {
-    public static SpawnReason toPort(MobSpawnType spawnType) {
+    //? if >=1.16.5
+    public static SpawnReason toPort(net.minecraft.entity.SpawnReason spawnType) {
+    //? if <1.16.5
+    //public static SpawnReason toPort(net.minecraft.entity.SpawnType spawnType) {
         switch (spawnType) {
+            //? if >=1.21.11
+            //case SPAWN_ITEM_USE:
+            //? if <1.21.11
             case SPAWN_EGG:
                 return SpawnReason.SPAWN_EGG;
             case BREEDING:

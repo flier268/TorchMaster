@@ -1,7 +1,7 @@
 package net.xalcon.torchmaster;
 
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.world.World;
 import net.xalcon.torchmaster.compat.VanillaCompat;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
 import net.xalcon.torchmaster.minecraft.storage.SavedLightStore;
@@ -48,26 +48,28 @@ public class TorchmasterRuntime
         TorchmasterContent.initialize();
     }
 
-    public static Optional<LightStoreBridge> getRegistryForLevel(Level level)
+    public static Optional<LightStoreBridge> getRegistryForLevel(World level)
     {
-        if(level instanceof ServerLevel)
+        if(level instanceof ServerWorld)
         {
-            ServerLevel serverLevel = (ServerLevel)level;
-            //? if >=1.21.11 {
+            ServerWorld serverLevel = (ServerWorld)level;
+            //? if fabric && forge && >=1.21.11 {
             /*String dimensionIdentifier = level.dimension().identifier().toDebugFileName();
 *///?} elif >=1.17 {
-            String dimensionIdentifier = level.dimension().location().toDebugFileName();
+            String dimensionIdentifier = level.getRegistryKey().getValue().toUnderscoreSeparatedString();
 //?} else {
-            /*String dimensionIdentifier = level.dimension().location().toString().replace(':', '_').replace('/', '_');
+            /*String dimensionIdentifier = "overworld";
             *///?}
-            //? if >=1.21.5 {
+            //? if >=1.21.11 {
+            /*return Optional.of(serverLevel.getPersistentStateManager().getOrCreate(SavedLightStore.type("torchmaster_lights_" + dimensionIdentifier)));
+*///?} elif fabric && forge && >=1.21.5 {
             /*return Optional.of(serverLevel.getDataStorage().computeIfAbsent(SavedLightStore.type("torchmaster_lights_" + dimensionIdentifier)));
-*///?} elif >=1.21 {
-            return Optional.of(serverLevel.getDataStorage().computeIfAbsent(SavedLightStore.Factory, "torchmaster_lights_" + dimensionIdentifier));
+*///?} elif >=1.20.6 {
+            return Optional.of(serverLevel.getPersistentStateManager().getOrCreate(SavedLightStore.Factory, "torchmaster_lights_" + dimensionIdentifier));
 //?} elif >=1.17 {
-            /*return Optional.of(serverLevel.getDataStorage().computeIfAbsent(SavedLightStore::load, SavedLightStore::new, "torchmaster_lights_" + dimensionIdentifier));
+            /*return Optional.of(serverLevel.getPersistentStateManager().getOrCreate(SavedLightStore::load, SavedLightStore::new, "torchmaster_lights_" + dimensionIdentifier));
 *///?} else {
-            /*return Optional.of(serverLevel.getDataStorage().computeIfAbsent(SavedLightStore::new, "torchmaster_lights_" + dimensionIdentifier));
+            /*return Optional.of(serverLevel.getPersistentStateManager().getOrCreate(SavedLightStore::new, "torchmaster_lights_" + dimensionIdentifier));
             *///?}
         }
         return Optional.empty();

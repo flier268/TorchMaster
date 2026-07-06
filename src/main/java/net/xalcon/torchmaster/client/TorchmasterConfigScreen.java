@@ -1,26 +1,28 @@
-//? if >=1.16 {
 package net.xalcon.torchmaster.client;
 
-import net.minecraft.client.Minecraft;
-//? if >=1.20 {
-import net.minecraft.client.gui.GuiGraphics;
-//?} else {
-/*import com.mojang.blaze3d.vertex.PoseStack;
-*///?}
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.Screen;
-//? if >=1.21.9 {
-/*import net.minecraft.client.input.KeyEvent;
-*///?}
-import net.minecraft.network.chat.Component;
+import net.minecraft.client.MinecraftClient;
+//? if >=1.20
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.Screen;
+//? if >=1.21.11
+//import net.minecraft.client.input.KeyInput;
+import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.TextFieldWidget;
+//? if >=1.16 && <1.20
+//import net.minecraft.client.util.math.MatrixStack;
+//? if <1.16
+/*import net.minecraft.client.resource.language.I18n;*/
+import net.minecraft.text.Text;
+//? if <1.16
+/*import net.minecraft.text.TranslatableText;*/
 //? if <1.19 {
-/*import net.minecraft.network.chat.TextComponent;
+/*import net.minecraft.text.LiteralText;
 *///?}
 import net.xalcon.torchmaster.EntityFilterList;
 import net.xalcon.torchmaster.TorchmasterRuntime;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
 import net.xalcon.torchmaster.config.TorchmasterTomlConfig;
+//? if >=1.16
 import net.xalcon.torchmaster.minecraft.adapter.MinecraftText;
 import org.lwjgl.glfw.GLFW;
 
@@ -42,19 +44,30 @@ public class TorchmasterConfigScreen extends Screen
     private final Screen parent;
     private final List<Entry> entries = new ArrayList<>();
     private int scrollOffset;
-    private Component status = emptyText();
+    //? if >=1.16
+    private Text status = emptyText();
+    //? if <1.16
+    //private String status = "";
     private int statusColor = 0xFFA0A0A0;
 
     public TorchmasterConfigScreen(Screen parent)
     {
+        //? if >=1.16 {
         super(text("screen.torchmaster.config.title"));
+        //?} else {
+        /*super(new TranslatableText("screen.torchmaster.config.title"));
+        *///?}
         this.parent = parent;
     }
 
     public static void open()
     {
-        Minecraft minecraft = Minecraft.getInstance();
-        minecraft.setScreen(new TorchmasterConfigScreen(minecraft.screen));
+        MinecraftClient minecraft = MinecraftClient.getInstance();
+        //? if >=1.17.1 {
+        minecraft.setScreen(new TorchmasterConfigScreen(minecraft.currentScreen));
+        //?} else {
+        /*minecraft.openScreen(new TorchmasterConfigScreen(minecraft.currentScreen));
+        *///?}
     }
 
     @Override
@@ -88,26 +101,26 @@ public class TorchmasterConfigScreen extends Screen
         int buttonX = panelLeft() + (panelWidth() - totalButtonWidth) / 2;
         addCompatWidget(button(buttonX, height - 28, bottomButtonWidth, BUTTON_HEIGHT, text("screen.torchmaster.config.save"), button -> save()));
         addCompatWidget(button(buttonX + bottomButtonWidth + buttonGap, height - 28, bottomButtonWidth, BUTTON_HEIGHT, text("screen.torchmaster.config.reset"), button -> reset()));
-        addCompatWidget(button(buttonX + (bottomButtonWidth + buttonGap) * 2, height - 28, bottomButtonWidth, BUTTON_HEIGHT, text("gui.done"), button -> onClose()));
+        addCompatWidget(button(buttonX + (bottomButtonWidth + buttonGap) * 2, height - 28, bottomButtonWidth, BUTTON_HEIGHT, text("gui.done"), button -> closeScreen()));
 
         updateEntryPositions();
     }
 
     private void addIntEntry(String translationKey, int value, int x, int width, int y)
     {
-        EditBox editBox = new EditBox(font, x, widgetY(y), width, BUTTON_HEIGHT, text(translationKey));
-        editBox.setFilter(text -> text.isEmpty() || text.matches("-?\\d*"));
+        TextFieldWidget editBox = textField(x, widgetY(y), width, BUTTON_HEIGHT, translationKey);
+        editBox.setTextPredicate(text -> text.isEmpty() || text.matches("-?\\d*"));
         editBox.setMaxLength(10);
-        editBox.setValue(Integer.toString(value));
+        editBox.setText(Integer.toString(value));
         addCompatWidget(editBox);
         entries.add(new IntEntry(translationKey, y, editBox));
     }
 
     private void addListEntry(String translationKey, List<String> values, int x, int width, int y)
     {
-        EditBox editBox = new EditBox(font, x, widgetY(y), width, BUTTON_HEIGHT, text(translationKey));
+        TextFieldWidget editBox = textField(x, widgetY(y), width, BUTTON_HEIGHT, translationKey);
         editBox.setMaxLength(1024);
-        editBox.setValue(String.join(", ", values));
+        editBox.setText(String.join(", ", values));
         addCompatWidget(editBox);
         entries.add(new ListEntry(translationKey, y, editBox));
     }
@@ -115,7 +128,7 @@ public class TorchmasterConfigScreen extends Screen
     private void addBooleanEntry(String translationKey, boolean value, int x, int y)
     {
         BooleanEntry entry = new BooleanEntry(translationKey, y, value);
-        Button button = button(booleanButtonX(x), widgetY(y), booleanButtonWidth(), BUTTON_HEIGHT, booleanLabel(value), ignored -> {
+        ButtonWidget button = button(booleanButtonX(x), widgetY(y), booleanButtonWidth(), BUTTON_HEIGHT, booleanLabel(value), ignored -> {
             entry.toggle();
             ignored.setMessage(booleanLabel(entry.value));
         });
@@ -124,49 +137,77 @@ public class TorchmasterConfigScreen extends Screen
         entries.add(entry);
     }
 
-    private Button addCompatWidget(Button widget)
+    private ButtonWidget addCompatWidget(ButtonWidget widget)
     {
         //? if >=1.17 {
-        return addRenderableWidget(widget);
+        return addDrawableChild(widget);
         //?} else {
         /*return addButton(widget);
         *///?}
     }
 
-    private EditBox addCompatWidget(EditBox widget)
+    private TextFieldWidget addCompatWidget(TextFieldWidget widget)
     {
         //? if >=1.17 {
-        return addRenderableWidget(widget);
+        return addDrawableChild(widget);
         //?} else {
         /*return addButton(widget);
         *///?}
     }
 
-    private static Button button(int x, int y, int width, int height, Component label, Button.OnPress onPress)
+    //? if >=1.16
+    private static ButtonWidget button(int x, int y, int width, int height, Text label, ButtonWidget.PressAction onPress)
+    //? if <1.16
+    //private static ButtonWidget button(int x, int y, int width, int height, String label, ButtonWidget.PressAction onPress)
     {
         //? if >=1.19.4 {
-        return Button.builder(label, onPress).bounds(x, y, width, height).build();
+        return ButtonWidget.builder(label, onPress).dimensions(x, y, width, height).build();
         //?} else {
-        /*return new Button(x, y, width, height, label, onPress);
+        /*return new ButtonWidget(x, y, width, height, label, onPress);
         *///?}
     }
 
-    private static Component booleanLabel(boolean value)
+    //? if >=1.16
+    private static Text booleanLabel(boolean value)
+    //? if <1.16
+    //private static String booleanLabel(boolean value)
     {
         return text(value ? "options.on" : "options.off");
     }
 
-    private static Component text(String translationKey)
+    //? if >=1.16
+    private static Text text(String translationKey)
+    //? if <1.16
+    //private static String text(String translationKey)
     {
+        //? if >=1.16 {
         return MinecraftText.translatable(translationKey);
+        //?} else {
+        /*return I18n.translate(translationKey);
+        *///?}
     }
 
-    private static Component emptyText()
+    private TextFieldWidget textField(int x, int y, int width, int height, String translationKey)
     {
-        //? if >=1.19 {
-        return Component.empty();
+        //? if >=1.16 {
+        return new TextFieldWidget(textRenderer, x, y, width, height, text(translationKey));
         //?} else {
-        /*return new TextComponent("");
+        /*return new TextFieldWidget(font, x, y, width, height, text(translationKey));
+        *///?}
+    }
+
+    //? if >=1.16
+    private static Text emptyText()
+    //? if <1.16
+    //private static String emptyText()
+    {
+        //? if <1.16 {
+        /*return "";
+        *///?}
+        //? if >=1.19 {
+        return Text.empty();
+        //?} else if >=1.16 {
+        /*return new LiteralText("");
         *///?}
     }
 
@@ -214,7 +255,7 @@ public class TorchmasterConfigScreen extends Screen
     private void clearCompatWidgets()
     {
         //? if >=1.17 {
-        clearWidgets();
+        clearChildren();
         //?} else {
         /*buttons.clear();
         children.clear();
@@ -227,13 +268,58 @@ public class TorchmasterConfigScreen extends Screen
         statusColor = color;
     }
 
-    @Override
-    public void onClose()
+    private void closeScreen()
     {
-        minecraft.setScreen(parent);
+        //? if >=1.18
+        close();
+        //? if >=1.17.1 && <1.18 {
+        /*client.setScreen(parent);
+        *///?}
+        //? if <1.17.1 {
+        /*onClose();
+        *///?}
     }
 
-    //? if >=1.21.9 {
+    //? if >=1.18 {
+    @Override
+    public void close()
+    {
+        client.setScreen(parent);
+    }
+    //?}
+    //? if >=1.17.1 && <1.18 {
+    /*@Override
+    public void onClose()
+    {
+        client.setScreen(parent);
+    }
+    *///?}
+    //? if >=1.16 && <1.17.1 {
+    /*@Override
+    public void onClose()
+    {
+        client.openScreen(parent);
+    }
+    *///?}
+    //? if <1.16 {
+    /*@Override
+    public void onClose()
+    {
+        minecraft.openScreen(parent);
+    }
+    *///?}
+
+    //? if >=1.21.11 {
+    /*@Override
+    public boolean keyPressed(KeyInput event)
+    {
+        if (event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER) {
+            save();
+            return true;
+        }
+        return super.keyPressed(event);
+    }
+    *///?} else if fabric && forge && >=1.21.9 {
     /*@Override
     public boolean keyPressed(KeyEvent event)
     {
@@ -255,7 +341,7 @@ public class TorchmasterConfigScreen extends Screen
     }
     //?}
 
-    //? if >=1.21 {
+    //? if >=1.20.6 {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY)
     {
@@ -363,7 +449,7 @@ public class TorchmasterConfigScreen extends Screen
 
     //? if >=1.20 {
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick)
+    public void render(DrawContext graphics, int mouseX, int mouseY, float partialTick)
     {
         int left = panelLeft();
         int right = left + panelWidth();
@@ -373,18 +459,18 @@ public class TorchmasterConfigScreen extends Screen
         super.render(graphics, mouseX, mouseY, partialTick);
 
         drawPanelFrame(graphics, left, top, right, bottom);
-        graphics.drawCenteredString(font, title, width / 2, 14, 0xFFFFFFFF);
+        graphics.drawCenteredTextWithShadow(textRenderer, title, width / 2, 14, 0xFFFFFFFF);
 
         for (Entry entry : entries) {
             if (entry.visible) {
-                graphics.drawString(font, text(entry.translationKey), left + 12, compactLayout() ? entry.y : entry.y + 6, 0xFFE0E0E0, false);
+                graphics.drawText(textRenderer, text(entry.translationKey), left + 12, compactLayout() ? entry.y : entry.y + 6, 0xFFE0E0E0, false);
             }
         }
-        graphics.drawCenteredString(font, status, width / 2, height - 48, statusColor);
+        graphics.drawCenteredTextWithShadow(textRenderer, status, width / 2, height - 48, statusColor);
     }
-    //?} else {
+    //?} else if >=1.19.4 {
     /*@Override
-    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick)
+    public void render(MatrixStack poseStack, int mouseX, int mouseY, float partialTick)
     {
         int left = panelLeft();
         int right = left + panelWidth();
@@ -394,61 +480,128 @@ public class TorchmasterConfigScreen extends Screen
         super.render(poseStack, mouseX, mouseY, partialTick);
 
         drawPanelFrame(poseStack, left, top, right, bottom);
-        drawCenteredString(poseStack, font, title, width / 2, 14, 0xFFFFFFFF);
+        drawCenteredTextWithShadow(poseStack, textRenderer, title, width / 2, 14, 0xFFFFFFFF);
 
         for (Entry entry : entries) {
             if (entry.visible) {
-                drawString(poseStack, font, text(entry.translationKey), left + 12, compactLayout() ? entry.y : entry.y + 6, 0xFFE0E0E0);
+                drawTextWithShadow(poseStack, textRenderer, text(entry.translationKey), left + 12, compactLayout() ? entry.y : entry.y + 6, 0xFFE0E0E0);
             }
         }
-        drawCenteredString(poseStack, font, status, width / 2, height - 48, statusColor);
+        drawCenteredTextWithShadow(poseStack, textRenderer, status, width / 2, height - 48, statusColor);
+    }
+    *///?} else if >=1.16 {
+    /*@Override
+    public void render(MatrixStack poseStack, int mouseX, int mouseY, float partialTick)
+    {
+        int left = panelLeft();
+        int right = left + panelWidth();
+        int top = 32;
+        int bottom = height - 34;
+
+        super.render(poseStack, mouseX, mouseY, partialTick);
+
+        drawPanelFrame(poseStack, left, top, right, bottom);
+        drawCenteredText(poseStack, textRenderer, title, width / 2, 14, 0xFFFFFFFF);
+
+        for (Entry entry : entries) {
+            if (entry.visible) {
+                drawTextWithShadow(poseStack, textRenderer, text(entry.translationKey), left + 12, compactLayout() ? entry.y : entry.y + 6, 0xFFE0E0E0);
+            }
+        }
+        drawCenteredText(poseStack, textRenderer, status, width / 2, height - 48, statusColor);
+    }
+    *///?} else {
+    /*@Override
+    public void render(int mouseX, int mouseY, float partialTick)
+    {
+        int left = panelLeft();
+        int right = left + panelWidth();
+        int top = 32;
+        int bottom = height - 34;
+
+        renderBackground();
+        fill(left, top, right, bottom, 0xAA101010);
+        super.render(mouseX, mouseY, partialTick);
+
+        drawPanelFrame(left, top, right, bottom);
+        drawCenteredString(font, text("screen.torchmaster.config.title"), width / 2, 14, 0xFFFFFFFF);
+
+        for (Entry entry : entries) {
+            if (entry.visible) {
+                drawString(font, text(entry.translationKey), left + 12, compactLayout() ? entry.y : entry.y + 6, 0xFFE0E0E0);
+            }
+        }
+        drawCenteredString(font, status, width / 2, height - 48, statusColor);
     }
     *///?}
 
     //? if >=1.21 {
     @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick)
+    public void renderBackground(DrawContext graphics, int mouseX, int mouseY, float partialTick)
     {
         super.renderBackground(graphics, mouseX, mouseY, partialTick);
         graphics.fill(panelLeft(), 32, panelLeft() + panelWidth(), height - 34, 0xAA101010);
     }
 
-    private void drawPanelFrame(GuiGraphics graphics, int left, int top, int right, int bottom)
+    private void drawPanelFrame(DrawContext graphics, int left, int top, int right, int bottom)
     {
         graphics.fill(left, top, right, top + 1, 0xFF404040);
         graphics.fill(left, top, left + 1, bottom, 0xFF404040);
         graphics.fill(left, bottom - 1, right, bottom, 0xFF202020);
         graphics.fill(right - 1, top, right, bottom, 0xFF202020);
     }
-    //?} else if >=1.20 {
+    //?} else if >=1.20.6 {
     /*@Override
-    public void renderBackground(GuiGraphics graphics)
+    public void renderBackground(DrawContext graphics, int mouseX, int mouseY, float partialTick)
+    {
+        super.renderBackground(graphics, mouseX, mouseY, partialTick);
+        graphics.fill(panelLeft(), 32, panelLeft() + panelWidth(), height - 34, 0xAA101010);
+    }
+
+    private void drawPanelFrame(DrawContext graphics, int left, int top, int right, int bottom)
+    {
+        graphics.fill(left, top, right, top + 1, 0xFF404040);
+        graphics.fill(left, top, left + 1, bottom, 0xFF404040);
+        graphics.fill(left, bottom - 1, right, bottom, 0xFF202020);
+        graphics.fill(right - 1, top, right, bottom, 0xFF202020);
+    }
+    *///?} else if >=1.20 {
+    /*@Override
+    public void renderBackground(DrawContext graphics)
     {
         super.renderBackground(graphics);
         graphics.fill(panelLeft(), 32, panelLeft() + panelWidth(), height - 34, 0xAA101010);
     }
 
-    private void drawPanelFrame(GuiGraphics graphics, int left, int top, int right, int bottom)
+    private void drawPanelFrame(DrawContext graphics, int left, int top, int right, int bottom)
     {
         graphics.fill(left, top, right, top + 1, 0xFF404040);
         graphics.fill(left, top, left + 1, bottom, 0xFF404040);
         graphics.fill(left, bottom - 1, right, bottom, 0xFF202020);
         graphics.fill(right - 1, top, right, bottom, 0xFF202020);
     }
-    *///?} else {
+    *///?} else if >=1.16 {
     /*@Override
-    public void renderBackground(PoseStack poseStack)
+    public void renderBackground(MatrixStack poseStack)
     {
         super.renderBackground(poseStack);
         fill(poseStack, panelLeft(), 32, panelLeft() + panelWidth(), height - 34, 0xAA101010);
     }
 
-    private void drawPanelFrame(PoseStack poseStack, int left, int top, int right, int bottom)
+    private void drawPanelFrame(MatrixStack poseStack, int left, int top, int right, int bottom)
     {
         fill(poseStack, left, top, right, top + 1, 0xFF404040);
         fill(poseStack, left, top, left + 1, bottom, 0xFF404040);
         fill(poseStack, left, bottom - 1, right, bottom, 0xFF202020);
         fill(poseStack, right - 1, top, right, bottom, 0xFF202020);
+    }
+    *///?} else {
+    /*private void drawPanelFrame(int left, int top, int right, int bottom)
+    {
+        fill(left, top, right, top + 1, 0xFF404040);
+        fill(left, top, left + 1, bottom, 0xFF404040);
+        fill(left, bottom - 1, right, bottom, 0xFF202020);
+        fill(right - 1, top, right, bottom, 0xFF202020);
     }
     *///?}
 
@@ -474,9 +627,9 @@ public class TorchmasterConfigScreen extends Screen
 
     private class IntEntry extends Entry
     {
-        private final EditBox editBox;
+        private final TextFieldWidget editBox;
 
-        IntEntry(String translationKey, int baseY, EditBox editBox)
+        IntEntry(String translationKey, int baseY, TextFieldWidget editBox)
         {
             super(translationKey, baseY);
             this.editBox = editBox;
@@ -502,7 +655,7 @@ public class TorchmasterConfigScreen extends Screen
         boolean read(List<Integer> ints, List<Boolean> booleans, List<List<String>> lists)
         {
             try {
-                ints.add(Integer.parseInt(editBox.getValue().trim()));
+                ints.add(Integer.parseInt(editBox.getText().trim()));
                 return true;
             } catch (NumberFormatException ignored) {
                 setStatus("screen.torchmaster.config.invalidNumber", 0xFFFF5555);
@@ -514,7 +667,7 @@ public class TorchmasterConfigScreen extends Screen
     private class BooleanEntry extends Entry
     {
         private boolean value;
-        private Button button;
+        private ButtonWidget button;
 
         BooleanEntry(String translationKey, int baseY, boolean value)
         {
@@ -553,9 +706,9 @@ public class TorchmasterConfigScreen extends Screen
 
     private class ListEntry extends Entry
     {
-        private final EditBox editBox;
+        private final TextFieldWidget editBox;
 
-        ListEntry(String translationKey, int baseY, EditBox editBox)
+        ListEntry(String translationKey, int baseY, TextFieldWidget editBox)
         {
             super(translationKey, baseY);
             this.editBox = editBox;
@@ -580,7 +733,7 @@ public class TorchmasterConfigScreen extends Screen
         @Override
         boolean read(List<Integer> ints, List<Boolean> booleans, List<List<String>> lists)
         {
-            List<String> parsed = parseList(editBox.getValue());
+            List<String> parsed = parseList(editBox.getText());
             for (String value : parsed) {
                 if (!EntityFilterList.IsValidFilterString(value)) {
                     setStatus("screen.torchmaster.config.invalidFilter", 0xFFFF5555);
@@ -607,7 +760,7 @@ public class TorchmasterConfigScreen extends Screen
         return values;
     }
 
-    private static void setWidgetX(EditBox widget, int x)
+    private static void setWidgetX(TextFieldWidget widget, int x)
     {
         //? if >=1.19.4 {
         widget.setX(x);
@@ -616,7 +769,7 @@ public class TorchmasterConfigScreen extends Screen
         *///?}
     }
 
-    private static void setWidgetY(EditBox widget, int y)
+    private static void setWidgetY(TextFieldWidget widget, int y)
     {
         //? if >=1.19.4 {
         widget.setY(y);
@@ -625,7 +778,7 @@ public class TorchmasterConfigScreen extends Screen
         *///?}
     }
 
-    private static void setWidgetX(Button widget, int x)
+    private static void setWidgetX(ButtonWidget widget, int x)
     {
         //? if >=1.19.4 {
         widget.setX(x);
@@ -634,7 +787,7 @@ public class TorchmasterConfigScreen extends Screen
         *///?}
     }
 
-    private static void setWidgetY(Button widget, int y)
+    private static void setWidgetY(ButtonWidget widget, int y)
     {
         //? if >=1.19.4 {
         widget.setY(y);
@@ -643,4 +796,3 @@ public class TorchmasterConfigScreen extends Screen
         *///?}
     }
 }
-//?}

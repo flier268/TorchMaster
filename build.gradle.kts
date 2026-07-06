@@ -1,7 +1,9 @@
 import java.util.Properties
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
+import net.fabricmc.loom.task.RemapJarTask
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
@@ -26,6 +28,53 @@ fun loadProperties(file: File): Properties =
         }
     }
 
+fun resourcePackFormat(version: String): Int = when (version) {
+    "1.14.4" -> 4
+    "1.15.1", "1.15.2" -> 5
+    "1.16.5" -> 6
+    "1.17", "1.17.1" -> 7
+    "1.18.2" -> 8
+    "1.19.2" -> 9
+    "1.19.4" -> 13
+    "1.20.1" -> 15
+    "1.20.6" -> 32
+    "1.21.1" -> 34
+    "1.21.11" -> 75
+    else -> throw GradleException("Unknown resource pack format for Minecraft $version")
+}
+
+fun dataPackFormat(version: String): Int = when (version) {
+    "1.14.4" -> 4
+    "1.15.1", "1.15.2" -> 5
+    "1.16.5" -> 6
+    "1.17", "1.17.1" -> 7
+    "1.18.2" -> 9
+    "1.19.2" -> 10
+    "1.19.4" -> 12
+    "1.20.1" -> 15
+    "1.20.6" -> 41
+    "1.21.1" -> 48
+    "1.21.11" -> 94
+    else -> throw GradleException("Unknown data pack format for Minecraft $version")
+}
+
+fun minecraftVersionRange(version: String): String = when (version) {
+    "1.14.4" -> "[1.14,1.15)"
+    "1.15.1" -> "[1.15,1.15.2)"
+    "1.15.2" -> "[1.15.2,1.16)"
+    "1.16.5" -> "[1.16,1.17)"
+    "1.17" -> "[1.17,1.17.1)"
+    "1.17.1" -> "[1.17.1,1.18)"
+    "1.18.2" -> "[1.18,1.19)"
+    "1.19.2" -> "[1.19,1.19.3)"
+    "1.19.4" -> "[1.19.3,1.20)"
+    "1.20.1" -> "[1.20,1.20.5)"
+    "1.20.6" -> "[1.20.5,1.21)"
+    "1.21.1" -> "[1.21,1.21.11)"
+    "1.21.11" -> "[1.21.11,26.1)"
+    else -> throw GradleException("Unknown Minecraft version range for Minecraft $version")
+}
+
 val rootProperties = loadProperties(rootProject.file("gradle.properties"))
 val versionProperties = loadProperties(rootProject.file("versions/$activeProject/gradle.properties"))
 val buildProperties = Properties().also { properties ->
@@ -36,7 +85,7 @@ val buildProperties = Properties().also { properties ->
     properties.setProperty(
         "minecraft_version_range",
         versionProperties.getProperty("minecraft_version_range")
-            ?: "[${properties.getProperty("minecraft_version", minecraftVersion)}]"
+            ?: minecraftVersionRange(properties.getProperty("minecraft_version", minecraftVersion))
     )
     if (properties.getProperty("loader") == "forge" && !versionProperties.containsKey("forge_loader_version_range")) {
         properties.setProperty("forge_loader_version_range", "[${properties.getProperty("forge_version").substringBefore(".")},)")
@@ -52,6 +101,21 @@ val isNeoForge = activeLoader == "neoforge"
 val javaVersion = prop("java_version", "21").toInt()
 val nightConfigVersion = prop("night_config_version")
 val modId = prop("mod_id")
+val registrationFactoryClass = when {
+    isFabric -> "net.xalcon.torchmaster.platform.FabricRegistrationFactory"
+    isForge -> "net.xalcon.torchmaster.platform.ForgeRegistrationFactory"
+    isNeoForge -> "net.xalcon.torchmaster.platform.NeoforgeRegistrationFactory"
+    else -> throw GradleException("Unsupported loader '$activeLoader' for Stonecutter project '$activeProject'")
+}
+val platformHelperClass = when {
+    isFabric -> "net.xalcon.torchmaster.platform.FabricPlatformHelper"
+    isForge -> "net.xalcon.torchmaster.platform.ForgePlatformHelper"
+    isNeoForge -> "net.xalcon.torchmaster.platform.NeoForgePlatformHelper"
+    else -> throw GradleException("Unsupported loader '$activeLoader' for Stonecutter project '$activeProject'")
+}
+val resourcePackFormat = resourcePackFormat(minecraftVersion)
+val dataPackFormat = dataPackFormat(minecraftVersion)
+val supportedPackFormats = "[${minOf(resourcePackFormat, dataPackFormat)}, ${maxOf(resourcePackFormat, dataPackFormat)}]"
 
 layout.buildDirectory.dir("loom-cache/remapped_working").get().asFile.mkdirs()
 
@@ -65,7 +129,9 @@ fun Jar.addRenamedLicense() {
 }
 
 stonecutter {
-    constants.match(activeLoader, "fabric", "forge", "neoforge")
+    constants {
+        match(activeLoader, "fabric", "forge", "neoforge")
+    }
 }
 
 group = prop("group")
@@ -73,7 +139,11 @@ version = prop("mod_version", prop("version"))
 description = prop("description")
 
 base {
-    archivesName.set("$modId-$activeProject")
+    archivesName.set("$modId-${project.version}-mc$minecraftVersion-$activeLoader")
+}
+
+tasks.withType<AbstractArchiveTask>().configureEach {
+    archiveVersion.set("")
 }
 
 architectury {
@@ -97,6 +167,12 @@ val javaToolchainLauncher = javaToolchains.launcherFor {
 
 tasks.withType<JavaExec>().configureEach {
     javaLauncher.set(javaToolchainLauncher)
+    if (isForge) {
+        doFirst {
+            file("out/production/classes").mkdirs()
+            file("out/production/resources").mkdirs()
+        }
+    }
 }
 
 repositories {
@@ -132,9 +208,8 @@ sourceSets {
         java {
             srcDir(rootProject.file("src/$activeLoader"))
         }
-        resources {
-            srcDir(rootProject.file("src/$activeLoader"))
-            exclude("**/*.java")
+        if (isFabric) {
+            output.setResourcesDir(java.classesDirectory)
         }
     }
 }
@@ -167,12 +242,6 @@ extensions.configure<LoomGradleExtensionAPI>("loom") {
         }
     } else if (isForge) {
         forge {
-            mixinConfigs(
-                *listOfNotNull(
-                    "$modId.mixins.json",
-                    "$modId.legacy_forge_dev.mixins.json".takeIf { prop("minecraft_version") == "1.16.5" },
-                ).toTypedArray()
-            )
             convertAccessWideners.set(true)
         }
     } else if (isNeoForge) {
@@ -199,7 +268,14 @@ dependencies {
     }
 
     minecraft("com.mojang:minecraft:$minecraftVersion")
-    mappings(loom().officialMojangMappings())
+    if (isNeoForge) {
+        mappings(loom().layered {
+            mappings("net.fabricmc:yarn:${prop("yarn_mappings")}:v2")
+            mappings("dev.architectury:yarn-mappings-patch-neoforge:${prop("yarn_mappings_patch_neoforge_version")}")
+        })
+    } else {
+        mappings("net.fabricmc:yarn:${prop("yarn_mappings")}:v2")
+    }
 
     when {
         isFabric -> {
@@ -249,12 +325,42 @@ tasks.named<ProcessResources>("processResources") {
         "group" to project.group.toString(),
         "description" to (project.description ?: ""),
         "java_compatibility_level" to "JAVA_${prop("java_version")}",
+        "resource_pack_format" to resourcePackFormat.toString(),
+        "supported_pack_formats" to supportedPackFormats,
+    )
+    val serviceImplementations = mapOf(
+        "net.xalcon.torchmaster.platform.RegistrationProvider\$Factory" to registrationFactoryClass,
+        "net.xalcon.torchmaster.platform.services.IPlatformHelper" to platformHelperClass,
     )
 
     filesMatching(listOf("pack.mcmeta", "fabric.mod.json", "META-INF/mods.toml", "META-INF/neoforge.mods.toml", "*.mixins.json")) {
         expand(expandProps)
     }
     inputs.properties(expandProps)
+    inputs.properties(serviceImplementations.mapKeys { (service, _) -> "service.$service" })
+
+    if (isFabric) {
+        exclude("META-INF/mods.toml", "META-INF/neoforge.mods.toml")
+    } else {
+        exclude("fabric.mod.json", "$modId.fabric.mixins.json")
+        if (isForge) {
+            exclude("META-INF/neoforge.mods.toml", "$modId.neoforge.mixins.json")
+        }
+        if (isNeoForge) {
+            exclude("META-INF/mods.toml")
+        }
+    }
+    if (!isNeoForge) {
+        exclude("$modId.neoforge.mixins.json")
+    }
+
+    doLast {
+        val servicesDir = destinationDir.resolve("META-INF/services")
+        servicesDir.mkdirs()
+        serviceImplementations.forEach { (service, implementation) ->
+            servicesDir.resolve(service).writeText("$implementation\n")
+        }
+    }
 }
 
 tasks.named<Jar>("jar") {
@@ -265,13 +371,22 @@ tasks.named<Jar>("jar") {
             mapOf(
                 "Specification-Title" to prop("mod_name"),
                 "Specification-Vendor" to prop("mod_author"),
-                "Specification-Version" to archiveVersion.get(),
+                "Specification-Version" to project.version.toString(),
                 "Implementation-Title" to project.name,
-                "Implementation-Version" to archiveVersion.get(),
+                "Implementation-Version" to project.version.toString(),
                 "Implementation-Vendor" to prop("mod_author"),
                 "Built-On-Minecraft" to prop("minecraft_version"),
             )
         )
+    }
+}
+
+tasks.named<RemapJarTask>("remapJar") {
+    eachFile {
+        val sourcePath = file.toPath().toString().replace(File.separatorChar, '/')
+        if (path == "pack.mcmeta" && sourcePath.contains("build/generated/stonecutter/")) {
+            exclude()
+        }
     }
 }
 

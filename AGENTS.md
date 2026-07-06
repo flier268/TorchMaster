@@ -13,6 +13,8 @@ Do not provide progress updates while `gradlew` is running; when reporting, only
 - For long-term changes, edit the shared sources at the repository root instead of directly modifying generated outputs under `versions/.../build/generated/`.
 - Do not use Gradle source-set logic to select which Java files compile by loader platform or Minecraft version; use Stonecutter
   conditional sources/comments or established loader source roots instead.
+- Do not use Stonecutter conditionals to wrap an entire Minecraft-version-specific Java file structure, including `package`,
+  `import`, and `class` declarations, as one large version-gated block.
 - Before committing, confirm the active project is back to `vcsVersion` to avoid committing Stonecutter comment-switching noise.
 - Do not use reflection as a replacement for Stonecutter conditional compilation or version branches.
 - Do not replace strongly typed types with string IDs; prefer keeping and using Minecraft or project-provided strongly typed APIs, keys, registry types, enums, or value objects.

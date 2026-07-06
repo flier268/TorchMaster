@@ -1,6 +1,6 @@
 package net.xalcon.torchmaster;
 
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.util.math.Vec3d;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -26,7 +26,7 @@ public class NeoforgeEventHandler
 
         var spawnType = event.getSpawnType();
         var entity = event.getEntity();
-        var pos = new Vec3(event.getX(), event.getY(), event.getZ());
+        var pos = new Vec3d(event.getX(), event.getY(), event.getZ());
         SpawnEventBridge.onCheckSpawn(spawnType, entity, pos, container);
 
         event.setResult(switch(container.getResult())
@@ -49,7 +49,7 @@ public class NeoforgeEventHandler
 
         var spawnType = event.getSpawnType();
         var entity = event.getEntity();
-        var pos = new Vec3(event.getX(), event.getY(), event.getZ());
+        var pos = new Vec3d(event.getX(), event.getY(), event.getZ());
         SpawnEventBridge.onCheckSpawn(spawnType, entity, pos, container);
 
         event.setResult(switch(container.getResult())
@@ -71,7 +71,7 @@ public class NeoforgeEventHandler
         });
 
         var player = event.getEntity();
-        var pos = player.position();
+        var pos = new Vec3d(player.getX(), player.getY(), player.getZ());
         SpawnEventBridge.onPlayerSpawnPhantoms(player, pos, container);
 
         event.setResult(switch(container.getResult())

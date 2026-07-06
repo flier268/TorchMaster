@@ -1,11 +1,14 @@
 package net.xalcon.torchmaster.platform;
 
 
-import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceKey;
-
 import java.util.Collection;
 import java.util.function.Supplier;
+//? if >=1.19.3 {
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+//?} else {
+/*import net.minecraft.util.registry.Registry;
+*///?}
 
 /**
  * Utility class for multiloader registration.
@@ -28,12 +31,15 @@ public interface RegistrationProvider<T> {
      * It is <i>recommended</i> to store the resulted provider in a {@code static final} field to
      * the {@link Factory#INSTANCE factory} creating multiple providers for the same resource key and mod id.
      *
-     * @param resourceKey the {@link ResourceKey} of the registry of the provider
+     * @param resourceKey the key of the registry of the provider
      * @param modId       the mod id that the provider will register objects for
      * @param <T>         the type of the provider
      * @return the provider
      */
-    static <T> RegistrationProvider<T> create(ResourceKey<? extends Registry<T>> resourceKey, String modId) {
+    //? if >=1.19.3
+    static <T> RegistrationProvider<T> create(RegistryKey<? extends Registry<T>> resourceKey, String modId) {
+    //? if <1.19.3
+    //static <T> RegistrationProvider<T> create(Object resourceKey, String modId) {
         return Factory.INSTANCE.create(resourceKey, modId);
     }
 
@@ -91,12 +97,15 @@ public interface RegistrationProvider<T> {
         /**
          * Creates a {@link RegistrationProvider}.
          *
-         * @param resourceKey the {@link ResourceKey} of the registry to create this provider for
+         * @param resourceKey the key of the registry to create this provider for
          * @param modId       the mod id for which the provider will register objects
          * @param <T>         the type of the provider
          * @return the provider
          */
-        <T> RegistrationProvider<T> create(ResourceKey<? extends Registry<T>> resourceKey, String modId);
+        //? if >=1.19.3
+        <T> RegistrationProvider<T> create(RegistryKey<? extends Registry<T>> resourceKey, String modId);
+        //? if <1.19.3
+        //<T> RegistrationProvider<T> create(Object resourceKey, String modId);
 
         /**
          * Creates a {@link RegistrationProvider}.
@@ -107,7 +116,10 @@ public interface RegistrationProvider<T> {
          * @return the provider
          */
         default <T> RegistrationProvider<T> create(Registry<T> registry, String modId) {
-            return create(registry.key(), modId);
+            //? if >=1.19.3
+            return create(registry.getKey(), modId);
+            //? if <1.19.3
+            //return create((Object) registry, modId);
         }
     }
 }

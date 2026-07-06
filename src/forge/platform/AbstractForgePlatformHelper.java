@@ -4,7 +4,7 @@ import net.xalcon.torchmaster.config.ITorchmasterConfig;
 import net.xalcon.torchmaster.config.TorchmasterTomlConfig;
 import net.xalcon.torchmaster.platform.services.IPlatformHelper;
 import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.loading.FMLLoader;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.loading.FMLPaths;
 
 public abstract class AbstractForgePlatformHelper implements IPlatformHelper
@@ -26,7 +26,7 @@ public abstract class AbstractForgePlatformHelper implements IPlatformHelper
     @Override
     public boolean isDevelopmentEnvironment() {
 
-        return !FMLLoader.isProduction();
+        return !"srg".equals(FMLEnvironment.naming);
     }
 
     @Override

@@ -1,12 +1,12 @@
 package net.xalcon.torchmaster.platform.services;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.util.math.BlockPos;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
 import net.xalcon.torchmaster.platform.RegistryObject;
 
@@ -46,7 +46,7 @@ public interface IPlatformHelper {
         return isDevelopmentEnvironment() ? "development" : "production";
     }
 
-    CreativeModeTab createCreativeModeTab(String name, Collection<RegistryObject<Item>> itemsToShow);
+    ItemGroup createCreativeModeTab(String name, Collection<RegistryObject<Item>> itemsToShow);
 
     default void registerCreativeModeTab(String name, Collection<RegistryObject<Item>> itemsToShow) {
         throw new UnsupportedOperationException(getPlatformName() + " does not support platform creative tab registration");

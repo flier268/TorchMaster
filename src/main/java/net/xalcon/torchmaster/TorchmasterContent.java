@@ -1,23 +1,13 @@
 package net.xalcon.torchmaster;
 
-//? if >=1.19.3 {
-import net.minecraft.core.registries.Registries;
-//?} else {
-/*import net.minecraft.core.Registry;
-*///?}
-//? if >=1.21.11 {
-/*import net.minecraft.resources.Identifier;
-*///?} else if >=1.21.2 {
-/*import net.minecraft.resources.ResourceLocation;
-*///?}
-//? if >=1.21.2
-//import net.minecraft.resources.ResourceKey;
-//? if >=1.21.2
-//import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.block.Block;
+import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
+//? if >=1.19.3
+import net.minecraft.registry.RegistryKeys;
+//? if <1.19.3
+//import net.minecraft.util.registry.Registry;
 import net.xalcon.torchmaster.blocks.*;
 import net.xalcon.torchmaster.items.FrozenPearlItem;
 import net.xalcon.torchmaster.items.TMItemBlock;
@@ -34,15 +24,19 @@ import java.util.function.Consumer;
 public class TorchmasterContent
 {
     //? if >=1.19.3 {
-    private static final RegistrationProvider<Block> BLOCKS = RegistrationProvider.create(Registries.BLOCK, Constants.MOD_ID);
-    private static final RegistrationProvider<Item> ITEMS = RegistrationProvider.create(Registries.ITEM, Constants.MOD_ID);
-    private static final RegistrationProvider<BlockEntityType<?>> BLOCK_ENTITIES = RegistrationProvider.create(Registries.BLOCK_ENTITY_TYPE, Constants.MOD_ID);
+    private static final RegistrationProvider<Block> BLOCKS = RegistrationProvider.create(RegistryKeys.BLOCK, Constants.MOD_ID);
+    private static final RegistrationProvider<Item> ITEMS = RegistrationProvider.create(RegistryKeys.ITEM, Constants.MOD_ID);
+    private static final RegistrationProvider<BlockEntityType<?>> BLOCK_ENTITIES = RegistrationProvider.create(RegistryKeys.BLOCK_ENTITY_TYPE, Constants.MOD_ID);
     //? if >=1.20
-    private static final RegistrationProvider<CreativeModeTab> CREATIVE_MODE_TABS = RegistrationProvider.create(Registries.CREATIVE_MODE_TAB, Constants.MOD_ID);
-//?} else {
+    private static final RegistrationProvider<ItemGroup> CREATIVE_MODE_TABS = RegistrationProvider.create(RegistryKeys.ITEM_GROUP, Constants.MOD_ID);
+//?} else if >=1.15 {
     /*private static final RegistrationProvider<Block> BLOCKS = RegistrationProvider.create(Registry.BLOCK, Constants.MOD_ID);
     private static final RegistrationProvider<Item> ITEMS = RegistrationProvider.create(Registry.ITEM, Constants.MOD_ID);
     private static final RegistrationProvider<BlockEntityType<?>> BLOCK_ENTITIES = RegistrationProvider.create(Registry.BLOCK_ENTITY_TYPE, Constants.MOD_ID);
+    *///?} else {
+    /*private static final RegistrationProvider<Block> BLOCKS = RegistrationProvider.create(Registry.BLOCK, Constants.MOD_ID);
+    private static final RegistrationProvider<Item> ITEMS = RegistrationProvider.create(Registry.ITEM, Constants.MOD_ID);
+    private static final RegistrationProvider<BlockEntityType<?>> BLOCK_ENTITIES = RegistrationProvider.create(Registry.BLOCK_ENTITY, Constants.MOD_ID);
     *///?}
 
     public static RegistryObject<EntityBlockingLightBlock> blockMegaTorch;
@@ -58,7 +52,7 @@ public class TorchmasterContent
     public static RegistryObject<Item> itemFrozenPearl;
 
     private TorchmasterContent() { }
-    private static CreativeModeTab tab;
+    private static ItemGroup tab;
 
     public static void initialize()
     {
@@ -115,46 +109,42 @@ public class TorchmasterContent
         return fromBlock(block, i -> {});
     }
 
-    private static <B extends Block> RegistryObject<Item> fromBlock(RegistryObject<B> block, Consumer<Item.Properties> propertiesConfig) {
-        Item.Properties properties = blockItemProperties(block.getId().getPath());
+    private static <B extends Block> RegistryObject<Item> fromBlock(RegistryObject<B> block, Consumer<Item.Settings> propertiesConfig) {
+        Item.Settings properties = blockItemProperties(block.getId().getPath());
         propertiesConfig.accept(properties);
         return ITEMS.register(block.getId().getPath(), () -> new TMItemBlock(block.get(), properties));
     }
 
     private static <P> P blockProperties(String name, P properties) {
         //? if >=1.21.2
-        //((BlockBehaviour.Properties) properties).setId(ResourceKey.create(Registries.BLOCK, resourceLocation(name)));
+        //((net.minecraft.block.AbstractBlock.Settings) properties).registryKey(net.minecraft.registry.RegistryKey.of(RegistryKeys.BLOCK, resourceLocation(name)));
         return properties;
     }
 
-    private static Item.Properties blockItemProperties(String name) {
-        Item.Properties properties = itemProperties(name);
+    private static Item.Settings blockItemProperties(String name) {
+        Item.Settings properties = itemProperties(name);
         //? if >=1.21.2
-        //properties.useBlockDescriptionPrefix();
+        //properties.useBlockPrefixedTranslationKey();
         return properties;
     }
 
-    private static Item.Properties itemProperties(String name) {
-        Item.Properties properties = itemProperties();
+    private static Item.Settings itemProperties(String name) {
+        Item.Settings properties = itemProperties();
         //? if >=1.21.2
-        //properties.setId(ResourceKey.create(Registries.ITEM, resourceLocation(name)));
+        //properties.registryKey(net.minecraft.registry.RegistryKey.of(RegistryKeys.ITEM, resourceLocation(name)));
         return properties;
     }
 
-    //? if >=1.21.11 {
-    /*private static Identifier resourceLocation(String name) {
-        return Identifier.tryBuild(Constants.MOD_ID, name);
-    }
-    *///?} else if >=1.21.2 {
-    /*private static ResourceLocation resourceLocation(String name) {
-        return ResourceLocation.tryBuild(Constants.MOD_ID, name);
+    //? if >=1.21.2 {
+    /*private static net.minecraft.util.Identifier resourceLocation(String name) {
+        return net.minecraft.util.Identifier.of(Constants.MOD_ID, name);
     }
     *///?}
 
-    private static Item.Properties itemProperties() {
-        Item.Properties properties = new Item.Properties();
+    private static Item.Settings itemProperties() {
+        Item.Settings properties = new Item.Settings();
         //? if <1.19.3
-        //properties.tab(tab);
+        //properties.group(tab);
         return properties;
     }
 }

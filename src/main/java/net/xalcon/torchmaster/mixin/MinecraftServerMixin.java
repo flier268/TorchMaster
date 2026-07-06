@@ -12,7 +12,7 @@ import java.util.function.BooleanSupplier;
 @Mixin(MinecraftServer.class)
 public class MinecraftServerMixin
 {
-    @Inject(at = @At("TAIL"), method = "tickServer(Ljava/util/function/BooleanSupplier;)V")
+    @Inject(at = @At("TAIL"), method = "tick(Ljava/util/function/BooleanSupplier;)V")
     private void torchmaster_tickServer_tail(BooleanSupplier haveTime, CallbackInfo info)
     {
         MinecraftServer server = ((MinecraftServer)(Object)this);

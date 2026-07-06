@@ -1,26 +1,29 @@
 package net.xalcon.torchmaster.blocks;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
-//? if >=1.19 {
-import net.minecraft.util.RandomSource;
-//?} else {
-/*import java.util.Random;
-*///?}
-//? if >=1.21.5 {
-/*import net.minecraft.server.level.ServerLevel;
-*///?}
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+//? if >=1.16.5
+import net.minecraft.block.ShapeContext;
+//? if <1.16.5
+//import net.minecraft.entity.EntityContext;
+import net.minecraft.entity.player.PlayerEntity;
+//? if <1.20.6
+//import net.minecraft.item.ItemStack;
+import net.minecraft.particle.ParticleTypes;
+//? if >=1.21.5
+//import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.ActionResult;
+//? if <1.20.6
+//import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
+//? if >=1.19
+import net.minecraft.util.math.random.Random;
+//? if <1.19
+//import java.util.Random;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.BlockView;
+import net.minecraft.world.World;
 import net.xalcon.torchmaster.TorchmasterClientBridge;
 import net.xalcon.torchmaster.TorchmasterRuntime;
 
@@ -28,93 +31,137 @@ public class EntityBlockingLightBlock extends Block
 {
     private final LightType lightType;
 
-    public EntityBlockingLightBlock(Properties properties, LightType lightType)
+    public EntityBlockingLightBlock(Settings properties, LightType lightType)
     {
         super(properties);
         this.lightType = lightType;
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, BlockGetter blockGetter, BlockPos pos, CollisionContext ctx) {
+    //? if >=1.16.5
+    public VoxelShape getOutlineShape(BlockState state, BlockView blockGetter, BlockPos pos, ShapeContext ctx) {
+    //? if <1.16.5
+    //public VoxelShape getOutlineShape(BlockState state, BlockView blockGetter, BlockPos pos, EntityContext ctx) {
         return lightType.Shape;
     }
 
-    //? if >=1.21 {
+    //? if >=1.20.6 {
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult)
+    protected ActionResult onUse(BlockState state, World level, BlockPos pos, PlayerEntity player, BlockHitResult hitResult)
     {
         return openLightScreen(level, pos, player);
     }
-    //?} else {
+    //?} else if >=1.15 {
     /*@Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult)
+    public ActionResult onUse(BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hitResult)
     {
-        ItemStack itemStack = player.getItemInHand(hand);
+        ItemStack itemStack = player.getStackInHand(hand);
         if (!itemStack.isEmpty()) {
-            return super.use(state, level, pos, player, hand, hitResult);
+            return ActionResult.PASS;
         }
         return openLightScreen(level, pos, player);
+    }
+    *///?} else {
+    /*public boolean activate(BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hitResult)
+    {
+        ItemStack itemStack = player.getStackInHand(hand);
+        if (!itemStack.isEmpty()) {
+            return false;
+        }
+        openLightScreen(level, pos, player);
+        return true;
     }
     *///?}
 
-    private InteractionResult openLightScreen(Level level, BlockPos pos, Player player)
+    private ActionResult openLightScreen(World level, BlockPos pos, PlayerEntity player)
     {
-        //? if >=1.17 {
-        if (level.isClientSide()) {
+        //? if >=1.16.5 {
+        if (level.isClient()) {
         //?} else {
-        /*if (level.isClientSide) {
+        /*if (level.isClient) {
         *///?}
-            TorchmasterClientBridge.openLightScreen(pos, level.dimension(), lightType);
+            TorchmasterClientBridge.openLightScreen(pos,
+                    //? if >=1.16.5
+                    level.getRegistryKey()
+                    //? if <1.16.5
+                    //level.getDimension().getType()
+                    , lightType);
         }
-        return InteractionResult.SUCCESS;
+        return ActionResult.SUCCESS;
     }
 
     @Override
     //? if >=1.19 {
-    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource randomSource)
+    public void randomDisplayTick(BlockState state, World level, BlockPos pos, Random randomSource)
 //?} else {
-    /*public void animateTick(BlockState state, Level level, BlockPos pos, Random randomSource)
+    /*public void randomDisplayTick(BlockState state, World level, BlockPos pos, Random randomSource)
     *///?}
     {
         double d0 = (double)pos.getX() + lightType.FlameOffset.x;
         double d1 = (double)pos.getY() + lightType.FlameOffset.y;
         double d2 = (double)pos.getZ() + lightType.FlameOffset.z;
+        //? if >=1.21.11 {
+        /*level.addParticleClient(ParticleTypes.SMOKE, d0, d1, d2, 0.0f, 0.0f, 0.0f);
+        level.addParticleClient(ParticleTypes.FLAME, d0, d1, d2, 0.0f, 0.0f, 0.0f);
+        *///?} else {
         level.addParticle(ParticleTypes.SMOKE, d0, d1, d2, 0.0f, 0.0f, 0.0f);
         level.addParticle(ParticleTypes.FLAME, d0, d1, d2, 0.0f, 0.0f, 0.0f);
+        //?}
     }
 
     @Override
-    public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moving) {
-        super.onPlace(state, level, pos, oldState, moving);
+    public void onBlockAdded(BlockState state, World level, BlockPos pos, BlockState oldState, boolean moving) {
+        super.onBlockAdded(state, level, pos, oldState, moving);
         TorchmasterRuntime.getRegistryForLevel(level)
             .ifPresent(reg ->
                     reg.registerLight(lightType.KeyFactory.apply(pos), lightType.LightFactory.apply(pos)));
     }
 
-    @Override
-    //? if >=1.21.2 {
-    /*protected boolean propagatesSkylightDown(BlockState state) {
-    *///?} else {
-    public boolean propagatesSkylightDown(BlockState state, BlockGetter getter, BlockPos pos) {
-    //?}
+    //? if >=1.21.11 {
+    /*@Override
+    protected boolean isTransparent(BlockState state) {
         return true;
     }
+    *///?} else if fabric && forge && >=1.21.2 {
+    /*@Override
+    protected boolean propagatesSkylightDown(BlockState state) {
+        return true;
+    }
+    *///?} else if >=1.19.4 {
+    @Override
+    public boolean isTransparent(BlockState state, BlockView getter, BlockPos pos) {
+        return true;
+    }
+    //?} else {
+    /*@Override
+    public boolean isTranslucent(BlockState state, BlockView getter, BlockPos pos) {
+        return true;
+    }
+    *///?}
 
     //? if >=1.21.5 {
     /*@Override
-    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moving) {
+    protected void onStateReplaced(BlockState state, ServerWorld level, BlockPos pos, boolean moving) {
         TorchmasterRuntime.getRegistryForLevel(level)
             .ifPresent(reg ->
                     reg.unregisterLight(lightType.KeyFactory.apply(pos)));
-        super.affectNeighborsAfterRemoval(state, level, pos, moving);
+        super.onStateReplaced(state, level, pos, moving);
     }
-    *///?} else {
+    *///?} else if >=1.17 {
     @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moving) {
+    public void onStateReplaced(BlockState state, World level, BlockPos pos, BlockState oldState, boolean moving) {
         TorchmasterRuntime.getRegistryForLevel(level)
             .ifPresent(reg ->
                     reg.unregisterLight(lightType.KeyFactory.apply(pos)));
-        super.onRemove(state, level, pos, oldState, moving);
+        super.onStateReplaced(state, level, pos, oldState, moving);
     }
-    //?}
+//?} else if <1.16.5 {
+    /*@Override
+    public void onBlockRemoved(BlockState state, World level, BlockPos pos, BlockState oldState, boolean moving) {
+        TorchmasterRuntime.getRegistryForLevel(level)
+            .ifPresent(reg ->
+                    reg.unregisterLight(lightType.KeyFactory.apply(pos)));
+        super.onBlockRemoved(state, level, pos, oldState, moving);
+    }
+    *///?}
 }

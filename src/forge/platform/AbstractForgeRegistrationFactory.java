@@ -4,7 +4,6 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.javafmlmod.FMLModContainer;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;

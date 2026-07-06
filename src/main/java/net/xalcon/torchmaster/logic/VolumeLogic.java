@@ -1,6 +1,6 @@
 package net.xalcon.torchmaster.logic;
 
-import net.minecraft.core.BlockPos;
+import net.minecraft.util.math.BlockPos;
 
 public interface VolumeLogic
 {

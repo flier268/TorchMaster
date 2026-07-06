@@ -1,9 +1,9 @@
 package net.xalcon.torchmaster.minecraft.light.dreadlamp;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.block.Block;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.World;
 import net.xalcon.torchmaster.TorchmasterContent;
 import net.xalcon.torchmaster.port.BlockPosView;
 import net.xalcon.torchmaster.domain.LightKind;
@@ -12,7 +12,7 @@ import net.xalcon.torchmaster.minecraft.adapter.MinecraftAdapterViews;
 
 public class DreadLampBlockingLight implements MinecraftBlockingLight
 {
-    public static final VoxelShape SHAPE = Block.box(1, 1, 1, 15, 15, 15);
+    public static final VoxelShape SHAPE = Block.createCuboidShape(1, 1, 1, 15, 15, 15);
     private final BlockPos pos;
 
     public DreadLampBlockingLight(BlockPos pos)
@@ -38,9 +38,13 @@ public class DreadLampBlockingLight implements MinecraftBlockingLight
         return MinecraftAdapterViews.blockPos(pos);
     }
 
-    public boolean cleanupCheck(Level level)
+    public boolean cleanupCheck(World level)
     {
-        return level.isLoaded(this.pos) && level.getBlockState(pos).getBlock() != TorchmasterContent.blockDreadLamp.get();
+        //? if >=1.21.11 {
+        /*return level.isInBuildLimit(this.pos) && level.getBlockState(pos).getBlock() != TorchmasterContent.blockDreadLamp.get();
+        *///?} else {
+        return level.canSetBlock(this.pos) && level.getBlockState(pos).getBlock() != TorchmasterContent.blockDreadLamp.get();
+        //?}
     }
 
     @Override

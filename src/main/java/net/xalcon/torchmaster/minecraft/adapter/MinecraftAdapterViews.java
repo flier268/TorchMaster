@@ -1,13 +1,9 @@
 package net.xalcon.torchmaster.minecraft.adapter;
 
-import net.minecraft.core.BlockPos;
-//? if >=1.21.11 {
-/*import net.minecraft.resources.Identifier;
-*///?} else {
-import net.minecraft.resources.ResourceLocation;
-//?}
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import net.xalcon.torchmaster.EntityFilterList;
 import net.xalcon.torchmaster.port.BlockPosView;
 import net.xalcon.torchmaster.port.EntityTypeKey;
@@ -27,27 +23,30 @@ public final class MinecraftAdapterViews {
         return new BlockPos(pos.x(), pos.y(), pos.z());
     }
 
-    public static Vec3View vec3(Vec3 vec) {
-        return new Vec3View(vec.x(), vec.y(), vec.z());
+    public static Vec3View vec3(Vec3d vec) {
+        return new Vec3View(vec.getX(), vec.getY(), vec.getZ());
     }
 
-    public static WorldView world(Level level) {
+    public static WorldView world(World level) {
         return new WorldView() {
             @Override
             public String dimensionKey() {
-                //? if >=1.21.11 {
+                //? if fabric && forge && >=1.21.11 {
                 /*return level.dimension().identifier().toString();
                 *///?} else {
-                return level.dimension().location().toString();
+                //? if >=1.17
+                return level.getRegistryKey().getValue().toString();
+                //? if <1.17
+                //return "overworld";
                 //?}
             }
         };
     }
 
-    //? if >=1.21.11 {
+    //? if fabric && forge && >=1.21.11 {
     /*public static EntityTypeKey entityTypeKey(Identifier id) {
     *///?} else {
-    public static EntityTypeKey entityTypeKey(ResourceLocation id) {
+    public static EntityTypeKey entityTypeKey(Identifier id) {
     //?}
         return new EntityTypeKey(id.getNamespace(), id.getPath());
     }

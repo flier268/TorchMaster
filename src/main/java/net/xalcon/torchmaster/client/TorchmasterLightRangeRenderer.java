@@ -1,35 +1,43 @@
-//? if >=1.16 {
 package net.xalcon.torchmaster.client;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.Camera;
-import net.minecraft.client.Minecraft;
-//? if >=1.21.2 {
-/*import net.minecraft.client.renderer.ShapeRenderer;
+//? if <1.15 {
+/*import com.mojang.blaze3d.platform.GlStateManager;
 *///?}
-//? if >=1.21.11 {
-/*
-import net.minecraft.world.phys.shapes.Shapes;
-*///?}
-//? if >=1.21.11 {
-/*import net.minecraft.client.renderer.rendertype.RenderTypes;
-*///?} else {
-import net.minecraft.client.renderer.RenderType;
-//?}
-//? if <1.21.2 {
-import net.minecraft.client.renderer.LevelRenderer;
-//?}
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.Level;
+import net.minecraft.client.MinecraftClient;
+//? if >=1.21.11
+//import net.minecraft.client.gl.RenderPipelines;
+//? if <1.15
+/*import net.minecraft.client.render.BufferBuilder;*/
+import net.minecraft.client.render.Camera;
+//? if >=1.15
+import net.minecraft.client.render.RenderLayer;
+//? if >=1.21.11
+//import net.minecraft.client.render.RenderSetup;
+//? if >=1.15
+import net.minecraft.client.render.VertexConsumer;
+//? if >=1.15
+import net.minecraft.client.render.VertexConsumerProvider;
+//? if <1.15
+/*import net.minecraft.client.render.Tessellator;*/
+//? if <1.15
+/*import net.minecraft.client.render.VertexFormats;*/
+import net.minecraft.client.render.WorldRenderer;
+//? if >=1.15
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.math.BlockPos;
+//? if <1.15
+/*import net.minecraft.util.math.Vec3d;*/
+import net.minecraft.world.World;
 
 public final class TorchmasterLightRangeRenderer
 {
+    //? if >=1.21.11
+    //private static final RenderLayer LINE_LAYER = RenderLayer.of("torchmaster_lines", RenderSetup.builder(RenderPipelines.LINES).build());
     private static final float RANGE_RED = 0.15F;
     private static final float RANGE_GREEN = 0.85F;
     private static final float RANGE_BLUE = 1.0F;
     private static final float RANGE_ALPHA = 0.85F;
+    private static final float LINE_WIDTH = 2.0F;
     private static final float SAMPLE_RED = 0.25F;
     private static final float SAMPLE_GREEN = 1.0F;
     private static final float SAMPLE_BLUE = 0.45F;
@@ -39,66 +47,96 @@ public final class TorchmasterLightRangeRenderer
     {
     }
 
-    public static void render(Level level, Camera camera, PoseStack poseStack)
+    //? if >=1.15 {
+    public static void render(World level, Camera camera, MatrixStack poseStack)
     {
-        MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
+        VertexConsumerProvider.Immediate bufferSource = MinecraftClient.getInstance().getBufferBuilders().getEntityVertexConsumers();
         renderAndFlush(level, camera, poseStack, bufferSource);
     }
+    //?} else {
+    /*public static void render(World level, Camera camera)
+    {
+        MinecraftClient minecraft = MinecraftClient.getInstance();
+        if (minecraft.player == null || minecraft.player.isSneaking()) {
+            return;
+        }
 
-    public static void renderAndFlush(Level level, Camera camera, PoseStack poseStack, MultiBufferSource.BufferSource bufferSource)
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.getBuffer();
+        GlStateManager.disableTexture();
+        GlStateManager.enableBlend();
+        GlStateManager.lineWidth(LINE_WIDTH);
+        buffer.begin(1, VertexFormats.POSITION_COLOR);
+        for (TorchmasterLightRangeDisplay.RangeSnapshot snapshot : TorchmasterLightRangeDisplay.snapshots(level)) {
+            renderRangeBox(snapshot.pos, snapshot.radius, camera, buffer);
+            for (BlockPos pos : snapshot.randomAirBlocks) {
+                renderLineBox(camera, buffer,
+                        pos.getX(), pos.getY(), pos.getZ(),
+                        pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1,
+                        SAMPLE_RED, SAMPLE_GREEN, SAMPLE_BLUE, SAMPLE_ALPHA);
+            }
+        }
+        tessellator.draw();
+        GlStateManager.disableBlend();
+        GlStateManager.enableTexture();
+    }
+    *///?}
+
+    //? if >=1.15 {
+    public static void renderAndFlush(World level, Camera camera, MatrixStack poseStack, VertexConsumerProvider.Immediate bufferSource)
     {
         render(level, camera, poseStack, bufferSource);
         flushLines(bufferSource);
     }
 
-    public static void render(Level level, Camera camera, PoseStack poseStack, MultiBufferSource bufferSource)
+    public static void render(World level, Camera camera, MatrixStack poseStack, VertexConsumerProvider bufferSource)
     {
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player == null || minecraft.player.isShiftKeyDown()) {
+        MinecraftClient minecraft = MinecraftClient.getInstance();
+        if (minecraft.player == null || minecraft.player.isSneaking()) {
             return;
         }
 
         //? if >=1.21.11 {
-        /*VertexConsumer lineBuffer = bufferSource.getBuffer(RenderTypes.lines());
+        /*VertexConsumer lineBuffer = bufferSource.getBuffer(LINE_LAYER);
         *///?} else {
-        VertexConsumer lineBuffer = bufferSource.getBuffer(RenderType.lines());
+        VertexConsumer lineBuffer = bufferSource.getBuffer(RenderLayer.getLines());
         //?}
 
-        poseStack.pushPose();
+        poseStack.push();
         //? if >=1.21.11 {
-        /*poseStack.translate(-camera.position().x, -camera.position().y, -camera.position().z);
+        /*poseStack.translate(-camera.getCameraPos().x, -camera.getCameraPos().y, -camera.getCameraPos().z);
         *///?} else {
-        poseStack.translate(-camera.getPosition().x, -camera.getPosition().y, -camera.getPosition().z);
+        poseStack.translate(-camera.getPos().x, -camera.getPos().y, -camera.getPos().z);
         //?}
         for (TorchmasterLightRangeDisplay.RangeSnapshot snapshot : TorchmasterLightRangeDisplay.snapshots(level)) {
             renderRangeBox(snapshot.pos, snapshot.radius, poseStack, lineBuffer);
             for (BlockPos pos : snapshot.randomAirBlocks) {
-                //? if >=1.21.2 {
+                //? if >=1.21.11 {
                 /*renderLineBox(poseStack, lineBuffer,
                         pos.getX(), pos.getY(), pos.getZ(),
                         pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1,
                         SAMPLE_RED, SAMPLE_GREEN, SAMPLE_BLUE, SAMPLE_ALPHA);
                 *///?} else {
-                LevelRenderer.renderLineBox(poseStack, lineBuffer,
+                WorldRenderer.drawBox(poseStack, lineBuffer,
                         pos.getX(), pos.getY(), pos.getZ(),
                         pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1,
                         SAMPLE_RED, SAMPLE_GREEN, SAMPLE_BLUE, SAMPLE_ALPHA);
                 //?}
             }
         }
-        poseStack.popPose();
+        poseStack.pop();
     }
 
-    private static void flushLines(MultiBufferSource.BufferSource bufferSource)
+    private static void flushLines(VertexConsumerProvider.Immediate bufferSource)
     {
         //? if >=1.21.11 {
-        /*bufferSource.endBatch(RenderTypes.lines());
+        /*bufferSource.draw(LINE_LAYER);
         *///?} else {
-        bufferSource.endBatch(RenderType.lines());
+        bufferSource.draw(RenderLayer.getLines());
         //?}
     }
 
-    private static void renderRangeBox(BlockPos center, int radius, PoseStack poseStack, VertexConsumer lineBuffer)
+    private static void renderRangeBox(BlockPos center, int radius, MatrixStack poseStack, VertexConsumer lineBuffer)
     {
         double minX = center.getX() - radius;
         double minY = center.getY() - radius;
@@ -107,33 +145,96 @@ public final class TorchmasterLightRangeRenderer
         double maxY = center.getY() + radius + 1;
         double maxZ = center.getZ() + radius + 1;
 
-        //? if >=1.21.2 {
+        //? if >=1.21.11 {
         /*renderLineBox(poseStack, lineBuffer, minX, minY, minZ, maxX, maxY, maxZ, RANGE_RED, RANGE_GREEN, RANGE_BLUE, RANGE_ALPHA);
         *///?} else {
-        LevelRenderer.renderLineBox(poseStack, lineBuffer, minX, minY, minZ, maxX, maxY, maxZ, RANGE_RED, RANGE_GREEN, RANGE_BLUE, RANGE_ALPHA);
+        WorldRenderer.drawBox(poseStack, lineBuffer, minX, minY, minZ, maxX, maxY, maxZ, RANGE_RED, RANGE_GREEN, RANGE_BLUE, RANGE_ALPHA);
         //?}
     }
+    //?} else {
+    /*private static void renderRangeBox(BlockPos center, int radius, Camera camera, BufferBuilder buffer)
+    {
+        double minX = center.getX() - radius;
+        double minY = center.getY() - radius;
+        double minZ = center.getZ() - radius;
+        double maxX = center.getX() + radius + 1;
+        double maxY = center.getY() + radius + 1;
+        double maxZ = center.getZ() + radius + 1;
+        renderLineBox(camera, buffer, minX, minY, minZ, maxX, maxY, maxZ, RANGE_RED, RANGE_GREEN, RANGE_BLUE, RANGE_ALPHA);
+    }
+
+    private static void renderLineBox(Camera camera, BufferBuilder buffer, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, float red, float green, float blue, float alpha)
+    {
+        Vec3d cameraPos = camera.getPos();
+        minX -= cameraPos.x;
+        minY -= cameraPos.y;
+        minZ -= cameraPos.z;
+        maxX -= cameraPos.x;
+        maxY -= cameraPos.y;
+        maxZ -= cameraPos.z;
+
+        line(buffer, minX, minY, minZ, maxX, minY, minZ, red, green, blue, alpha);
+        line(buffer, maxX, minY, minZ, maxX, minY, maxZ, red, green, blue, alpha);
+        line(buffer, maxX, minY, maxZ, minX, minY, maxZ, red, green, blue, alpha);
+        line(buffer, minX, minY, maxZ, minX, minY, minZ, red, green, blue, alpha);
+        line(buffer, minX, maxY, minZ, maxX, maxY, minZ, red, green, blue, alpha);
+        line(buffer, maxX, maxY, minZ, maxX, maxY, maxZ, red, green, blue, alpha);
+        line(buffer, maxX, maxY, maxZ, minX, maxY, maxZ, red, green, blue, alpha);
+        line(buffer, minX, maxY, maxZ, minX, maxY, minZ, red, green, blue, alpha);
+        line(buffer, minX, minY, minZ, minX, maxY, minZ, red, green, blue, alpha);
+        line(buffer, maxX, minY, minZ, maxX, maxY, minZ, red, green, blue, alpha);
+        line(buffer, maxX, minY, maxZ, maxX, maxY, maxZ, red, green, blue, alpha);
+        line(buffer, minX, minY, maxZ, minX, maxY, maxZ, red, green, blue, alpha);
+    }
+
+    private static void line(BufferBuilder buffer, double startX, double startY, double startZ, double endX, double endY, double endZ, float red, float green, float blue, float alpha)
+    {
+        buffer.vertex(startX, startY, startZ).color(red, green, blue, alpha).next();
+        buffer.vertex(endX, endY, endZ).color(red, green, blue, alpha).next();
+    }
+    *///?}
 
     //? if >=1.21.11 {
-    /*private static void renderLineBox(PoseStack poseStack, VertexConsumer lineBuffer, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, float red, float green, float blue, float alpha)
+    /*private static void renderLineBox(MatrixStack poseStack, VertexConsumer lineBuffer, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, float red, float green, float blue, float alpha)
     {
-        ShapeRenderer.renderShape(poseStack, lineBuffer, Shapes.box(minX, minY, minZ, maxX, maxY, maxZ), 0.0, 0.0, 0.0, color(red, green, blue), alpha);
+        line(poseStack, lineBuffer, minX, minY, minZ, maxX, minY, minZ, red, green, blue, alpha);
+        line(poseStack, lineBuffer, maxX, minY, minZ, maxX, minY, maxZ, red, green, blue, alpha);
+        line(poseStack, lineBuffer, maxX, minY, maxZ, minX, minY, maxZ, red, green, blue, alpha);
+        line(poseStack, lineBuffer, minX, minY, maxZ, minX, minY, minZ, red, green, blue, alpha);
+        line(poseStack, lineBuffer, minX, maxY, minZ, maxX, maxY, minZ, red, green, blue, alpha);
+        line(poseStack, lineBuffer, maxX, maxY, minZ, maxX, maxY, maxZ, red, green, blue, alpha);
+        line(poseStack, lineBuffer, maxX, maxY, maxZ, minX, maxY, maxZ, red, green, blue, alpha);
+        line(poseStack, lineBuffer, minX, maxY, maxZ, minX, maxY, minZ, red, green, blue, alpha);
+        line(poseStack, lineBuffer, minX, minY, minZ, minX, maxY, minZ, red, green, blue, alpha);
+        line(poseStack, lineBuffer, maxX, minY, minZ, maxX, maxY, minZ, red, green, blue, alpha);
+        line(poseStack, lineBuffer, maxX, minY, maxZ, maxX, maxY, maxZ, red, green, blue, alpha);
+        line(poseStack, lineBuffer, minX, minY, maxZ, minX, maxY, maxZ, red, green, blue, alpha);
     }
 
-    private static int color(float red, float green, float blue)
+    private static void line(MatrixStack poseStack, VertexConsumer lineBuffer, double startX, double startY, double startZ, double endX, double endY, double endZ, float red, float green, float blue, float alpha)
     {
-        return ((int)(red * 255.0F) << 16) | ((int)(green * 255.0F) << 8) | (int)(blue * 255.0F);
+        MatrixStack.Entry entry = poseStack.peek();
+        float normalX = (float)(endX - startX);
+        float normalY = (float)(endY - startY);
+        float normalZ = (float)(endZ - startZ);
+        lineBuffer.vertex(entry, (float)startX, (float)startY, (float)startZ)
+                .color(red, green, blue, alpha)
+                .normal(entry, normalX, normalY, normalZ)
+                .lineWidth(LINE_WIDTH);
+        lineBuffer.vertex(entry, (float)endX, (float)endY, (float)endZ)
+                .color(red, green, blue, alpha)
+                .normal(entry, normalX, normalY, normalZ)
+                .lineWidth(LINE_WIDTH);
     }
-    *///?} elif >=1.21.9 {
+    *///?} elif fabric && forge && >=1.21.9 {
     /*private static void renderLineBox(PoseStack poseStack, VertexConsumer lineBuffer, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, float red, float green, float blue, float alpha)
     {
         ShapeRenderer.renderLineBox(poseStack.last(), lineBuffer, minX, minY, minZ, maxX, maxY, maxZ, red, green, blue, alpha);
     }
-    *///?} elif >=1.21.2 {
+    *///?} elif fabric && forge && >=1.21.2 {
     /*private static void renderLineBox(PoseStack poseStack, VertexConsumer lineBuffer, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, float red, float green, float blue, float alpha)
     {
         ShapeRenderer.renderLineBox(poseStack, lineBuffer, minX, minY, minZ, maxX, maxY, maxZ, red, green, blue, alpha);
     }
     *///?}
 }
-//?}
