@@ -158,7 +158,7 @@ public class TorchmasterLightScreen extends TorchmasterScreenCompat
 
     private TorchmasterScreenRenderPlan renderPlan()
     {
-        return TorchmasterLightScreenPresenter.plan(layout(), model);
+        return TorchmasterLightScreenPresenter.plan(layout(), model, pos);
     }
 
     //? if >=1.20 {

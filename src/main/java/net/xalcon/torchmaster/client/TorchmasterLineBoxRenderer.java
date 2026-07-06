@@ -48,6 +48,11 @@ public final class TorchmasterLineBoxRenderer
         return rangeStyle(center).withAlpha(SAMPLE_STYLE.alpha);
     }
 
+    public static int rangeColor(BlockPos center)
+    {
+        return rangeStyle(center).opaqueArgb();
+    }
+
     static long coordinateHash(BlockPos pos)
     {
         long hash = 0xCBF29CE484222325L;
@@ -141,6 +146,19 @@ public final class TorchmasterLineBoxRenderer
         private Style withAlpha(float alpha)
         {
             return new Style(red, green, blue, alpha);
+        }
+
+        private int opaqueArgb()
+        {
+            return 0xFF000000
+                    | (component(red) << 16)
+                    | (component(green) << 8)
+                    | component(blue);
+        }
+
+        private static int component(float value)
+        {
+            return Math.max(0, Math.min(255, Math.round(value * 255.0F)));
         }
     }
 }

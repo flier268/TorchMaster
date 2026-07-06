@@ -19,6 +19,11 @@ public final class TorchmasterPanelRenderer
         return new Fill(left, top, right, bottom, BACKGROUND_COLOR);
     }
 
+    public static Fill fill(int left, int top, int right, int bottom, int color)
+    {
+        return new Fill(left, top, right, bottom, color);
+    }
+
     public static Fill[] frame(int left, int top, int right, int bottom)
     {
         return new Fill[] {

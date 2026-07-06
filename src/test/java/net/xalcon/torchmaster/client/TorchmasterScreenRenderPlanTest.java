@@ -1,5 +1,6 @@
 package net.xalcon.torchmaster.client;
 
+import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -13,8 +14,9 @@ class TorchmasterScreenRenderPlanTest
     void lightPresenterKeepsTitleBlockAndRangeLabels()
     {
         TorchmasterLightScreenLayout layout = new TorchmasterLightScreenLayout(800, 600, 300, 118);
+        BlockPos pos = new BlockPos(10, 20, 30);
 
-        TorchmasterScreenRenderPlan plan = TorchmasterLightScreenPresenter.plan(layout, "block.torchmaster.megatorch", 64);
+        TorchmasterScreenRenderPlan plan = TorchmasterLightScreenPresenter.plan(layout, "block.torchmaster.megatorch", 64, pos);
 
         assertEquals(250, plan.frameLeft);
         assertEquals(241, plan.frameTop);
@@ -26,6 +28,9 @@ class TorchmasterScreenRenderPlanTest
         assertCentered(plan.centeredLabels()[2], "screen.torchmaster.light.range", 400, 283, TorchmasterPanelRenderer.RANGE_COLOR);
         assertEquals(64, plan.centeredLabels()[2].text.args()[0]);
         assertEquals(0, plan.leftLabels().length);
+        assertEquals(2, plan.fills().length);
+        assertFill(plan.fills()[0], 481, 297, 497, 313, TorchmasterPanelRenderer.FRAME_DARK_COLOR);
+        assertFill(plan.fills()[1], 482, 298, 496, 312, TorchmasterLineBoxRenderer.rangeColor(pos));
     }
 
     @Test
@@ -43,6 +48,7 @@ class TorchmasterScreenRenderPlanTest
         assertEquals(2, plan.leftLabels().length);
         assertLeft(plan.leftLabels()[0], "visible.key", layout.panelLeft() + 12, 86, TorchmasterPanelRenderer.LABEL_COLOR);
         assertLeft(plan.leftLabels()[1], "visible.unit", layout.fieldX(), 70, TorchmasterPanelRenderer.UNIT_COLOR);
+        assertEquals(0, plan.fills().length);
     }
 
     private static void assertCentered(TorchmasterScreenRenderPlan.CenteredLabel label, String key, int x, int y, int color)
@@ -60,6 +66,15 @@ class TorchmasterScreenRenderPlanTest
         assertEquals(x, label.x);
         assertEquals(y, label.y);
         assertEquals(color, label.color);
+    }
+
+    private static void assertFill(TorchmasterPanelRenderer.Fill fill, int left, int top, int right, int bottom, int color)
+    {
+        assertEquals(left, fill.left);
+        assertEquals(top, fill.top);
+        assertEquals(right, fill.right);
+        assertEquals(bottom, fill.bottom);
+        assertEquals(color, fill.color);
     }
 
     private static final class TestRow extends TorchmasterConfigWidgetRows.Row

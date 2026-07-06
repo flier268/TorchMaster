@@ -9,9 +9,16 @@ final class TorchmasterScreenRenderPlan
     final int frameBottom;
     private final CenteredLabel[] centeredLabels;
     private final LeftLabel[] leftLabels;
+    private final TorchmasterPanelRenderer.Fill[] fills;
 
     TorchmasterScreenRenderPlan(TorchmasterPanelRenderer.Fill background, int frameLeft, int frameTop, int frameRight, int frameBottom,
             CenteredLabel[] centeredLabels, LeftLabel[] leftLabels)
+    {
+        this(background, frameLeft, frameTop, frameRight, frameBottom, centeredLabels, leftLabels, new TorchmasterPanelRenderer.Fill[0]);
+    }
+
+    TorchmasterScreenRenderPlan(TorchmasterPanelRenderer.Fill background, int frameLeft, int frameTop, int frameRight, int frameBottom,
+            CenteredLabel[] centeredLabels, LeftLabel[] leftLabels, TorchmasterPanelRenderer.Fill[] fills)
     {
         this.background = background;
         this.frameLeft = frameLeft;
@@ -20,6 +27,7 @@ final class TorchmasterScreenRenderPlan
         this.frameBottom = frameBottom;
         this.centeredLabels = centeredLabels;
         this.leftLabels = leftLabels;
+        this.fills = fills;
     }
 
     CenteredLabel[] centeredLabels()
@@ -30,6 +38,11 @@ final class TorchmasterScreenRenderPlan
     LeftLabel[] leftLabels()
     {
         return leftLabels;
+    }
+
+    TorchmasterPanelRenderer.Fill[] fills()
+    {
+        return fills;
     }
 
     static CenteredLabel centered(CompatText text, int x, int y, int color, boolean shadow)

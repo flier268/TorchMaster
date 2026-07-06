@@ -45,6 +45,9 @@ final class TorchmasterScreenRenderAdapter
     static void renderPlan(DrawContext graphics, TextRenderer textRenderer, TorchmasterScreenRenderPlan plan)
     {
         frame(graphics, plan.frameLeft, plan.frameTop, plan.frameRight, plan.frameBottom);
+        for (TorchmasterPanelRenderer.Fill fill : plan.fills()) {
+            fill(graphics, fill);
+        }
         for (TorchmasterScreenRenderPlan.CenteredLabel label : plan.centeredLabels()) {
             centered(graphics, textRenderer, label.text, label.x, label.y, label.color);
         }
@@ -89,6 +92,9 @@ final class TorchmasterScreenRenderAdapter
     static void renderPlan(MatrixStack poseStack, TextRenderer textRenderer, TorchmasterScreenRenderPlan plan)
     {
         frame(poseStack, plan.frameLeft, plan.frameTop, plan.frameRight, plan.frameBottom);
+        for (TorchmasterPanelRenderer.Fill fill : plan.fills()) {
+            fill(poseStack, fill);
+        }
         for (TorchmasterScreenRenderPlan.CenteredLabel label : plan.centeredLabels()) {
             centered(poseStack, textRenderer, label.text, label.x, label.y, label.color, label.shadow);
         }
@@ -128,6 +134,9 @@ final class TorchmasterScreenRenderAdapter
     static void renderPlan(TextRenderer textRenderer, TorchmasterScreenRenderPlan plan)
     {
         frame(plan.frameLeft, plan.frameTop, plan.frameRight, plan.frameBottom);
+        for (TorchmasterPanelRenderer.Fill fill : plan.fills()) {
+            fill(fill);
+        }
         for (TorchmasterScreenRenderPlan.CenteredLabel label : plan.centeredLabels()) {
             centered(textRenderer, label.text, label.x, label.y, label.color);
         }

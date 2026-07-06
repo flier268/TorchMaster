@@ -39,4 +39,19 @@ final class TorchmasterLightScreenLayout
     {
         return panelTop() + panelHeight;
     }
+
+    int rangeSwatchLeft()
+    {
+        return centerX() + 82;
+    }
+
+    int rangeSwatchTop()
+    {
+        return panelTop() + 57;
+    }
+
+    int rangeSwatchSize()
+    {
+        return 14;
+    }
 }
