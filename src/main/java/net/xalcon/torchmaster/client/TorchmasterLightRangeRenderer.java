@@ -21,12 +21,8 @@ import net.minecraft.client.render.VertexConsumerProvider;
 /*import net.minecraft.client.render.Tessellator;*/
 //? if <1.15
 /*import net.minecraft.client.render.VertexFormats;*/
-import net.minecraft.client.render.WorldRenderer;
 //? if >=1.15
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.BlockPos;
-//? if <1.15
-/*import net.minecraft.util.math.Vec3d;*/
 import net.minecraft.world.World;
 
 public final class TorchmasterLightRangeRenderer
@@ -58,12 +54,9 @@ public final class TorchmasterLightRangeRenderer
         GlStateManager.enableBlend();
         GlStateManager.lineWidth(TorchmasterLineBoxRenderer.LINE_WIDTH);
         buffer.begin(1, VertexFormats.POSITION_COLOR);
-        for (TorchmasterLightRangeDisplay.RangeSnapshot snapshot : TorchmasterLightRangeDisplay.snapshots(level)) {
-            renderRangeBox(snapshot.pos, snapshot.radius, camera, buffer);
-            for (BlockPos pos : snapshot.randomAirBlocks) {
-                TorchmasterRangeBoxes.Box box = TorchmasterRangeBoxes.sampleBox(pos);
-                renderLineBox(camera, buffer, box, TorchmasterLineBoxRenderer.SAMPLE_STYLE);
-            }
+        TorchmasterRangeRenderPlan plan = TorchmasterRangeRenderPlan.fromSnapshots(TorchmasterLightRangeDisplay.snapshots(level));
+        for (TorchmasterRangeRenderPlan.Entry entry : plan.entries()) {
+            TorchmasterRangeLineSubmitter.submitBox(camera, buffer, entry.box, entry.style);
         }
         tessellator.draw();
         GlStateManager.disableBlend();
@@ -97,12 +90,9 @@ public final class TorchmasterLightRangeRenderer
         *///?} else {
         poseStack.translate(-camera.getPos().x, -camera.getPos().y, -camera.getPos().z);
         //?}
-        for (TorchmasterLightRangeDisplay.RangeSnapshot snapshot : TorchmasterLightRangeDisplay.snapshots(level)) {
-            renderBox(TorchmasterRangeBoxes.rangeBox(snapshot.pos, snapshot.radius), poseStack, lineBuffer, TorchmasterLineBoxRenderer.RANGE_STYLE);
-            for (BlockPos pos : snapshot.randomAirBlocks) {
-                TorchmasterRangeBoxes.Box box = TorchmasterRangeBoxes.sampleBox(pos);
-                renderBox(box, poseStack, lineBuffer, TorchmasterLineBoxRenderer.SAMPLE_STYLE);
-            }
+        TorchmasterRangeRenderPlan plan = TorchmasterRangeRenderPlan.fromSnapshots(TorchmasterLightRangeDisplay.snapshots(level));
+        for (TorchmasterRangeRenderPlan.Entry entry : plan.entries()) {
+            TorchmasterRangeLineSubmitter.submitBox(poseStack, lineBuffer, entry.box, entry.style);
         }
         poseStack.pop();
     }
@@ -116,71 +106,5 @@ public final class TorchmasterLightRangeRenderer
         //?}
     }
 
-    private static void renderBox(TorchmasterRangeBoxes.Box box, MatrixStack poseStack, VertexConsumer lineBuffer, TorchmasterLineBoxRenderer.Style style)
-    {
-        //? if >=1.21.11 {
-        /*renderLineBox(poseStack, lineBuffer, box, style);
-        *///?} else {
-        WorldRenderer.drawBox(poseStack, lineBuffer, box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ, style.red, style.green, style.blue, style.alpha);
-        //?}
-    }
-    //?} else {
-    /*private static void renderRangeBox(BlockPos center, int radius, Camera camera, BufferBuilder buffer)
-    {
-        TorchmasterRangeBoxes.Box box = TorchmasterRangeBoxes.rangeBox(center, radius);
-        renderLineBox(camera, buffer, box, TorchmasterLineBoxRenderer.RANGE_STYLE);
-    }
-
-    private static void renderLineBox(Camera camera, BufferBuilder buffer, TorchmasterRangeBoxes.Box box, TorchmasterLineBoxRenderer.Style style)
-    {
-        Vec3d cameraPos = camera.getPos();
-        for (TorchmasterLineBoxRenderer.Line line : TorchmasterLineBoxRenderer.lines(box)) {
-            line(buffer,
-                    line.startX - cameraPos.x, line.startY - cameraPos.y, line.startZ - cameraPos.z,
-                    line.endX - cameraPos.x, line.endY - cameraPos.y, line.endZ - cameraPos.z,
-                    style);
-        }
-    }
-
-    private static void line(BufferBuilder buffer, double startX, double startY, double startZ, double endX, double endY, double endZ, TorchmasterLineBoxRenderer.Style style)
-    {
-        buffer.vertex(startX, startY, startZ).color(style.red, style.green, style.blue, style.alpha).next();
-        buffer.vertex(endX, endY, endZ).color(style.red, style.green, style.blue, style.alpha).next();
-    }
-    *///?}
-
-    //? if >=1.21.11 {
-    /*private static void renderLineBox(MatrixStack poseStack, VertexConsumer lineBuffer, TorchmasterRangeBoxes.Box box, TorchmasterLineBoxRenderer.Style style)
-    {
-        for (TorchmasterLineBoxRenderer.Line line : TorchmasterLineBoxRenderer.lines(box)) {
-            line(poseStack, lineBuffer, line, style);
-        }
-    }
-
-    private static void line(MatrixStack poseStack, VertexConsumer lineBuffer, TorchmasterLineBoxRenderer.Line line, TorchmasterLineBoxRenderer.Style style)
-    {
-        MatrixStack.Entry entry = poseStack.peek();
-        float normalX = (float)(line.endX - line.startX);
-        float normalY = (float)(line.endY - line.startY);
-        float normalZ = (float)(line.endZ - line.startZ);
-        lineBuffer.vertex(entry, (float)line.startX, (float)line.startY, (float)line.startZ)
-                .color(style.red, style.green, style.blue, style.alpha)
-                .normal(entry, normalX, normalY, normalZ)
-                .lineWidth(TorchmasterLineBoxRenderer.LINE_WIDTH);
-        lineBuffer.vertex(entry, (float)line.endX, (float)line.endY, (float)line.endZ)
-                .color(style.red, style.green, style.blue, style.alpha)
-                .normal(entry, normalX, normalY, normalZ)
-                .lineWidth(TorchmasterLineBoxRenderer.LINE_WIDTH);
-    }
-    *///?} elif fabric && forge && >=1.21.9 {
-    /*private static void renderLineBox(PoseStack poseStack, VertexConsumer lineBuffer, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, float red, float green, float blue, float alpha)
-    {
-        ShapeRenderer.renderLineBox(poseStack.last(), lineBuffer, minX, minY, minZ, maxX, maxY, maxZ, red, green, blue, alpha);
-    }
-    *///?} elif fabric && forge && >=1.21.2 {
-    /*private static void renderLineBox(PoseStack poseStack, VertexConsumer lineBuffer, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, float red, float green, float blue, float alpha)
-    {
-        ShapeRenderer.renderLineBox(poseStack, lineBuffer, minX, minY, minZ, maxX, maxY, maxZ, red, green, blue, alpha);
-    }
-    *///?}
+    //?}
 }

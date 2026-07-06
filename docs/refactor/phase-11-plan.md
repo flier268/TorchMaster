@@ -1,30 +1,32 @@
-# Phase 11 Refactor Plan
+# Phase 11 Completion Record
 
-## Targets
+## Completed
 
-- Deepen client render boundary by separating render-layer/buffer selection from range snapshot traversal and line submission.
-- Extract config screen entry models so integer, boolean, and list parsing/validation are no longer owned by widget inner classes.
-- Evaluate a version adapter for `SavedLightStore` PersistentState signatures, while keeping NBT schema and storage ids unchanged.
-- Decide whether deprecated `TorchmasterRuntime` filter registry facade can be removed after remaining call sites and compatibility needs are audited.
+- Added `TorchmasterConfigEntries` so config entry declaration order, typed collection, list parsing, and filter validation are shared outside widget inner classes.
+- Updated `TorchmasterConfigScreen` so inner entries only own Minecraft widget state and hand typed values to the config collector.
+- Added `TorchmasterRangeRenderPlan` and `TorchmasterRangeLineSubmitter` so range snapshot traversal and line submission are separated from renderer buffer/layer setup.
+- Kept `SavedLightStoreStateFactory` as the storage factory/type/load boundary and confirmed storage access continues through the helper.
+- Expanded policy tests to prevent raw config save-order lists in the screen and direct snapshot loops in the range renderer.
 
-## Known Coupling To Address
+## Remaining Coupling
 
-- Client range rendering still contains version-specific render API branches and drawing submission in one class.
-- Config screen entry classes still mix widget state, scroll visibility, validation, and draft collection.
-- Storage state still keeps multiple PersistentState override signatures in `SavedLightStore`.
-- Deprecated runtime filter globals remain public for compatibility.
+- `TorchmasterConfigScreen` still owns concrete widget construction, text field visibility, scroll positioning, and version-specific input/render overrides.
+- `TorchmasterLightRangeRenderer` still owns render layer selection, camera translation, buffer flushing, and legacy GL setup.
+- `SavedLightStore` still contains PersistentState override signatures for supported version ranges.
+- Deprecated `TorchmasterRuntime` filter registry fields remain as compatibility facades.
 
-## Verification Plan
+## Verification
 
-- Add focused tests for any extracted config entry model or storage signature adapter helper.
-- Run representative targets: `./gradlew :1.21.1-fabric:test :1.14.4-forge:test :1.20.6-neoforge:test :1.21.11-fabric:test`.
-- If render layer branches are changed, also run at least one legacy Fabric target and one latest Fabric target.
-- Run `./gradlew "Reset active project"` and confirm active project is `1.21.1-fabric`.
-- Run `git diff --check`.
+- Representative targets for this phase remain:
+  - `./gradlew :1.21.1-fabric:test :1.14.4-forge:test :1.20.6-neoforge:test :1.21.11-fabric:test`
+  - `./gradlew :1.14.4-fabric:test :1.21.11-fabric:test`
+  - `./gradlew "Reset active project"`
+  - `git diff --check`
+- The active project must finish at `1.21.1-fabric`.
 
 ## Anti-Regression Rules
 
-- Business rules remain version-independent and stay in `domain` or project-owned runtime helpers.
-- Do not move Minecraft render/storage API types into `domain` or `port`.
-- Do not introduce reflection or loader-specific copies for screen/render/storage/filter logic.
-- End Phase 11 by updating this record and creating Phase 12 or a maintenance follow-up plan.
+- Do not rebuild config save order from raw `List<Integer>`, `List<Boolean>`, or `List<List<String>>` inside screen classes.
+- Do not hand-write range snapshot loops in `TorchmasterLightRangeRenderer`; build a `TorchmasterRangeRenderPlan`.
+- Do not put widget, render, storage, filter runtime, or content business details into loader roots.
+- Keep business rules version-independent and outside Minecraft/loader APIs.

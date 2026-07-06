@@ -23,7 +23,7 @@ class StonecutterSourcePolicyTest
     private static final Pattern MIXIN_FORBIDDEN_SPAWN_IMPORT = Pattern.compile(
             "^import\\s+net\\.xalcon\\.torchmaster\\.(domain\\.SpawnBlockingRules|minecraft\\.storage\\.|minecraft\\.adapter\\.MinecraftSpawnBlocker)");
     private static final Pattern CLIENT_RUNTIME_DETAIL = Pattern.compile(
-            "Torchmaster(LightRangeDisplay|LightRangeRenderer|LightScreen|ClientLifecycle|ScreenCompat|RangeBoxes|PanelRenderer|LineBoxRenderer|ConfigScreenLayout)");
+            "Torchmaster(LightRangeDisplay|LightRangeRenderer|LightScreen|ClientLifecycle|ScreenCompat|RangeBoxes|PanelRenderer|LineBoxRenderer|RangeRenderPlan|RangeLineSubmitter|ConfigScreenLayout|ConfigEntries)");
     private static final Pattern STORAGE_RUNTIME_DETAIL = Pattern.compile(
             "(SavedLightStore|SavedLightStoreStateFactory|MinecraftLightStoreAccess|LightStoreBridge|LightStoreConfigView)");
     private static final Pattern RUNTIME_REGISTRY_FACADE = Pattern.compile("getRegistryForLevel\\s*\\(");
@@ -31,6 +31,8 @@ class StonecutterSourcePolicyTest
     private static final Pattern RUNTIME_FILTER_VALIDATION = Pattern.compile("EntityFilterList::IsValidFilterString|EntityFilterList\\.IsValidFilterString");
     private static final Pattern FILTER_RUNTIME_DETAIL = Pattern.compile("TorchmasterEntityFilters|TorchmasterEntityFilterRuntime|EntityFilterOverrideRules");
     private static final Pattern SCREEN_PANEL_RAW_FILL_COLOR = Pattern.compile("0xAA101010|0xFF404040|0xFF202020");
+    private static final Pattern CONFIG_SCREEN_RAW_SAVE_COLLECTION = Pattern.compile("List<\\s*(Integer|Boolean|List<String>)\\s*>\\s+\\w+\\s*=\\s*new\\s+ArrayList|fromEntries\\s*\\(");
+    private static final Pattern RANGE_RENDERER_DIRECT_SNAPSHOT_LOOP = Pattern.compile("for\\s*\\([^)]*RangeSnapshot[^)]*:\\s*TorchmasterLightRangeDisplay\\.snapshots");
     private static final Pattern LOADER_GATED_FILE_START = Pattern.compile("//\\?\\s*(if|elif|else if)\\b.*\\b(fabric|forge|neoforge)\\b.*\\{");
 
     @Test
@@ -147,6 +149,22 @@ class StonecutterSourcePolicyTest
     }
 
     @Test
+    void configScreenDoesNotCollectRawSaveOrderLists() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterConfigScreen.java");
+
+        assertTrue(!hasConfigScreenRawSaveCollection(path), () -> "Use TorchmasterConfigEntries collector instead of raw save-order lists in config screen: " + path);
+    }
+
+    @Test
+    void rangeRendererDoesNotLoopSnapshotsDirectly() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterLightRangeRenderer.java");
+
+        assertTrue(!hasRangeRendererDirectSnapshotLoop(path), () -> "Use TorchmasterRangeRenderPlan instead of hand-written snapshot loops: " + path);
+    }
+
+    @Test
     void sharedHelpersDoNotGateWholeClassesByLoader() throws IOException
     {
         List<Path> violations = javaFilesIn(
@@ -172,6 +190,15 @@ class StonecutterSourcePolicyTest
             }
         }
         return files.build();
+    }
+
+    private static Path sourcePath(String path)
+    {
+        Path direct = Paths.get(path);
+        if (Files.exists(direct)) {
+            return direct;
+        }
+        return Paths.get("../..").resolve(path).normalize();
     }
 
     private static boolean hasMinecraftVersionCondition(Path path)
@@ -259,6 +286,24 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> SCREEN_PANEL_RAW_FILL_COLOR.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasConfigScreenRawSaveCollection(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> CONFIG_SCREEN_RAW_SAVE_COLLECTION.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasRangeRendererDirectSnapshotLoop(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> RANGE_RENDERER_DIRECT_SNAPSHOT_LOOP.matcher(line).find());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }

@@ -12,11 +12,9 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.xalcon.torchmaster.TorchmasterRuntime;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
 import net.xalcon.torchmaster.config.TorchmasterTomlConfig;
-import net.xalcon.torchmaster.domain.EntityFilterOverrideRules;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class TorchmasterConfigScreen extends TorchmasterScreenCompat
@@ -48,22 +46,25 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
         TorchmasterConfigScreenLayout layout = layout();
         int fieldX = layout.fieldX();
         int fieldWidth = layout.fieldWidth();
-        int listFieldX = layout.listFieldX();
-        int listFieldWidth = layout.listFieldWidth();
-        int rowY = 48;
         int rowHeight = layout.rowHeight();
-
-        addIntEntry("screen.torchmaster.config.feralFlareTickRate", config.getFeralFlareTickRate(), fieldX, fieldWidth, rowY);
-        addIntEntry("screen.torchmaster.config.feralFlareLanternLightHardcap", config.getFeralFlareLanternLightCountHardcap(), fieldX, fieldWidth, rowY += rowHeight);
-        addIntEntry("screen.torchmaster.config.feralFlareRadius", config.getFeralFlareRadius(), fieldX, fieldWidth, rowY += rowHeight);
-        addIntEntry("screen.torchmaster.config.feralFlareMinLightLevel", config.getFeralFlareMinLightLevel(), fieldX, fieldWidth, rowY += rowHeight);
-        addIntEntry("screen.torchmaster.config.dreadLampRadius", config.getDreadLampRadius(), fieldX, fieldWidth, rowY += rowHeight);
-        addIntEntry("screen.torchmaster.config.megaTorchRadius", config.getMegaTorchRadius(), fieldX, fieldWidth, rowY += rowHeight);
-        addBooleanEntry("screen.torchmaster.config.aggressiveSpawnChecks", config.getAggressiveSpawnChecks(), fieldX, rowY += rowHeight);
-        addBooleanEntry("screen.torchmaster.config.blockOnlyNaturalSpawns", config.getBlockOnlyNaturalSpawns(), fieldX, rowY += rowHeight);
-        addBooleanEntry("screen.torchmaster.config.blockVillageSieges", config.getBlockVillageSieges(), fieldX, rowY += rowHeight);
-        addListEntry("screen.torchmaster.config.megaTorchEntityBlockListOverrides", config.getMegaTorchEntityBlockListOverrides(), listFieldX, listFieldWidth, rowY += rowHeight);
-        addListEntry("screen.torchmaster.config.dreadLampEntityBlockListOverrides", config.getDreadLampEntityBlockListOverrides(), listFieldX, listFieldWidth, rowY += rowHeight);
+        List<TorchmasterConfigEntries.EntryDefinition> definitions = TorchmasterConfigEntries.fromConfig(config);
+        for (int index = 0; index < definitions.size(); index++) {
+            TorchmasterConfigEntries.EntryDefinition definition = definitions.get(index);
+            int rowY = 48 + rowHeight * index;
+            switch (definition.type()) {
+                case INTEGER:
+                    addIntEntry(definition, fieldX, fieldWidth, rowY);
+                    break;
+                case BOOLEAN:
+                    addBooleanEntry(definition, fieldX, rowY);
+                    break;
+                case LIST:
+                    addListEntry(definition, layout.listFieldX(), layout.listFieldWidth(), rowY);
+                    break;
+                default:
+                    throw new IllegalStateException("Unsupported config entry type " + definition.type());
+            }
+        }
 
         int bottomButtonWidth = layout.bottomButtonWidth();
         int buttonGap = 4;
@@ -76,30 +77,30 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
         updateEntryPositions();
     }
 
-    private void addIntEntry(String translationKey, int value, int x, int width, int y)
+    private void addIntEntry(TorchmasterConfigEntries.EntryDefinition definition, int x, int width, int y)
     {
-        TextFieldWidget editBox = textField(x, layout().widgetY(y), width, BUTTON_HEIGHT, translationKey);
+        TextFieldWidget editBox = textField(x, layout().widgetY(y), width, BUTTON_HEIGHT, definition.translationKey());
         editBox.setTextPredicate(text -> text.isEmpty() || text.matches("-?\\d*"));
         editBox.setMaxLength(10);
-        editBox.setText(Integer.toString(value));
+        editBox.setText(Integer.toString(definition.intValue()));
         addCompatWidget(editBox);
-        entries.add(new IntEntry(translationKey, y, editBox));
+        entries.add(new IntEntry(definition, y, editBox));
     }
 
-    private void addListEntry(String translationKey, List<String> values, int x, int width, int y)
+    private void addListEntry(TorchmasterConfigEntries.EntryDefinition definition, int x, int width, int y)
     {
-        TextFieldWidget editBox = textField(x, layout().widgetY(y), width, BUTTON_HEIGHT, translationKey);
+        TextFieldWidget editBox = textField(x, layout().widgetY(y), width, BUTTON_HEIGHT, definition.translationKey());
         editBox.setMaxLength(1024);
-        editBox.setText(String.join(", ", values));
+        editBox.setText(String.join(", ", definition.listValue()));
         addCompatWidget(editBox);
-        entries.add(new ListEntry(translationKey, y, editBox));
+        entries.add(new ListEntry(definition, y, editBox));
     }
 
-    private void addBooleanEntry(String translationKey, boolean value, int x, int y)
+    private void addBooleanEntry(TorchmasterConfigEntries.EntryDefinition definition, int x, int y)
     {
-        BooleanEntry entry = new BooleanEntry(translationKey, y, value);
+        BooleanEntry entry = new BooleanEntry(definition, y, definition.booleanValue());
         TorchmasterConfigScreenLayout layout = layout();
-        ButtonWidget button = button(layout.booleanButtonX(x), layout.widgetY(y), layout.booleanButtonWidth(), BUTTON_HEIGHT, booleanLabel(value), ignored -> {
+        ButtonWidget button = button(layout.booleanButtonX(x), layout.widgetY(y), layout.booleanButtonWidth(), BUTTON_HEIGHT, booleanLabel(entry.value), ignored -> {
             entry.toggle();
             ignored.setMessage(booleanLabel(entry.value).asWidget());
         });
@@ -116,16 +117,16 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
             return;
         }
 
-        List<Integer> ints = new ArrayList<>();
-        List<Boolean> booleans = new ArrayList<>();
-        List<List<String>> lists = new ArrayList<>();
+        TorchmasterConfigEntries.Collector collector = TorchmasterConfigEntries.collector();
         for (Entry entry : entries) {
-            if (!entry.read(ints, booleans, lists)) {
+            TorchmasterConfigEntries.ReadResult result = entry.read(collector);
+            if (!result.isSuccess()) {
+                setStatus(result.errorKey(), 0xFFFF5555);
                 return;
             }
         }
 
-        TorchmasterConfigDraft.fromEntries(ints, booleans, lists).saveTo((TorchmasterTomlConfig)loadedConfig);
+        collector.toDraft().saveTo((TorchmasterTomlConfig)loadedConfig);
         TorchmasterRuntime.onWorldLoaded();
         setStatus("screen.torchmaster.config.saved", 0xFF55FF55);
     }
@@ -275,7 +276,7 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
 
         for (Entry entry : entries) {
             if (entry.visible) {
-                graphics.drawText(textRenderer, text(entry.translationKey).asWidget(), left + 12, layout.compact() ? entry.y : entry.y + 6, TorchmasterPanelRenderer.LABEL_COLOR, false);
+                graphics.drawText(textRenderer, text(entry.translationKey()).asWidget(), left + 12, layout.compact() ? entry.y : entry.y + 6, TorchmasterPanelRenderer.LABEL_COLOR, false);
             }
         }
         graphics.drawCenteredTextWithShadow(textRenderer, status.asWidget(), width / 2, height - 48, statusColor);
@@ -297,7 +298,7 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
 
         for (Entry entry : entries) {
             if (entry.visible) {
-                drawTextWithShadow(poseStack, textRenderer, text(entry.translationKey).asWidget(), left + 12, layout.compact() ? entry.y : entry.y + 6, TorchmasterPanelRenderer.LABEL_COLOR);
+                drawTextWithShadow(poseStack, textRenderer, text(entry.translationKey()).asWidget(), left + 12, layout.compact() ? entry.y : entry.y + 6, TorchmasterPanelRenderer.LABEL_COLOR);
             }
         }
         drawCenteredTextWithShadow(poseStack, textRenderer, status.asWidget(), width / 2, height - 48, statusColor);
@@ -319,7 +320,7 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
 
         for (Entry entry : entries) {
             if (entry.visible) {
-                drawTextWithShadow(poseStack, textRenderer, text(entry.translationKey).asWidget(), left + 12, layout.compact() ? entry.y : entry.y + 6, TorchmasterPanelRenderer.LABEL_COLOR);
+                drawTextWithShadow(poseStack, textRenderer, text(entry.translationKey()).asWidget(), left + 12, layout.compact() ? entry.y : entry.y + 6, TorchmasterPanelRenderer.LABEL_COLOR);
             }
         }
         drawCenteredText(poseStack, textRenderer, status.asWidget(), width / 2, height - 48, statusColor);
@@ -343,7 +344,7 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
 
         for (Entry entry : entries) {
             if (entry.visible) {
-                drawString(font, text(entry.translationKey).asWidget(), left + 12, layout.compact() ? entry.y : entry.y + 6, TorchmasterPanelRenderer.LABEL_COLOR);
+                drawString(font, text(entry.translationKey()).asWidget(), left + 12, layout.compact() ? entry.y : entry.y + 6, TorchmasterPanelRenderer.LABEL_COLOR);
             }
         }
         drawCenteredString(font, status.asWidget(), width / 2, height - 48, statusColor);
@@ -446,31 +447,36 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
 
     private abstract class Entry
     {
-        protected final String translationKey;
+        protected final TorchmasterConfigEntries.EntryDefinition definition;
         protected final int baseY;
         protected int y;
         protected boolean visible;
 
-        Entry(String translationKey, int baseY)
+        Entry(TorchmasterConfigEntries.EntryDefinition definition, int baseY)
         {
-            this.translationKey = translationKey;
+            this.definition = definition;
             this.baseY = baseY;
+        }
+
+        String translationKey()
+        {
+            return definition.translationKey();
         }
 
         abstract void setPosition(int fieldX, int y);
 
         abstract void setVisible(boolean visible);
 
-        abstract boolean read(List<Integer> ints, List<Boolean> booleans, List<List<String>> lists);
+        abstract TorchmasterConfigEntries.ReadResult read(TorchmasterConfigEntries.Collector collector);
     }
 
     private class IntEntry extends Entry
     {
         private final TextFieldWidget editBox;
 
-        IntEntry(String translationKey, int baseY, TextFieldWidget editBox)
+        IntEntry(TorchmasterConfigEntries.EntryDefinition definition, int baseY, TextFieldWidget editBox)
         {
-            super(translationKey, baseY);
+            super(definition, baseY);
             this.editBox = editBox;
         }
 
@@ -491,15 +497,9 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
         }
 
         @Override
-        boolean read(List<Integer> ints, List<Boolean> booleans, List<List<String>> lists)
+        TorchmasterConfigEntries.ReadResult read(TorchmasterConfigEntries.Collector collector)
         {
-            try {
-                ints.add(Integer.parseInt(editBox.getText().trim()));
-                return true;
-            } catch (NumberFormatException ignored) {
-                setStatus("screen.torchmaster.config.invalidNumber", 0xFFFF5555);
-                return false;
-            }
+            return collector.addInt(editBox.getText());
         }
     }
 
@@ -508,9 +508,9 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
         private boolean value;
         private ButtonWidget button;
 
-        BooleanEntry(String translationKey, int baseY, boolean value)
+        BooleanEntry(TorchmasterConfigEntries.EntryDefinition definition, int baseY, boolean value)
         {
-            super(translationKey, baseY);
+            super(definition, baseY);
             this.value = value;
         }
 
@@ -537,10 +537,9 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
         }
 
         @Override
-        boolean read(List<Integer> ints, List<Boolean> booleans, List<List<String>> lists)
+        TorchmasterConfigEntries.ReadResult read(TorchmasterConfigEntries.Collector collector)
         {
-            booleans.add(value);
-            return true;
+            return collector.addBoolean(value);
         }
     }
 
@@ -548,9 +547,9 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
     {
         private final TextFieldWidget editBox;
 
-        ListEntry(String translationKey, int baseY, TextFieldWidget editBox)
+        ListEntry(TorchmasterConfigEntries.EntryDefinition definition, int baseY, TextFieldWidget editBox)
         {
-            super(translationKey, baseY);
+            super(definition, baseY);
             this.editBox = editBox;
         }
 
@@ -572,33 +571,10 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
         }
 
         @Override
-        boolean read(List<Integer> ints, List<Boolean> booleans, List<List<String>> lists)
+        TorchmasterConfigEntries.ReadResult read(TorchmasterConfigEntries.Collector collector)
         {
-            List<String> parsed = parseList(editBox.getText());
-            for (String value : parsed) {
-                if (!EntityFilterOverrideRules.isValidFilterString(value)) {
-                    setStatus("screen.torchmaster.config.invalidFilter", 0xFFFF5555);
-                    return false;
-                }
-            }
-            lists.add(parsed);
-            return true;
+            return collector.addList(editBox.getText());
         }
-    }
-
-    private static List<String> parseList(String text)
-    {
-        List<String> values = new ArrayList<>();
-        if (text.trim().isEmpty()) {
-            return values;
-        }
-        for (String value : Arrays.asList(text.split(","))) {
-            String trimmed = value.trim();
-            if (!trimmed.isEmpty()) {
-                values.add(trimmed);
-            }
-        }
-        return values;
     }
 
     private static void setWidgetX(TextFieldWidget widget, int x)

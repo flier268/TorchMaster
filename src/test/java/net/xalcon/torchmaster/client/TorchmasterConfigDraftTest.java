@@ -14,12 +14,20 @@ class TorchmasterConfigDraftTest
     @Test
     void mapsEntryListsInScreenOrder()
     {
-        TorchmasterConfigDraft draft = TorchmasterConfigDraft.fromEntries(
-                Arrays.asList(5, 255, 16, 10, 64, 65),
-                Arrays.asList(true, false, true),
-                Arrays.asList(
-                        Collections.singletonList("+minecraft:zombie"),
-                        Collections.singletonList("-minecraft:squid")));
+        TorchmasterConfigEntries.Collector collector = TorchmasterConfigEntries.collector();
+        collector.addInt("5");
+        collector.addInt("255");
+        collector.addInt("16");
+        collector.addInt("10");
+        collector.addInt("64");
+        collector.addInt("65");
+        collector.addBoolean(true);
+        collector.addBoolean(false);
+        collector.addBoolean(true);
+        collector.addList("+minecraft:zombie");
+        collector.addList("-minecraft:squid");
+
+        TorchmasterConfigDraft draft = collector.toDraft();
 
         assertEquals(5, draft.feralFlareTickRate());
         assertTrue(draft.aggressiveSpawnChecks());

@@ -215,7 +215,7 @@ public final class TorchmasterLightRangeDisplay
         public final int radius;
         public final List<BlockPos> randomAirBlocks;
 
-        private RangeSnapshot(BlockPos pos, int radius, List<BlockPos> randomAirBlocks)
+        RangeSnapshot(BlockPos pos, int radius, List<BlockPos> randomAirBlocks)
         {
             this.pos = pos;
             this.radius = radius;
