@@ -19,6 +19,7 @@ class StonecutterSourcePolicyTest
     private static final Pattern VERSION_CONDITION = Pattern.compile("//\\?\\s*(if|elif|else if)\\b.*(?:[<>]=?|=)\\s*1\\.");
     private static final Pattern PLATFORM_IMPORT = Pattern.compile(
             "^import\\s+(net\\.minecraft|net\\.fabricmc|net\\.minecraftforge|net\\.neoforged)\\.");
+    private static final Pattern STONECUTTER_CONDITION = Pattern.compile("//\\?\\s*(if|elif|else if|else)\\b");
     private static final Pattern MIXIN_FORBIDDEN_SPAWN_IMPORT = Pattern.compile(
             "^import\\s+net\\.xalcon\\.torchmaster\\.(domain\\.SpawnBlockingRules|minecraft\\.storage\\.|minecraft\\.adapter\\.MinecraftSpawnBlocker)");
     private static final Pattern CLIENT_RUNTIME_DETAIL = Pattern.compile(
@@ -26,6 +27,8 @@ class StonecutterSourcePolicyTest
     private static final Pattern STORAGE_RUNTIME_DETAIL = Pattern.compile(
             "(SavedLightStore|MinecraftLightStoreAccess|LightStoreBridge|LightStoreConfigView)");
     private static final Pattern RUNTIME_REGISTRY_FACADE = Pattern.compile("getRegistryForLevel\\s*\\(");
+    private static final Pattern RUNTIME_FILTER_VALIDATION = Pattern.compile("EntityFilterList::IsValidFilterString|EntityFilterList\\.IsValidFilterString");
+    private static final Pattern FILTER_RUNTIME_DETAIL = Pattern.compile("TorchmasterEntityFilterRuntime|EntityFilterOverrideRules");
     private static final Pattern LOADER_GATED_FILE_START = Pattern.compile("//\\?\\s*(if|elif|else if)\\b.*\\b(fabric|forge|neoforge)\\b.*\\{");
 
     @Test
@@ -49,6 +52,18 @@ class StonecutterSourcePolicyTest
                 .collect(Collectors.toList());
 
         assertTrue(violations.isEmpty(), () -> "Keep domain and port packages Minecraft/loader-free: " + violations);
+    }
+
+    @Test
+    void domainAndPortRemainStonecutterFree() throws IOException
+    {
+        List<Path> violations = javaFilesIn(
+                "src/main/java/net/xalcon/torchmaster/domain",
+                "src/main/java/net/xalcon/torchmaster/port")
+                .filter(StonecutterSourcePolicyTest::hasStonecutterCondition)
+                .collect(Collectors.toList());
+
+        assertTrue(violations.isEmpty(), () -> "Keep domain and port version/loader branch-free: " + violations);
     }
 
     @Test
@@ -80,10 +95,20 @@ class StonecutterSourcePolicyTest
     void loaderRootsDoNotDuplicateClientRuntimeDetails() throws IOException
     {
         List<Path> violations = javaFilesIn("src/fabric", "src/forge", "src/neoforge")
-                .filter(path -> hasClientRuntimeDetail(path) || hasStorageRuntimeDetail(path))
+                .filter(path -> hasClientRuntimeDetail(path) || hasStorageRuntimeDetail(path) || hasFilterRuntimeDetail(path))
                 .collect(Collectors.toList());
 
         assertTrue(violations.isEmpty(), () -> "Keep client/storage runtime details in shared helpers; loader roots should only wire lifecycle entrypoints: " + violations);
+    }
+
+    @Test
+    void configValidationDoesNotDependOnRuntimeFilterHolder() throws IOException
+    {
+        List<Path> violations = javaFilesIn("src/main/java/net/xalcon/torchmaster/config", "src/main/java/net/xalcon/torchmaster/client")
+                .filter(StonecutterSourcePolicyTest::hasRuntimeFilterValidation)
+                .collect(Collectors.toList());
+
+        assertTrue(violations.isEmpty(), () -> "Use domain EntityFilterOverrideRules for config validation instead of EntityFilterList runtime holder: " + violations);
     }
 
     @Test
@@ -143,6 +168,15 @@ class StonecutterSourcePolicyTest
         }
     }
 
+    private static boolean hasStonecutterCondition(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> STONECUTTER_CONDITION.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
     private static boolean hasForbiddenSpawnImport(Path path)
     {
         try {
@@ -174,6 +208,24 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> RUNTIME_REGISTRY_FACADE.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasRuntimeFilterValidation(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> RUNTIME_FILTER_VALIDATION.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasFilterRuntimeDetail(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> FILTER_RUNTIME_DETAIL.matcher(line).find());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }

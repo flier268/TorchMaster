@@ -9,10 +9,10 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 //? if >=1.16 && <1.20
 //import net.minecraft.client.util.math.MatrixStack;
-import net.xalcon.torchmaster.EntityFilterList;
 import net.xalcon.torchmaster.TorchmasterRuntime;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
 import net.xalcon.torchmaster.config.TorchmasterTomlConfig;
+import net.xalcon.torchmaster.domain.EntityFilterOverrideRules;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -131,18 +131,7 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
             }
         }
 
-        ((TorchmasterTomlConfig)loadedConfig).save(
-                ints.get(0),
-                ints.get(1),
-                ints.get(2),
-                ints.get(3),
-                ints.get(4),
-                ints.get(5),
-                booleans.get(0),
-                booleans.get(1),
-                booleans.get(2),
-                lists.get(0),
-                lists.get(1));
+        TorchmasterConfigDraft.fromEntries(ints, booleans, lists).saveTo((TorchmasterTomlConfig)loadedConfig);
         TorchmasterRuntime.onWorldLoaded();
         setStatus("screen.torchmaster.config.saved", 0xFF55FF55);
     }
@@ -628,7 +617,7 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
         {
             List<String> parsed = parseList(editBox.getText());
             for (String value : parsed) {
-                if (!EntityFilterList.IsValidFilterString(value)) {
+                if (!EntityFilterOverrideRules.isValidFilterString(value)) {
                     setStatus("screen.torchmaster.config.invalidFilter", 0xFFFF5555);
                     return false;
                 }

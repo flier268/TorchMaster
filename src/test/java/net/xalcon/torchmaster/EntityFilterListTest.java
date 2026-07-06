@@ -32,6 +32,26 @@ class EntityFilterListTest {
     }
 
     @Test
+    void removeOverrideDoesNotRequireEntityToExist() {
+        EntityFilterList filter = new EntityFilterList("torchmaster:test");
+        filter.registerEntity(EntityTypeKey.parse("missing:entity"));
+
+        filter.applyListOverrides(Collections.singletonList("-missing:entity"), key -> false);
+
+        assertFalse(filter.containsEntity(EntityTypeKey.parse("missing:entity")));
+    }
+
+    @Test
+    void duplicateAddDoesNotDuplicateEntity() {
+        EntityFilterList filter = new EntityFilterList("torchmaster:test");
+
+        filter.applyListOverrides(Arrays.asList("+minecraft:zombie", "+minecraft:zombie"), key -> true);
+
+        assertTrue(filter.containsEntity(EntityTypeKey.parse("minecraft:zombie")));
+        assertTrue(filter.getEntities().size() == 1);
+    }
+
+    @Test
     void rejectsInvalidFilterStrings() {
         assertFalse(EntityFilterList.IsValidFilterString("minecraft:zombie"));
         assertFalse(EntityFilterList.IsValidFilterString("+minecraft"));

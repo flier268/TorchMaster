@@ -1,7 +1,7 @@
 package net.xalcon.torchmaster.config;
 
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
-import net.xalcon.torchmaster.EntityFilterList;
+import net.xalcon.torchmaster.domain.EntityFilterOverrideRules;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -238,7 +238,7 @@ public final class TorchmasterTomlConfig implements ITorchmasterConfig
 
         for (TorchmasterConfigSchema.ListValue value : TorchmasterConfigSchema.LIST_VALUES) {
             String path = TorchmasterConfigSchema.path(value);
-            config.set(path, value.normalize(config.get(path), EntityFilterList::IsValidFilterString));
+            config.set(path, value.normalize(config.get(path), EntityFilterOverrideRules::isValidFilterString));
             config.setComment(path, comment(value));
         }
     }
@@ -261,7 +261,7 @@ public final class TorchmasterTomlConfig implements ITorchmasterConfig
 
     private static List<String> readList(CommentedFileConfig config, TorchmasterConfigSchema.ListValue value)
     {
-        return value.normalize(config.get(TorchmasterConfigSchema.path(value)), EntityFilterList::IsValidFilterString);
+        return value.normalize(config.get(TorchmasterConfigSchema.path(value)), EntityFilterOverrideRules::isValidFilterString);
     }
 
     private static void setBoolean(CommentedFileConfig config, TorchmasterConfigSchema.BooleanValue value, boolean configured)
@@ -278,7 +278,7 @@ public final class TorchmasterTomlConfig implements ITorchmasterConfig
 
     private static void setList(CommentedFileConfig config, TorchmasterConfigSchema.ListValue value, List<String> configured)
     {
-        config.set(TorchmasterConfigSchema.path(value), value.normalize(configured, EntityFilterList::IsValidFilterString));
+        config.set(TorchmasterConfigSchema.path(value), value.normalize(configured, EntityFilterOverrideRules::isValidFilterString));
         config.setComment(TorchmasterConfigSchema.path(value), comment(value));
     }
 

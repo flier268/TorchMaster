@@ -1,5 +1,7 @@
 package net.xalcon.torchmaster;
 
+import net.xalcon.torchmaster.domain.EntityFilterOverride;
+import net.xalcon.torchmaster.domain.EntityFilterOverrideRules;
 import net.xalcon.torchmaster.port.EntityTypeKey;
 import net.xalcon.torchmaster.minecraft.adapter.MinecraftEntityIds;
 
@@ -8,7 +10,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.regex.Pattern;
 
 public class EntityFilterList
 {
@@ -30,15 +31,9 @@ public class EntityFilterList
 		this.list.add(entityName);
 	}
 
-	private static final Pattern FILTER_PATTERN = Pattern.compile("[+-][a-z0-9_-]+:[a-z0-9_-]+");
-
 	public static boolean IsValidFilterString(Object object)
 	{
-		if(!(object instanceof String))
-			return false;
-
-		String filterString = (String)object;
-		return FILTER_PATTERN.matcher(filterString).matches();
+		return EntityFilterOverrideRules.isValidFilterString(object);
 	}
 
 	public void applyListOverrides(List<String> overrides)
@@ -50,44 +45,30 @@ public class EntityFilterList
 	{
 		for(String override: overrides)
 		{
-			// minimum len is prefix + valid resource location, i.e. +a:b
-			if(override.length() < 4)
-			{
-				TorchmasterRuntime.LOG.warn("[{}] Invalid filter definition '{}'", filterListId, override);
-				continue;
-			}
-
-			char prefix = override.charAt(0);
-			EntityTypeKey entityType;
-			try {
-				entityType = MinecraftEntityIds.parseEntityTypeKey(override.substring(1));
-			} catch (RuntimeException ignored) {
-				TorchmasterRuntime.LOG.warn("[{}] Invalid entity id '{}'", filterListId, override.substring(1));
-				continue;
-			}
-
-			switch (prefix)
-			{
-				case '+':
-					if(!this.containsEntity(entityType))
+			EntityFilterOverride parsed = EntityFilterOverrideRules.parse(override, entityExists);
+			switch (parsed.action()) {
+				case ADD:
+					if(!this.containsEntity(parsed.entityType()))
 					{
-						if(!entityExists.test(entityType))
-						{
-							TorchmasterRuntime.LOG.warn("[{}] The entity '{}' does not exist, skipping", filterListId, entityType);
-							continue;
-						}
-						this.registerEntity(entityType);
-						TorchmasterRuntime.LOG.info("[{}] Added '{}' to the block list", filterListId, entityType);
+						this.registerEntity(parsed.entityType());
+						TorchmasterRuntime.LOG.info("[{}] Added '{}' to the block list", filterListId, parsed.entityType());
 					}
 					break;
-				case '-':
-					if(this.list.removeIf(registeredEntity -> registeredEntity.equals(entityType)))
+				case REMOVE:
+					if(this.list.removeIf(registeredEntity -> registeredEntity.equals(parsed.entityType())))
 					{
-						TorchmasterRuntime.LOG.info("[{}] Removed '{}' from the block list", filterListId, entityType);
+						TorchmasterRuntime.LOG.info("[{}] Removed '{}' from the block list", filterListId, parsed.entityType());
 					}
 					break;
+				case UNKNOWN_ENTITY:
+					TorchmasterRuntime.LOG.warn("[{}] The entity '{}' does not exist, skipping", filterListId, parsed.entityType());
+					break;
+				case INVALID_ENTITY_ID:
+					TorchmasterRuntime.LOG.warn("[{}] Invalid entity id '{}'", filterListId, parsed.entityId());
+					break;
+				case INVALID_FORMAT:
 				default:
-					TorchmasterRuntime.LOG.warn("[{}] Invalid block list prefix: '{}', only + and - are valid prefixes", filterListId, prefix);
+				TorchmasterRuntime.LOG.warn("[{}] Invalid filter definition '{}'", filterListId, override);
 					break;
 			}
 		}

@@ -1,6 +1,5 @@
 package net.xalcon.torchmaster;
 
-import net.xalcon.torchmaster.compat.VanillaCompat;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
 import net.xalcon.torchmaster.platform.Services;
 import org.apache.logging.log4j.LogManager;
@@ -44,13 +43,6 @@ public class TorchmasterRuntime
 
     public static void onWorldLoaded()
     {
-        DreadLampFilterRegistry.clear();
-        MegaTorchFilterRegistry.clear();
-
-        VanillaCompat.registerDreadLampEntities(DreadLampFilterRegistry);
-        VanillaCompat.registerTorchEntities(MegaTorchFilterRegistry);
-
-        DreadLampFilterRegistry.applyListOverrides(TorchmasterRuntime.getConfig().getDreadLampEntityBlockListOverrides());
-        MegaTorchFilterRegistry.applyListOverrides(TorchmasterRuntime.getConfig().getMegaTorchEntityBlockListOverrides());
+        TorchmasterEntityFilterRuntime.reload(MegaTorchFilterRegistry, DreadLampFilterRegistry, TorchmasterRuntime.getConfig());
     }
 }
