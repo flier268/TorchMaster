@@ -19,9 +19,11 @@ public final class TorchmasterRangeRenderPlan
     {
         List<Entry> entries = new ArrayList<>();
         for (TorchmasterLightRangeDisplay.RangeSnapshot snapshot : snapshots) {
-            entries.add(new Entry(TorchmasterRangeBoxes.rangeBox(snapshot.pos, snapshot.radius), TorchmasterLineBoxRenderer.RANGE_STYLE));
+            TorchmasterLineBoxRenderer.Style rangeStyle = TorchmasterLineBoxRenderer.rangeStyle(snapshot.pos);
+            TorchmasterLineBoxRenderer.Style sampleStyle = TorchmasterLineBoxRenderer.sampleStyle(snapshot.pos);
+            entries.add(new Entry(TorchmasterRangeBoxes.rangeBox(snapshot.pos, snapshot.radius), rangeStyle));
             for (BlockPos pos : snapshot.randomAirBlocks) {
-                entries.add(new Entry(TorchmasterRangeBoxes.sampleBox(pos), TorchmasterLineBoxRenderer.SAMPLE_STYLE));
+                entries.add(new Entry(TorchmasterRangeBoxes.sampleBox(pos), sampleStyle));
             }
         }
         return new TorchmasterRangeRenderPlan(Collections.unmodifiableList(entries));
