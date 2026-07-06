@@ -18,6 +18,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.xalcon.torchmaster.Constants;
 import net.xalcon.torchmaster.TorchmasterRuntime;
+import net.xalcon.torchmaster.minecraft.storage.MinecraftLightStoreAccess;
 import net.xalcon.torchmaster.port.LightInfo;
 import net.xalcon.torchmaster.port.EntityTypeKey;
 
@@ -40,7 +41,7 @@ public class CommandTorchmaster
                     TorchmasterRuntime.LOG.info("#################################");
                     for(ServerWorld level: server.getWorlds())
                     {
-                        TorchmasterRuntime.getRegistryForLevel(level).ifPresent(container ->
+                        MinecraftLightStoreAccess.get(level).ifPresent(container ->
                         {
                             TorchmasterRuntime.LOG.info("Torches in dimension {}:",
                                     //? if fabric && forge && >=1.21.11 {

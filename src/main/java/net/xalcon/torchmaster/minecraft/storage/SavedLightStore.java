@@ -14,17 +14,13 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.world.PersistentState;
 //? if >=1.21.11
 //import net.minecraft.world.PersistentStateType;
-import net.xalcon.torchmaster.TorchmasterRuntime;
 import net.xalcon.torchmaster.port.EntityTypeKey;
 import net.xalcon.torchmaster.port.LightInfo;
 import net.xalcon.torchmaster.port.SpawnReason;
 import net.xalcon.torchmaster.port.Vec3View;
 import net.xalcon.torchmaster.port.WorldView;
 import net.xalcon.torchmaster.domain.LightRegistry;
-import net.xalcon.torchmaster.minecraft.adapter.MinecraftAdapterViews;
-import net.xalcon.torchmaster.minecraft.adapter.MinecraftConfigView;
 import net.xalcon.torchmaster.minecraft.light.MinecraftBlockingLight;
-import net.xalcon.torchmaster.platform.Services;
 
 import java.util.Optional;
 
@@ -43,9 +39,9 @@ public class SavedLightStore extends PersistentState implements LightStoreBridge
     public boolean shouldBlockEntityType(EntityTypeKey entityType, Vec3View pos, SpawnReason spawnType)
     {
         return lights.blocksEntity(
-                MinecraftAdapterViews.entityFilter(TorchmasterRuntime.MegaTorchFilterRegistry),
-                MinecraftAdapterViews.entityFilter(TorchmasterRuntime.DreadLampFilterRegistry),
-                new MinecraftConfigView(Services.PLATFORM.getConfig()),
+                LightStoreConfigView.megaTorchFilter(),
+                LightStoreConfigView.dreadLampFilter(),
+                LightStoreConfigView.config(),
                 entityType,
                 pos);
     }
@@ -53,7 +49,7 @@ public class SavedLightStore extends PersistentState implements LightStoreBridge
     @Override
     public boolean shouldBlockVillageZombieRaid(Vec3View pos)
     {
-        return lights.blocksVillageSiege(new MinecraftConfigView(Services.PLATFORM.getConfig()), pos);
+        return lights.blocksVillageSiege(LightStoreConfigView.config(), pos);
     }
 
     @Override

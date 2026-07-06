@@ -1,6 +1,5 @@
 package net.xalcon.torchmaster.client;
 
-import net.minecraft.client.MinecraftClient;
 //? if >=1.20
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -10,27 +9,17 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 //? if >=1.16 && <1.20
 //import net.minecraft.client.util.math.MatrixStack;
-//? if <1.16
-/*import net.minecraft.client.resource.language.I18n;*/
-import net.minecraft.text.Text;
-//? if <1.16
-/*import net.minecraft.text.TranslatableText;*/
-//? if <1.19 {
-/*import net.minecraft.text.LiteralText;
-*///?}
 import net.xalcon.torchmaster.EntityFilterList;
 import net.xalcon.torchmaster.TorchmasterRuntime;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
 import net.xalcon.torchmaster.config.TorchmasterTomlConfig;
-//? if >=1.16
-import net.xalcon.torchmaster.minecraft.adapter.MinecraftText;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class TorchmasterConfigScreen extends Screen
+public class TorchmasterConfigScreen extends TorchmasterScreenCompat
 {
     private static final int MAX_PANEL_WIDTH = 470;
     private static final int SIDE_MARGIN = 12;
@@ -44,30 +33,18 @@ public class TorchmasterConfigScreen extends Screen
     private final Screen parent;
     private final List<Entry> entries = new ArrayList<>();
     private int scrollOffset;
-    //? if >=1.16
-    private Text status = emptyText();
-    //? if <1.16
-    //private String status = "";
+    private CompatText status = emptyText();
     private int statusColor = 0xFFA0A0A0;
 
     public TorchmasterConfigScreen(Screen parent)
     {
-        //? if >=1.16 {
         super(text("screen.torchmaster.config.title"));
-        //?} else {
-        /*super(new TranslatableText("screen.torchmaster.config.title"));
-        *///?}
         this.parent = parent;
     }
 
     public static void open()
     {
-        MinecraftClient minecraft = MinecraftClient.getInstance();
-        //? if >=1.17.1 {
-        minecraft.setScreen(new TorchmasterConfigScreen(minecraft.currentScreen));
-        //?} else {
-        /*minecraft.openScreen(new TorchmasterConfigScreen(minecraft.currentScreen));
-        *///?}
+        open(new TorchmasterConfigScreen(currentScreen()));
     }
 
     @Override
@@ -130,85 +107,11 @@ public class TorchmasterConfigScreen extends Screen
         BooleanEntry entry = new BooleanEntry(translationKey, y, value);
         ButtonWidget button = button(booleanButtonX(x), widgetY(y), booleanButtonWidth(), BUTTON_HEIGHT, booleanLabel(value), ignored -> {
             entry.toggle();
-            ignored.setMessage(booleanLabel(entry.value));
+            ignored.setMessage(booleanLabel(entry.value).asWidget());
         });
         entry.button = button;
         addCompatWidget(button);
         entries.add(entry);
-    }
-
-    private ButtonWidget addCompatWidget(ButtonWidget widget)
-    {
-        //? if >=1.17 {
-        return addDrawableChild(widget);
-        //?} else {
-        /*return addButton(widget);
-        *///?}
-    }
-
-    private TextFieldWidget addCompatWidget(TextFieldWidget widget)
-    {
-        //? if >=1.17 {
-        return addDrawableChild(widget);
-        //?} else {
-        /*return addButton(widget);
-        *///?}
-    }
-
-    //? if >=1.16
-    private static ButtonWidget button(int x, int y, int width, int height, Text label, ButtonWidget.PressAction onPress)
-    //? if <1.16
-    //private static ButtonWidget button(int x, int y, int width, int height, String label, ButtonWidget.PressAction onPress)
-    {
-        //? if >=1.19.4 {
-        return ButtonWidget.builder(label, onPress).dimensions(x, y, width, height).build();
-        //?} else {
-        /*return new ButtonWidget(x, y, width, height, label, onPress);
-        *///?}
-    }
-
-    //? if >=1.16
-    private static Text booleanLabel(boolean value)
-    //? if <1.16
-    //private static String booleanLabel(boolean value)
-    {
-        return text(value ? "options.on" : "options.off");
-    }
-
-    //? if >=1.16
-    private static Text text(String translationKey)
-    //? if <1.16
-    //private static String text(String translationKey)
-    {
-        //? if >=1.16 {
-        return MinecraftText.translatable(translationKey);
-        //?} else {
-        /*return I18n.translate(translationKey);
-        *///?}
-    }
-
-    private TextFieldWidget textField(int x, int y, int width, int height, String translationKey)
-    {
-        //? if >=1.16 {
-        return new TextFieldWidget(textRenderer, x, y, width, height, text(translationKey));
-        //?} else {
-        /*return new TextFieldWidget(font, x, y, width, height, text(translationKey));
-        *///?}
-    }
-
-    //? if >=1.16
-    private static Text emptyText()
-    //? if <1.16
-    //private static String emptyText()
-    {
-        //? if <1.16 {
-        /*return "";
-        *///?}
-        //? if >=1.19 {
-        return Text.empty();
-        //?} else if >=1.16 {
-        /*return new LiteralText("");
-        *///?}
     }
 
     private void save()
@@ -252,16 +155,6 @@ public class TorchmasterConfigScreen extends Screen
         setStatus("screen.torchmaster.config.reverted", 0xFFFFFF55);
     }
 
-    private void clearCompatWidgets()
-    {
-        //? if >=1.17 {
-        clearChildren();
-        //?} else {
-        /*buttons.clear();
-        children.clear();
-        *///?}
-    }
-
     private void setStatus(String translationKey, int color)
     {
         status = text(translationKey);
@@ -273,7 +166,7 @@ public class TorchmasterConfigScreen extends Screen
         //? if >=1.18
         close();
         //? if >=1.17.1 && <1.18 {
-        /*client.setScreen(parent);
+        /*returnTo(parent);
         *///?}
         //? if <1.17.1 {
         /*onClose();
@@ -284,28 +177,28 @@ public class TorchmasterConfigScreen extends Screen
     @Override
     public void close()
     {
-        client.setScreen(parent);
+        returnTo(parent);
     }
     //?}
     //? if >=1.17.1 && <1.18 {
     /*@Override
     public void onClose()
     {
-        client.setScreen(parent);
+        returnTo(parent);
     }
     *///?}
     //? if >=1.16 && <1.17.1 {
     /*@Override
     public void onClose()
     {
-        client.openScreen(parent);
+        returnTo(parent);
     }
     *///?}
     //? if <1.16 {
     /*@Override
     public void onClose()
     {
-        minecraft.openScreen(parent);
+        returnTo(parent);
     }
     *///?}
 
@@ -463,10 +356,10 @@ public class TorchmasterConfigScreen extends Screen
 
         for (Entry entry : entries) {
             if (entry.visible) {
-                graphics.drawText(textRenderer, text(entry.translationKey), left + 12, compactLayout() ? entry.y : entry.y + 6, 0xFFE0E0E0, false);
+                graphics.drawText(textRenderer, text(entry.translationKey).asWidget(), left + 12, compactLayout() ? entry.y : entry.y + 6, 0xFFE0E0E0, false);
             }
         }
-        graphics.drawCenteredTextWithShadow(textRenderer, status, width / 2, height - 48, statusColor);
+        graphics.drawCenteredTextWithShadow(textRenderer, status.asWidget(), width / 2, height - 48, statusColor);
     }
     //?} else if >=1.19.4 {
     /*@Override
@@ -484,10 +377,10 @@ public class TorchmasterConfigScreen extends Screen
 
         for (Entry entry : entries) {
             if (entry.visible) {
-                drawTextWithShadow(poseStack, textRenderer, text(entry.translationKey), left + 12, compactLayout() ? entry.y : entry.y + 6, 0xFFE0E0E0);
+                drawTextWithShadow(poseStack, textRenderer, text(entry.translationKey).asWidget(), left + 12, compactLayout() ? entry.y : entry.y + 6, 0xFFE0E0E0);
             }
         }
-        drawCenteredTextWithShadow(poseStack, textRenderer, status, width / 2, height - 48, statusColor);
+        drawCenteredTextWithShadow(poseStack, textRenderer, status.asWidget(), width / 2, height - 48, statusColor);
     }
     *///?} else if >=1.16 {
     /*@Override
@@ -505,10 +398,10 @@ public class TorchmasterConfigScreen extends Screen
 
         for (Entry entry : entries) {
             if (entry.visible) {
-                drawTextWithShadow(poseStack, textRenderer, text(entry.translationKey), left + 12, compactLayout() ? entry.y : entry.y + 6, 0xFFE0E0E0);
+                drawTextWithShadow(poseStack, textRenderer, text(entry.translationKey).asWidget(), left + 12, compactLayout() ? entry.y : entry.y + 6, 0xFFE0E0E0);
             }
         }
-        drawCenteredText(poseStack, textRenderer, status, width / 2, height - 48, statusColor);
+        drawCenteredText(poseStack, textRenderer, status.asWidget(), width / 2, height - 48, statusColor);
     }
     *///?} else {
     /*@Override
@@ -524,14 +417,14 @@ public class TorchmasterConfigScreen extends Screen
         super.render(mouseX, mouseY, partialTick);
 
         drawPanelFrame(left, top, right, bottom);
-        drawCenteredString(font, text("screen.torchmaster.config.title"), width / 2, 14, 0xFFFFFFFF);
+        drawCenteredString(font, text("screen.torchmaster.config.title").asWidget(), width / 2, 14, 0xFFFFFFFF);
 
         for (Entry entry : entries) {
             if (entry.visible) {
-                drawString(font, text(entry.translationKey), left + 12, compactLayout() ? entry.y : entry.y + 6, 0xFFE0E0E0);
+                drawString(font, text(entry.translationKey).asWidget(), left + 12, compactLayout() ? entry.y : entry.y + 6, 0xFFE0E0E0);
             }
         }
-        drawCenteredString(font, status, width / 2, height - 48, statusColor);
+        drawCenteredString(font, status.asWidget(), width / 2, height - 48, statusColor);
     }
     *///?}
 

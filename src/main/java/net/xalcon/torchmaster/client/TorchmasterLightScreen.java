@@ -1,33 +1,21 @@
 package net.xalcon.torchmaster.client;
 
-import net.minecraft.client.MinecraftClient;
 //? if >=1.20
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-//? if <1.16
-/*import net.minecraft.client.resource.language.I18n;*/
 //? if >=1.16 && <1.20
 //import net.minecraft.client.util.math.MatrixStack;
 //? if >=1.19.4
 import net.minecraft.registry.RegistryKey;
 //? if >=1.16.5 && <1.19.4
 //import net.minecraft.util.registry.RegistryKey;
-//? if >=1.16
-import net.minecraft.text.Text;
-//? if <1.16
-/*import net.minecraft.text.TranslatableText;*/
-//? if >=1.16 && <1.19 {
-/*import net.minecraft.text.LiteralText;
-*///?}
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.xalcon.torchmaster.TorchmasterRuntime;
 import net.xalcon.torchmaster.blocks.LightType;
-//? if >=1.16
-import net.xalcon.torchmaster.minecraft.adapter.MinecraftText;
 
-public class TorchmasterLightScreen extends Screen
+public class TorchmasterLightScreen extends TorchmasterScreenCompat
 {
     private static final int PANEL_WIDTH = 300;
     private static final int PANEL_HEIGHT = 118;
@@ -51,11 +39,7 @@ public class TorchmasterLightScreen extends Screen
             //Object dimension
             , LightType lightType)
     {
-        //? if >=1.16 {
         super(text(TorchmasterLightScreenModel.TITLE_KEY));
-        //?} else {
-        /*super(new TranslatableText(TorchmasterLightScreenModel.TITLE_KEY));
-        *///?}
         this.parent = parent;
         this.pos = pos.toImmutable();
         this.dimension = dimension;
@@ -69,12 +53,7 @@ public class TorchmasterLightScreen extends Screen
             //Object dimension
             , LightType lightType)
     {
-        MinecraftClient minecraft = MinecraftClient.getInstance();
-        //? if >=1.17.1 {
-        minecraft.setScreen(new TorchmasterLightScreen(minecraft.currentScreen, pos, dimension, lightType));
-        //?} else {
-        /*minecraft.openScreen(new TorchmasterLightScreen(minecraft.currentScreen, pos, dimension, lightType));
-        *///?}
+        open(new TorchmasterLightScreen(currentScreen(), pos, dimension, lightType));
     }
 
     @Override
@@ -92,18 +71,12 @@ public class TorchmasterLightScreen extends Screen
     private void toggleVisibility()
     {
         TorchmasterLightRangeDisplay.toggle(dimension, pos, model.lightType(), model.radius());
-        visibilityButton.setMessage(visibilityLabel());
+        visibilityButton.setMessage(visibilityLabel().asWidget());
     }
 
     private void openConfigScreen()
     {
-        //? if >=1.17.1 {
-        client.setScreen(new TorchmasterConfigScreen(this));
-        //?} else if >=1.16 {
-        /*client.openScreen(new TorchmasterConfigScreen(this));
-        *///?} else {
-        /*minecraft.openScreen(new TorchmasterConfigScreen(this));
-        *///?}
+        openChildScreen(new TorchmasterConfigScreen(this));
     }
 
     private void closeScreen()
@@ -111,17 +84,14 @@ public class TorchmasterLightScreen extends Screen
         //? if >=1.18
         close();
         //? if >=1.17.1 && <1.18 {
-        /*client.setScreen(parent);
+        /*returnTo(parent);
         *///?}
         //? if <1.17.1 {
         /*onClose();
         *///?}
     }
 
-    //? if >=1.16
-    private Text visibilityLabel()
-    //? if <1.16
-    //private String visibilityLabel()
+    private CompatText visibilityLabel()
     {
         return text(model.visibilityButtonKey(TorchmasterLightRangeDisplay.isVisible(dimension, pos)));
     }
@@ -130,28 +100,28 @@ public class TorchmasterLightScreen extends Screen
     @Override
     public void close()
     {
-        client.setScreen(parent);
+        returnTo(parent);
     }
     //?}
     //? if >=1.17.1 && <1.18 {
     /*@Override
     public void onClose()
     {
-        client.setScreen(parent);
+        returnTo(parent);
     }
     *///?}
     //? if >=1.16 && <1.17.1 {
     /*@Override
     public void onClose()
     {
-        client.openScreen(parent);
+        returnTo(parent);
     }
     *///?}
     //? if <1.16 {
     /*@Override
     public void onClose()
     {
-        minecraft.openScreen(parent);
+        returnTo(parent);
     }
     *///?}
 
@@ -242,12 +212,12 @@ public class TorchmasterLightScreen extends Screen
     {
         //? if >=1.19.4 {
         drawCenteredTextWithShadow(poseStack, textRenderer, title, width / 2, panelTop() + 10, 0xFFFFFFFF);
-        drawCenteredTextWithShadow(poseStack, textRenderer, blockName(), width / 2, panelTop() + 28, 0xFFE0E0E0);
-        drawCenteredTextWithShadow(poseStack, textRenderer, text(TorchmasterLightScreenModel.RANGE_KEY, model.radius()), width / 2, panelTop() + 42, 0xFFA0FFA0);
+        drawCenteredTextWithShadow(poseStack, textRenderer, blockName().asWidget(), width / 2, panelTop() + 28, 0xFFE0E0E0);
+        drawCenteredTextWithShadow(poseStack, textRenderer, text(TorchmasterLightScreenModel.RANGE_KEY, model.radius()).asWidget(), width / 2, panelTop() + 42, 0xFFA0FFA0);
         //?} else {
         /^drawCenteredText(poseStack, textRenderer, title, width / 2, panelTop() + 10, 0xFFFFFFFF);
-        drawCenteredText(poseStack, textRenderer, blockName(), width / 2, panelTop() + 28, 0xFFE0E0E0);
-        drawCenteredText(poseStack, textRenderer, text(TorchmasterLightScreenModel.RANGE_KEY, model.radius()), width / 2, panelTop() + 42, 0xFFA0FFA0);
+        drawCenteredText(poseStack, textRenderer, blockName().asWidget(), width / 2, panelTop() + 28, 0xFFE0E0E0);
+        drawCenteredText(poseStack, textRenderer, text(TorchmasterLightScreenModel.RANGE_KEY, model.radius()).asWidget(), width / 2, panelTop() + 42, 0xFFA0FFA0);
         ^///?}
     }
     *///?} else {
@@ -267,9 +237,9 @@ public class TorchmasterLightScreen extends Screen
 
     private void drawPanelLabels()
     {
-        drawCenteredString(font, text(TorchmasterLightScreenModel.TITLE_KEY), width / 2, panelTop() + 10, 0xFFFFFFFF);
-        drawCenteredString(font, blockName(), width / 2, panelTop() + 28, 0xFFE0E0E0);
-        drawCenteredString(font, text(TorchmasterLightScreenModel.RANGE_KEY, model.radius()), width / 2, panelTop() + 42, 0xFFA0FFA0);
+        drawCenteredString(font, text(TorchmasterLightScreenModel.TITLE_KEY).asWidget(), width / 2, panelTop() + 10, 0xFFFFFFFF);
+        drawCenteredString(font, blockName().asWidget(), width / 2, panelTop() + 28, 0xFFE0E0E0);
+        drawCenteredString(font, text(TorchmasterLightScreenModel.RANGE_KEY, model.radius()).asWidget(), width / 2, panelTop() + 42, 0xFFA0FFA0);
     }
     *///?}
 
@@ -285,73 +255,14 @@ public class TorchmasterLightScreen extends Screen
     private void drawPanelLabels(DrawContext graphics)
     {
         graphics.drawCenteredTextWithShadow(textRenderer, title, width / 2, panelTop() + 10, 0xFFFFFFFF);
-        graphics.drawCenteredTextWithShadow(textRenderer, blockName(), width / 2, panelTop() + 28, 0xFFE0E0E0);
-        graphics.drawCenteredTextWithShadow(textRenderer, text(TorchmasterLightScreenModel.RANGE_KEY, model.radius()), width / 2, panelTop() + 42, 0xFFA0FFA0);
+        graphics.drawCenteredTextWithShadow(textRenderer, blockName().asWidget(), width / 2, panelTop() + 28, 0xFFE0E0E0);
+        graphics.drawCenteredTextWithShadow(textRenderer, text(TorchmasterLightScreenModel.RANGE_KEY, model.radius()).asWidget(), width / 2, panelTop() + 42, 0xFFA0FFA0);
     }
     //?}
 
-    //? if >=1.16
-    private Text blockName()
-    //? if <1.16
-    //private String blockName()
+    private CompatText blockName()
     {
         return text(model.blockKey());
     }
 
-    private ButtonWidget addCompatWidget(ButtonWidget widget)
-    {
-        //? if >=1.17 {
-        return addDrawableChild(widget);
-        //?} else {
-        /*return addButton(widget);
-        *///?}
-    }
-
-    //? if >=1.16
-    private static ButtonWidget button(int x, int y, int width, int height, Text label, ButtonWidget.PressAction onPress)
-    //? if <1.16
-    //private static ButtonWidget button(int x, int y, int width, int height, String label, ButtonWidget.PressAction onPress)
-    {
-        //? if >=1.19.4 {
-        return ButtonWidget.builder(label, onPress).dimensions(x, y, width, height).build();
-        //?} else {
-        /*return new ButtonWidget(x, y, width, height, label, onPress);
-        *///?}
-    }
-
-    //? if >=1.16
-    private static Text text(String translationKey)
-    //? if <1.16
-    //private static String text(String translationKey)
-    {
-        //? if >=1.16 {
-        return MinecraftText.translatable(translationKey);
-        //?} else {
-        /*return I18n.translate(translationKey);
-        *///?}
-    }
-
-    //? if >=1.16
-    private static Text text(String translationKey, Object value)
-    //? if <1.16
-    //private static String text(String translationKey, Object value)
-    {
-        //? if >=1.16 {
-        return MinecraftText.translatable(translationKey, value);
-        //?} else {
-        /*return I18n.translate(translationKey, value);
-        *///?}
-    }
-
-    //? if >=1.16
-    private static Text literal(String value)
-    //? if <1.16
-    //private static String literal(String value)
-    {
-        //? if >=1.16 {
-        return MinecraftText.literal(value);
-        //?} else {
-        /*return value;
-        *///?}
-    }
 }

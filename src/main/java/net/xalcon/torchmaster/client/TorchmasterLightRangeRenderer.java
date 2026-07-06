@@ -70,9 +70,10 @@ public final class TorchmasterLightRangeRenderer
         for (TorchmasterLightRangeDisplay.RangeSnapshot snapshot : TorchmasterLightRangeDisplay.snapshots(level)) {
             renderRangeBox(snapshot.pos, snapshot.radius, camera, buffer);
             for (BlockPos pos : snapshot.randomAirBlocks) {
+                TorchmasterRangeBoxes.Box box = TorchmasterRangeBoxes.sampleBox(pos);
                 renderLineBox(camera, buffer,
-                        pos.getX(), pos.getY(), pos.getZ(),
-                        pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1,
+                        box.minX, box.minY, box.minZ,
+                        box.maxX, box.maxY, box.maxZ,
                         SAMPLE_RED, SAMPLE_GREEN, SAMPLE_BLUE, SAMPLE_ALPHA);
             }
         }
@@ -109,17 +110,19 @@ public final class TorchmasterLightRangeRenderer
         poseStack.translate(-camera.getPos().x, -camera.getPos().y, -camera.getPos().z);
         //?}
         for (TorchmasterLightRangeDisplay.RangeSnapshot snapshot : TorchmasterLightRangeDisplay.snapshots(level)) {
-            renderRangeBox(snapshot.pos, snapshot.radius, poseStack, lineBuffer);
+            renderBox(TorchmasterRangeBoxes.rangeBox(snapshot.pos, snapshot.radius), poseStack, lineBuffer,
+                    RANGE_RED, RANGE_GREEN, RANGE_BLUE, RANGE_ALPHA);
             for (BlockPos pos : snapshot.randomAirBlocks) {
+                TorchmasterRangeBoxes.Box box = TorchmasterRangeBoxes.sampleBox(pos);
                 //? if >=1.21.11 {
                 /*renderLineBox(poseStack, lineBuffer,
-                        pos.getX(), pos.getY(), pos.getZ(),
-                        pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1,
+                        box.minX, box.minY, box.minZ,
+                        box.maxX, box.maxY, box.maxZ,
                         SAMPLE_RED, SAMPLE_GREEN, SAMPLE_BLUE, SAMPLE_ALPHA);
                 *///?} else {
                 WorldRenderer.drawBox(poseStack, lineBuffer,
-                        pos.getX(), pos.getY(), pos.getZ(),
-                        pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1,
+                        box.minX, box.minY, box.minZ,
+                        box.maxX, box.maxY, box.maxZ,
                         SAMPLE_RED, SAMPLE_GREEN, SAMPLE_BLUE, SAMPLE_ALPHA);
                 //?}
             }
@@ -136,31 +139,19 @@ public final class TorchmasterLightRangeRenderer
         //?}
     }
 
-    private static void renderRangeBox(BlockPos center, int radius, MatrixStack poseStack, VertexConsumer lineBuffer)
+    private static void renderBox(TorchmasterRangeBoxes.Box box, MatrixStack poseStack, VertexConsumer lineBuffer, float red, float green, float blue, float alpha)
     {
-        double minX = center.getX() - radius;
-        double minY = center.getY() - radius;
-        double minZ = center.getZ() - radius;
-        double maxX = center.getX() + radius + 1;
-        double maxY = center.getY() + radius + 1;
-        double maxZ = center.getZ() + radius + 1;
-
         //? if >=1.21.11 {
-        /*renderLineBox(poseStack, lineBuffer, minX, minY, minZ, maxX, maxY, maxZ, RANGE_RED, RANGE_GREEN, RANGE_BLUE, RANGE_ALPHA);
+        /*renderLineBox(poseStack, lineBuffer, box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ, red, green, blue, alpha);
         *///?} else {
-        WorldRenderer.drawBox(poseStack, lineBuffer, minX, minY, minZ, maxX, maxY, maxZ, RANGE_RED, RANGE_GREEN, RANGE_BLUE, RANGE_ALPHA);
+        WorldRenderer.drawBox(poseStack, lineBuffer, box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ, red, green, blue, alpha);
         //?}
     }
     //?} else {
     /*private static void renderRangeBox(BlockPos center, int radius, Camera camera, BufferBuilder buffer)
     {
-        double minX = center.getX() - radius;
-        double minY = center.getY() - radius;
-        double minZ = center.getZ() - radius;
-        double maxX = center.getX() + radius + 1;
-        double maxY = center.getY() + radius + 1;
-        double maxZ = center.getZ() + radius + 1;
-        renderLineBox(camera, buffer, minX, minY, minZ, maxX, maxY, maxZ, RANGE_RED, RANGE_GREEN, RANGE_BLUE, RANGE_ALPHA);
+        TorchmasterRangeBoxes.Box box = TorchmasterRangeBoxes.rangeBox(center, radius);
+        renderLineBox(camera, buffer, box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ, RANGE_RED, RANGE_GREEN, RANGE_BLUE, RANGE_ALPHA);
     }
 
     private static void renderLineBox(Camera camera, BufferBuilder buffer, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, float red, float green, float blue, float alpha)

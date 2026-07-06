@@ -1,16 +1,11 @@
 package net.xalcon.torchmaster;
 
-import net.minecraft.world.World;
 import net.xalcon.torchmaster.compat.VanillaCompat;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
-import net.xalcon.torchmaster.minecraft.storage.LightStoreBridge;
-import net.xalcon.torchmaster.minecraft.storage.MinecraftLightStoreAccess;
 import net.xalcon.torchmaster.platform.Services;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
-
-import java.util.Optional;
 
 // This class is part of the common project meaning it is shared between all supported loaders. Code written here can only
 // import and access the vanilla codebase, libraries used by vanilla, and optionally third party libraries that provide
@@ -45,11 +40,6 @@ public class TorchmasterRuntime
         LOG.info("Debug Logging Enabled: {}", LOG.isDebugEnabled());
         LOG.debug("If you can see this while the system property torchmaster.enableDebugLogging is not set to 1, report this on github!");
         TorchmasterContent.initialize();
-    }
-
-    public static Optional<LightStoreBridge> getRegistryForLevel(World level)
-    {
-        return MinecraftLightStoreAccess.get(level);
     }
 
     public static void onWorldLoaded()

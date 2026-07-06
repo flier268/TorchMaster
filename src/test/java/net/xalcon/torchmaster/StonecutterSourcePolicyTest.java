@@ -22,7 +22,11 @@ class StonecutterSourcePolicyTest
     private static final Pattern MIXIN_FORBIDDEN_SPAWN_IMPORT = Pattern.compile(
             "^import\\s+net\\.xalcon\\.torchmaster\\.(domain\\.SpawnBlockingRules|minecraft\\.storage\\.|minecraft\\.adapter\\.MinecraftSpawnBlocker)");
     private static final Pattern CLIENT_RUNTIME_DETAIL = Pattern.compile(
-            "Torchmaster(LightRangeDisplay|LightRangeRenderer|LightScreen|ClientLifecycle)");
+            "Torchmaster(LightRangeDisplay|LightRangeRenderer|LightScreen|ClientLifecycle|ScreenCompat|RangeBoxes)");
+    private static final Pattern STORAGE_RUNTIME_DETAIL = Pattern.compile(
+            "(SavedLightStore|MinecraftLightStoreAccess|LightStoreBridge|LightStoreConfigView)");
+    private static final Pattern RUNTIME_REGISTRY_FACADE = Pattern.compile("getRegistryForLevel\\s*\\(");
+    private static final Pattern LOADER_GATED_FILE_START = Pattern.compile("//\\?\\s*(if|elif|else if)\\b.*\\b(fabric|forge|neoforge)\\b.*\\{");
 
     @Test
     void loaderSourceRootsDoNotContainMinecraftVersionConditions() throws IOException
@@ -76,10 +80,34 @@ class StonecutterSourcePolicyTest
     void loaderRootsDoNotDuplicateClientRuntimeDetails() throws IOException
     {
         List<Path> violations = javaFilesIn("src/fabric", "src/forge", "src/neoforge")
-                .filter(StonecutterSourcePolicyTest::hasClientRuntimeDetail)
+                .filter(path -> hasClientRuntimeDetail(path) || hasStorageRuntimeDetail(path))
                 .collect(Collectors.toList());
 
-        assertTrue(violations.isEmpty(), () -> "Keep client render/screen runtime details in shared client helpers; loader roots should only wire lifecycle entrypoints: " + violations);
+        assertTrue(violations.isEmpty(), () -> "Keep client/storage runtime details in shared helpers; loader roots should only wire lifecycle entrypoints: " + violations);
+    }
+
+    @Test
+    void runtimeRegistryFacadeHasNoCallSites() throws IOException
+    {
+        List<Path> violations = javaFilesIn("src/main/java")
+                .filter(path -> !path.endsWith(Paths.get("src/main/java/net/xalcon/torchmaster/TorchmasterRuntime.java")))
+                .filter(StonecutterSourcePolicyTest::hasRuntimeRegistryFacadeCall)
+                .collect(Collectors.toList());
+
+        assertTrue(violations.isEmpty(), () -> "Use MinecraftLightStoreAccess directly instead of TorchmasterRuntime.getRegistryForLevel: " + violations);
+    }
+
+    @Test
+    void sharedHelpersDoNotGateWholeClassesByLoader() throws IOException
+    {
+        List<Path> violations = javaFilesIn(
+                "src/main/java/net/xalcon/torchmaster/client",
+                "src/main/java/net/xalcon/torchmaster/minecraft",
+                "src/main/java/net/xalcon/torchmaster/content")
+                .filter(StonecutterSourcePolicyTest::startsWithLoaderGatedClass)
+                .collect(Collectors.toList());
+
+        assertTrue(violations.isEmpty(), () -> "Do not add shared helper classes whose whole class body is loader-gated by Stonecutter: " + violations);
     }
 
     private static Stream<Path> javaFilesIn(String... roots) throws IOException
@@ -128,6 +156,39 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> CLIENT_RUNTIME_DETAIL.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasStorageRuntimeDetail(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> STORAGE_RUNTIME_DETAIL.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasRuntimeRegistryFacadeCall(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> RUNTIME_REGISTRY_FACADE.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean startsWithLoaderGatedClass(Path path)
+    {
+        try (Stream<String> lines = Files.lines(path)) {
+            return lines
+                    .map(String::trim)
+                    .filter(line -> !line.isEmpty())
+                    .filter(line -> !line.startsWith("package "))
+                    .findFirst()
+                    .map(line -> LOADER_GATED_FILE_START.matcher(line).find())
+                    .orElse(false);
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }
