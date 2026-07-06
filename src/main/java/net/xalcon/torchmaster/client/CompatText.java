@@ -39,6 +39,20 @@ final class CompatText
         return literal("");
     }
 
+    private static Object[] widgetArgs(Object[] args)
+    {
+        Object[] converted = new Object[args.length];
+        for (int index = 0; index < args.length; index++) {
+            Object arg = args[index];
+            if (arg instanceof CompatText) {
+                converted[index] = ((CompatText)arg).asWidget();
+            } else {
+                converted[index] = arg;
+            }
+        }
+        return converted;
+    }
+
     String translationKey()
     {
         return translationKey;
@@ -66,9 +80,9 @@ final class CompatText
             *///?}
         }
         //? if >=1.16 {
-        return MinecraftText.translatable(translationKey, args);
+        return MinecraftText.translatable(translationKey, widgetArgs(args));
         //?} else {
-        /*return new TranslatableText(translationKey, args);
+        /*return new TranslatableText(translationKey, widgetArgs(args));
         *///?}
     }
 
@@ -87,9 +101,9 @@ final class CompatText
             *///?}
         }
         //? if >=1.16 {
-        return MinecraftText.translatable(translationKey, args);
+        return MinecraftText.translatable(translationKey, widgetArgs(args));
         //?} else {
-        /*return I18n.translate(translationKey, args);
+        /*return I18n.translate(translationKey, widgetArgs(args));
         *///?}
     }
 }

@@ -31,6 +31,7 @@
     "screen.torchmaster.config.unit.lights": "光源",
     "screen.torchmaster.config.unit.blocks": "方塊",
     "screen.torchmaster.config.unit.lightLevel": "亮度等級",
+    "screen.torchmaster.config.labelWithUnit": "%s（%s）",
     "screen.torchmaster.config.aggressiveSpawnChecks": "強制生成檢查",
     "screen.torchmaster.config.blockOnlyNaturalSpawns": "只阻擋自然生成",
     "screen.torchmaster.config.blockVillageSieges": "阻擋村莊圍城",

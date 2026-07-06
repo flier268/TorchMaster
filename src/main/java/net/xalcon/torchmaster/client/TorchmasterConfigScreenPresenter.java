@@ -6,6 +6,7 @@ import java.util.List;
 final class TorchmasterConfigScreenPresenter
 {
     private static final String TITLE_KEY = "screen.torchmaster.config.title";
+    private static final String LABEL_WITH_UNIT_KEY = "screen.torchmaster.config.labelWithUnit";
 
     private TorchmasterConfigScreenPresenter()
     {
@@ -22,17 +23,10 @@ final class TorchmasterConfigScreenPresenter
         for (TorchmasterConfigWidgetRows.Row row : rows) {
             if (row.visible()) {
                 labels.add(TorchmasterScreenRenderPlan.left(
-                        CompatText.translatable(row.translationKey()),
+                        labelText(row),
                         left + 12,
                         layout.compact() ? row.y() : row.y() + 6,
                         TorchmasterPanelRenderer.LABEL_COLOR));
-                if (!row.unitKey().isEmpty()) {
-                    labels.add(TorchmasterScreenRenderPlan.left(
-                            CompatText.translatable(row.unitKey()),
-                            layout.fieldX(),
-                            layout.unitLabelY(row.y()),
-                            TorchmasterPanelRenderer.UNIT_COLOR));
-                }
             }
         }
         return new TorchmasterScreenRenderPlan(
@@ -46,5 +40,14 @@ final class TorchmasterConfigScreenPresenter
                         TorchmasterScreenRenderPlan.centered(status, layout.screenWidth() / 2, layout.screenHeight() - 48, statusColor, true)
                 },
                 labels.toArray(new TorchmasterScreenRenderPlan.LeftLabel[labels.size()]));
+    }
+
+    private static CompatText labelText(TorchmasterConfigWidgetRows.Row row)
+    {
+        CompatText label = CompatText.translatable(row.translationKey());
+        if (row.unitKey().isEmpty()) {
+            return label;
+        }
+        return CompatText.translatable(LABEL_WITH_UNIT_KEY, label, CompatText.translatable(row.unitKey()));
     }
 }

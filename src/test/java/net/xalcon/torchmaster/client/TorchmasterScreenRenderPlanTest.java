@@ -45,9 +45,10 @@ class TorchmasterScreenRenderPlanTest
 
         assertCentered(plan.centeredLabels()[0], "screen.torchmaster.config.title", 400, 14, TorchmasterPanelRenderer.TITLE_COLOR);
         assertCentered(plan.centeredLabels()[1], "status.key", 400, 192, 0xFF55FF55);
-        assertEquals(2, plan.leftLabels().length);
-        assertLeft(plan.leftLabels()[0], "visible.key", layout.panelLeft() + 12, 86, TorchmasterPanelRenderer.LABEL_COLOR);
-        assertLeft(plan.leftLabels()[1], "visible.unit", layout.fieldX(), 70, TorchmasterPanelRenderer.UNIT_COLOR);
+        assertEquals(1, plan.leftLabels().length);
+        assertLeft(plan.leftLabels()[0], "screen.torchmaster.config.labelWithUnit", layout.panelLeft() + 12, 86, TorchmasterPanelRenderer.LABEL_COLOR);
+        assertEquals("visible.key", ((CompatText)plan.leftLabels()[0].text.args()[0]).translationKey());
+        assertEquals("visible.unit", ((CompatText)plan.leftLabels()[0].text.args()[1]).translationKey());
         assertEquals(0, plan.fills().length);
     }
 
