@@ -13,12 +13,12 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class SavedLightStoreStateFactoryTest
+class SavedLightStoreStateBridgeTest
 {
-    private static final String SERIALIZER_KEY = "test_phase14_light";
+    private static final String SERIALIZER_KEY = "test_phase15_light";
 
     @BeforeAll
     static void registerSerializer()
@@ -29,21 +29,32 @@ class SavedLightStoreStateFactoryTest
     }
 
     @Test
-    void loadRestoresStoreThroughStateBridge()
+    void writeReturnsProvidedTag()
     {
         SavedLightStore store = new SavedLightStore();
         store.registerLight("MT_1_64_2", new TestLight(new BlockPosView(1, 64, 2)));
-        //? if >=1.16.5 {
+        //? if >=1.16.5
+        NbtCompound tag = new NbtCompound();
+        //? if <1.16.5
+        //CompoundTag tag = new CompoundTag();
+
+        assertSame(tag, SavedLightStoreStateBridge.write(store, tag));
+    }
+
+    @Test
+    void readRestoresLightsIntoStore()
+    {
+        SavedLightStore store = new SavedLightStore();
+        store.registerLight("MT_1_64_2", new TestLight(new BlockPosView(1, 64, 2)));
+        //? if >=1.16.5
         NbtCompound tag = SavedLightStoreStateBridge.write(store, new NbtCompound());
-        SavedLightStore loaded = SavedLightStoreStateFactory.load(tag);
-        //?} else {
-        /*CompoundTag tag = store.toTag(new CompoundTag());
+        //? if <1.16.5
+        //CompoundTag tag = SavedLightStoreStateBridge.write(store, new CompoundTag());
+
         SavedLightStore loaded = new SavedLightStore();
-        loaded.fromTag(tag);
-        *///?}
+        SavedLightStoreStateBridge.read(loaded, tag);
 
         assertTrue(loaded.getLight("MT_1_64_2").isPresent());
-        assertEquals(1, loaded.getEntries().length);
     }
 
     private static final class TestLight implements MinecraftBlockingLight

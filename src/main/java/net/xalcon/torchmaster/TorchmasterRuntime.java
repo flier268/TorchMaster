@@ -12,17 +12,6 @@ import org.apache.logging.log4j.core.config.Configurator;
 // however it will be compatible with all supported mod loaders.
 public class TorchmasterRuntime
 {
-    /**
-     * @deprecated Use {@link TorchmasterEntityFilters#megaTorch()}.
-     */
-    @Deprecated
-    public static final EntityFilterList MegaTorchFilterRegistry = TorchmasterEntityFilters.megaTorch();
-    /**
-     * @deprecated Use {@link TorchmasterEntityFilters#dreadLamp()}.
-     */
-    @Deprecated
-    public static final EntityFilterList DreadLampFilterRegistry = TorchmasterEntityFilters.dreadLamp();
-
     public static final Logger LOG = LogManager.getLogger(Constants.MOD_NAME);
 
     public static ITorchmasterConfig getConfig()

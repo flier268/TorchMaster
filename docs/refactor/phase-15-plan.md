@@ -1,34 +1,40 @@
-# Phase 15 Refactor Plan
+# Phase 15 Completion Record
 
-## Targets
+## Completed
 
-- Decide deprecated runtime facade removal timing.
-  - Audit `TorchmasterRuntime.MegaTorchFilterRegistry` and `DreadLampFilterRegistry` compatibility requirements.
-  - If removal is acceptable, remove the fields and update policy; otherwise keep them deprecated and continue blocking internal call sites.
-- Continue client boundary cleanup.
-  - Review client entrypoints and lifecycle adapters for branches that can move behind shared client helper methods without relocating entrypoints yet.
-  - Keep loader roots free of duplicated client render/content/storage details.
-- Tighten storage legacy adapter shape.
-  - Check whether `SavedLightStore` PersistentState override branches can shrink further while `SavedLightStoreStateFactory` remains the only factory/load glue.
-  - Keep NBT, Codec, PersistentState, RegistryWrapper, and serializer details in `minecraft.storage`.
-- Review config widget presenter opportunity.
-  - Evaluate moving bottom-button layout and widget creation descriptors into typed helpers.
-  - Do not change UI text, order, scroll behavior, TOML format, or validation rules.
+- Removed deprecated `TorchmasterRuntime.MegaTorchFilterRegistry` and `DreadLampFilterRegistry`; `TorchmasterEntityFilters` is now the only runtime filter accessor.
+- Added `TorchmasterClientEventAdapter` for client tick phase, render stage, and Forge pose stack conversion decisions; client entrypoints now keep event registration/signatures and delegate decisions.
+- Added `TorchmasterConfigScreenActions` so config screen bottom buttons are generated from descriptors instead of hand-written geometry.
+- Added `SavedLightStoreStateBridge`; `SavedLightStore` PersistentState overrides and `SavedLightStoreStateFactory` now route state read/write through the bridge.
+- Expanded source policy tests to block runtime facade fields, direct client entrypoint event decisions, direct bottom-button geometry, and old storage state method names.
 
-## Verification Plan
+## Remaining Coupling
 
-- Add focused tests for any facade removal policy, client lifecycle helper, storage adapter, or widget descriptor change.
-- Run:
+- Client entrypoint classes remain in `src/main` because they still need Stonecutter-processed version and loader event signatures.
+- `TorchmasterClientEventAdapter` intentionally contains loader/Minecraft event APIs behind Stonecutter branches.
+- `TorchmasterConfigScreen` still owns widget factory wiring and action dispatch after descriptor creation.
+- `SavedLightStore` still extends `PersistentState` and keeps version-specific override signatures.
+
+## Phase 16 Direction
+
+- Decide whether client entrypoint classes can be moved or partially split after isolating all Stonecutter-heavy event signatures.
+- Continue config widget descriptor cleanup: move widget factory/action dispatch descriptors out of `TorchmasterConfigScreen` without changing UI behavior.
+- Explore whether `SavedLightStore` PersistentState overrides can shrink to one-line methods in every supported branch.
+- Keep monitoring runtime filter accessor usage now that `TorchmasterRuntime` facade fields are gone.
+
+## Verification
+
+- Required representative matrix:
   - `./gradlew :1.21.1-fabric:test :1.14.4-forge:test :1.20.6-neoforge:test :1.21.11-fabric:test`
-  - `./gradlew :1.14.4-fabric:test :1.21.11-fabric:test` if client/render branches change
+  - `./gradlew :1.14.4-fabric:test :1.21.11-fabric:test`
   - `./gradlew "Reset active project"`
   - reset後 `./gradlew :1.21.1-fabric:test`
   - `git diff --check`
-- Confirm active project returns to `1.21.1-fabric`.
+- Active project must return to `1.21.1-fabric`.
 
-## Anti-Regression Rules
+## Anti-Regression
 
-- Business rules stay shared and version-neutral.
-- No `Text`/`String` branching in screen classes; use `CompatText`.
-- No direct loader-specific copies of client render, storage, filter, or content details.
-- No reflection, no generated source edits, and no staged-state changes outside explicit commit flow.
+- Do not reintroduce filter globals on `TorchmasterRuntime`.
+- Do not put event phase/stage or Forge pose stack conversion decisions back into client entrypoints.
+- Do not hand-write config bottom-button geometry in `TorchmasterConfigScreen`.
+- Do not use `writeState/readState`, `saveInto/loadFrom`, or direct serializer calls as storage state facades.

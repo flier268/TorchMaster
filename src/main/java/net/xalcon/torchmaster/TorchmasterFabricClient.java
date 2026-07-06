@@ -19,6 +19,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 //import net.minecraft.client.render.BlockRenderLayer;
 //? if >=1.16 && <1.21.11
 import net.minecraft.client.render.RenderLayer;
+import net.xalcon.torchmaster.client.TorchmasterClientEventAdapter;
 import net.xalcon.torchmaster.client.TorchmasterClientLifecycle;
 
 @Environment(EnvType.CLIENT)
@@ -45,9 +46,9 @@ public class TorchmasterFabricClient implements ClientModInitializer
     private static void registerClientTick()
     {
         //? if >=1.16 {
-        ClientTickEvents.END_CLIENT_TICK.register(client -> TorchmasterClientLifecycle.onEndClientTick());
+        ClientTickEvents.END_CLIENT_TICK.register(client -> TorchmasterClientEventAdapter.onFabricEndClientTick());
         //?} else {
-        /*ClientTickCallback.EVENT.register(client -> TorchmasterClientLifecycle.onEndClientTick());
+        /*ClientTickCallback.EVENT.register(client -> TorchmasterClientEventAdapter.onFabricEndClientTick());
         *///?}
     }
 

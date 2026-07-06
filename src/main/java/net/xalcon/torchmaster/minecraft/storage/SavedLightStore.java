@@ -82,23 +82,28 @@ public class SavedLightStore extends PersistentState implements LightStoreBridge
                 .toArray(LightInfo[]::new);
     }
 
+    LightRegistry lights()
+    {
+        return lights;
+    }
+
     //? if >=1.20.6 <1.21.11 {
     @Override
     public NbtCompound writeNbt(NbtCompound compoundTag, RegistryWrapper.WrapperLookup provider)
     {
-        return writeState(new NbtCompound());
+        return SavedLightStoreStateBridge.write(this, new NbtCompound());
     }
 //?} elif >=1.16.5 <1.20.6 {
     /*@Override
     public NbtCompound writeNbt(NbtCompound compoundTag)
     {
-        return writeState(compoundTag);
+        return SavedLightStoreStateBridge.write(this, compoundTag);
     }
     *///?} elif <1.16.5 {
 	    /*@Override
 	    public CompoundTag toTag(CompoundTag compoundTag)
 	    {
-	        return SavedLightStoreNbtBridge.save(lights, compoundTag);
+	        return SavedLightStoreStateBridge.write(this, compoundTag);
 	    }
 	    *///?}
 
@@ -106,25 +111,13 @@ public class SavedLightStore extends PersistentState implements LightStoreBridge
     /*@Override
     public void fromTag(NbtCompound tag)
     {
-        readState(tag);
+        SavedLightStoreStateBridge.read(this, tag);
     }
     *///?} else if <1.16.5 {
 	    /*@Override
 	    public void fromTag(CompoundTag tag)
 	    {
-	        SavedLightStoreNbtBridge.load(this.lights, tag);
+	        SavedLightStoreStateBridge.read(this, tag);
 	    }
 	    *///?}
-
-    //? if >=1.16.5 {
-    NbtCompound writeState(NbtCompound tag)
-    {
-        return SavedLightStoreNbtBridge.save(lights, tag);
-    }
-
-    void readState(NbtCompound tag)
-    {
-        SavedLightStoreNbtBridge.load(this.lights, tag);
-    }
-//?}
 }

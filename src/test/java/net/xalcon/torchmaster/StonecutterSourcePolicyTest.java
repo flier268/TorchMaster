@@ -23,9 +23,9 @@ class StonecutterSourcePolicyTest
     private static final Pattern MIXIN_FORBIDDEN_SPAWN_IMPORT = Pattern.compile(
             "^import\\s+net\\.xalcon\\.torchmaster\\.(domain\\.SpawnBlockingRules|minecraft\\.storage\\.|minecraft\\.adapter\\.MinecraftSpawnBlocker)");
     private static final Pattern CLIENT_RUNTIME_DETAIL = Pattern.compile(
-            "Torchmaster(LightRangeDisplay|LightRangeRenderer|LightScreen|LightScreenPresenter|ClientLifecycle|ScreenCompat|ScreenRenderAdapter|ScreenRenderPlan|RangeBoxes|PanelRenderer|LineBoxRenderer|RangeRenderPlan|RangeLineSubmitter|LatestLineSubmitter|WorldRendererLineSubmitter|LegacyLineSubmitter|RangeRenderSession|RangeRenderTarget|ConfigScreenLayout|ConfigEntries|ConfigWidgetRows|ConfigScreenPresenter)");
+            "Torchmaster(LightRangeDisplay|LightRangeRenderer|LightScreen|LightScreenPresenter|ClientLifecycle|ClientEventAdapter|ScreenCompat|ScreenRenderAdapter|ScreenRenderPlan|RangeBoxes|PanelRenderer|LineBoxRenderer|RangeRenderPlan|RangeLineSubmitter|LatestLineSubmitter|WorldRendererLineSubmitter|LegacyLineSubmitter|RangeRenderSession|RangeRenderTarget|ConfigScreenLayout|ConfigEntries|ConfigWidgetRows|ConfigScreenActions|ConfigScreenPresenter)");
     private static final Pattern STORAGE_RUNTIME_DETAIL = Pattern.compile(
-            "(SavedLightStore|SavedLightStoreStateFactory|SavedLightStoreNbtBridge|MinecraftLightStoreAccess|LightStoreBridge|LightStoreConfigView)");
+            "(SavedLightStore|SavedLightStoreStateFactory|SavedLightStoreStateBridge|SavedLightStoreNbtBridge|MinecraftLightStoreAccess|LightStoreBridge|LightStoreConfigView)");
     private static final Pattern RUNTIME_REGISTRY_FACADE = Pattern.compile("getRegistryForLevel\\s*\\(");
     private static final Pattern RUNTIME_FILTER_GLOBAL = Pattern.compile("TorchmasterRuntime\\.(MegaTorchFilterRegistry|DreadLampFilterRegistry)");
     private static final Pattern RUNTIME_FILTER_VALIDATION = Pattern.compile("EntityFilterList::IsValidFilterString|EntityFilterList\\.IsValidFilterString");
@@ -42,6 +42,10 @@ class StonecutterSourcePolicyTest
     private static final Pattern SCREEN_DIRECT_RENDER_COMPOSITION = Pattern.compile("TorchmasterScreenRenderAdapter\\.(centered|label|frame)\\s*\\(");
     private static final Pattern LINE_SUBMITTER_DIRECT_API = Pattern.compile("WorldRenderer\\.drawBox\\s*\\(|\\.lineWidth\\s*\\(|buffer\\.vertex\\s*\\(");
     private static final Pattern STORAGE_FACTORY_OLD_STATE_FACADE = Pattern.compile("\\.(saveInto|loadFrom)\\s*\\(");
+    private static final Pattern RUNTIME_FILTER_GLOBAL_FIELD = Pattern.compile("\\b(MegaTorchFilterRegistry|DreadLampFilterRegistry)\\b");
+    private static final Pattern CLIENT_ENTRYPOINT_DIRECT_EVENT_DECISION = Pattern.compile("event\\.phase\\s*!=|event\\.getStage\\s*\\(\\)\\s*!=|TickEvent\\.Phase\\.END|Stage\\.AFTER_TRANSLUCENT_BLOCKS|new\\s+MatrixStack\\s*\\(|multiplyPositionMatrix\\s*\\(");
+    private static final Pattern CONFIG_SCREEN_DIRECT_BOTTOM_BUTTON_GEOMETRY = Pattern.compile("bottomButtonWidth\\s*\\(|buttonGap|totalButtonWidth|buttonX\\s*=|button\\([^\\n]*(screen\\.torchmaster\\.config\\.(save|reset)|gui\\.done)");
+    private static final Pattern STORAGE_STATE_OLD_BRIDGE_NAMES = Pattern.compile("\\b(writeState|readState)\\s*\\(");
     private static final Pattern LOADER_GATED_FILE_START = Pattern.compile("//\\?\\s*(if|elif|else if)\\b.*\\b(fabric|forge|neoforge)\\b.*\\{");
 
     @Test
@@ -253,6 +257,50 @@ class StonecutterSourcePolicyTest
         Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/storage/SavedLightStoreStateFactory.java");
 
         assertTrue(!hasStorageFactoryOldStateFacade(path), () -> "Use writeState/readState bridge names from state factory instead of old saveInto/loadFrom facade calls: " + path);
+    }
+
+    @Test
+    void runtimeDoesNotExposeFilterGlobalFacades() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/TorchmasterRuntime.java");
+
+        assertTrue(!hasRuntimeFilterGlobalField(path), () -> "Use TorchmasterEntityFilters accessors instead of TorchmasterRuntime filter global fields: " + path);
+    }
+
+    @Test
+    void clientEntrypointsDelegateEventDecisions() throws IOException
+    {
+        List<Path> violations = Arrays.asList(
+                        sourcePath("src/main/java/net/xalcon/torchmaster/TorchmasterFabricClient.java"),
+                        sourcePath("src/main/java/net/xalcon/torchmaster/TorchmasterForgeClient.java"),
+                        sourcePath("src/main/java/net/xalcon/torchmaster/TorchmasterNeoforgeClient.java"))
+                .stream()
+                .filter(Files::exists)
+                .filter(StonecutterSourcePolicyTest::hasClientEntrypointDirectEventDecision)
+                .collect(Collectors.toList());
+
+        assertTrue(violations.isEmpty(), () -> "Delegate client event phase/stage and pose conversion decisions to TorchmasterClientEventAdapter: " + violations);
+    }
+
+    @Test
+    void configScreenDelegatesBottomButtonGeometry() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterConfigScreen.java");
+
+        assertTrue(!hasConfigScreenDirectBottomButtonGeometry(path), () -> "Use TorchmasterConfigScreenActions for bottom button keys/order/geometry: " + path);
+    }
+
+    @Test
+    void storageUsesStateBridgeInsteadOfOldStateMethods() throws IOException
+    {
+        List<Path> violations = Arrays.asList(
+                        sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/storage/SavedLightStore.java"),
+                        sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/storage/SavedLightStoreStateFactory.java"))
+                .stream()
+                .filter(StonecutterSourcePolicyTest::hasStorageStateOldBridgeNames)
+                .collect(Collectors.toList());
+
+        assertTrue(violations.isEmpty(), () -> "Use SavedLightStoreStateBridge instead of writeState/readState methods: " + violations);
     }
 
     @Test
@@ -476,6 +524,42 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> STORAGE_FACTORY_OLD_STATE_FACADE.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasRuntimeFilterGlobalField(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> RUNTIME_FILTER_GLOBAL_FIELD.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasClientEntrypointDirectEventDecision(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> CLIENT_ENTRYPOINT_DIRECT_EVENT_DECISION.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasConfigScreenDirectBottomButtonGeometry(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> CONFIG_SCREEN_DIRECT_BOTTOM_BUTTON_GEOMETRY.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasStorageStateOldBridgeNames(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> STORAGE_STATE_OLD_BRIDGE_NAMES.matcher(line).find());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }

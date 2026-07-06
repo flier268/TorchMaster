@@ -39,7 +39,7 @@ final class SavedLightStoreStateFactory
 	            SavedLightStoreStateFactory::load,
 	            store -> {
 	                NbtCompound tag = new NbtCompound();
-	                store.writeState(tag);
+	                SavedLightStoreStateBridge.write(store, tag);
 	                return tag;
 	            });
 
@@ -60,7 +60,7 @@ final class SavedLightStoreStateFactory
     static SavedLightStore load(NbtCompound tag)
     {
         SavedLightStore store = new SavedLightStore();
-        store.readState(tag);
+        SavedLightStoreStateBridge.read(store, tag);
         return store;
     }
     //?}

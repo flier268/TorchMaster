@@ -41,18 +41,31 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
         entries.clear();
         ITorchmasterConfig config = TorchmasterRuntime.getConfig();
 
-        TorchmasterConfigScreenLayout layout = layout();
-        entries.addAll(TorchmasterConfigWidgetRows.create(TorchmasterConfigEntries.fromConfig(config), layout, BUTTON_HEIGHT, widgetFactory()));
+	    TorchmasterConfigScreenLayout layout = layout();
+	    entries.addAll(TorchmasterConfigWidgetRows.create(TorchmasterConfigEntries.fromConfig(config), layout, BUTTON_HEIGHT, widgetFactory()));
 
-        int bottomButtonWidth = layout.bottomButtonWidth();
-        int buttonGap = 4;
-        int totalButtonWidth = bottomButtonWidth * 3 + buttonGap * 2;
-        int buttonX = layout.panelLeft() + (layout.panelWidth() - totalButtonWidth) / 2;
-        addCompatWidget(button(buttonX, height - 28, bottomButtonWidth, BUTTON_HEIGHT, text("screen.torchmaster.config.save"), button -> save()));
-        addCompatWidget(button(buttonX + bottomButtonWidth + buttonGap, height - 28, bottomButtonWidth, BUTTON_HEIGHT, text("screen.torchmaster.config.reset"), button -> reset()));
-        addCompatWidget(button(buttonX + (bottomButtonWidth + buttonGap) * 2, height - 28, bottomButtonWidth, BUTTON_HEIGHT, text("gui.done"), button -> closeScreen()));
+	    for (TorchmasterConfigScreenActions.ButtonDescriptor action : TorchmasterConfigScreenActions.bottomButtons(layout, height, BUTTON_HEIGHT)) {
+	        addCompatWidget(button(action.x, action.y, action.width, action.height, text(action.translationKey), button -> runAction(action.action)));
+	    }
 
-        updateEntryPositions();
+	    updateEntryPositions();
+	}
+
+    private void runAction(TorchmasterConfigScreenActions.Action action)
+    {
+        switch (action) {
+            case SAVE:
+                save();
+                break;
+            case RESET:
+                reset();
+                break;
+            case DONE:
+                closeScreen();
+                break;
+            default:
+                throw new IllegalStateException("Unsupported config action " + action);
+        }
     }
 
     private void save()
