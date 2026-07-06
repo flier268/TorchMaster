@@ -7,7 +7,6 @@ import net.minecraft.nbt.NbtList;
 /*import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 *///?}
-import net.xalcon.torchmaster.TorchmasterRuntime;
 import net.xalcon.torchmaster.domain.LightEntry;
 import net.xalcon.torchmaster.domain.LightRegistry;
 import net.xalcon.torchmaster.minecraft.light.MinecraftBlockingLight;
@@ -40,7 +39,7 @@ final class SavedLightStoreSerializer {
     //private static void saveLight(ListTag list, String lightKey, LightEntry entry)
     {
         if (!(entry instanceof MinecraftBlockingLight)) {
-            TorchmasterRuntime.LOG.error("Unable to save light {}, data is lost", entry.position());
+            StorageLogger.LOG.error("Unable to save light {}, data is lost", entry.position());
             return;
         }
         MinecraftBlockingLight light = (MinecraftBlockingLight)entry;
@@ -55,7 +54,7 @@ final class SavedLightStoreSerializer {
             tag.putString("_key", lightKey);
             list.add(tag);
         } else {
-            TorchmasterRuntime.LOG.error("Unable to save light {}, data is lost", light.position());
+            StorageLogger.LOG.error("Unable to save light {}, data is lost", light.position());
         }
     }
 
@@ -100,10 +99,10 @@ final class SavedLightStoreSerializer {
             if (light.isPresent()) {
                 lights.register(lightKey, light.get());
             } else {
-                TorchmasterRuntime.LOG.error("Unable to load light data from nbt for {} - {}, deserialization failed, data is lost", lightKey, serializerType);
+                StorageLogger.LOG.error("Unable to load light data from nbt for {} - {}, deserialization failed, data is lost", lightKey, serializerType);
             }
         } else {
-            TorchmasterRuntime.LOG.error("Unable to load light data from nbt for {} - {}. Serializer not found, data is lost", lightKey, serializerType);
+            StorageLogger.LOG.error("Unable to load light data from nbt for {} - {}. Serializer not found, data is lost", lightKey, serializerType);
         }
     }
 }

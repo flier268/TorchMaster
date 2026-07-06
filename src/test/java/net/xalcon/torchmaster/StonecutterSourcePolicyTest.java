@@ -23,7 +23,7 @@ class StonecutterSourcePolicyTest
     private static final Pattern MIXIN_FORBIDDEN_SPAWN_IMPORT = Pattern.compile(
             "^import\\s+net\\.xalcon\\.torchmaster\\.(domain\\.SpawnBlockingRules|minecraft\\.storage\\.|minecraft\\.adapter\\.MinecraftSpawnBlocker)");
     private static final Pattern CLIENT_RUNTIME_DETAIL = Pattern.compile(
-            "Torchmaster(LightRangeDisplay|LightRangeRenderer|LightScreen|ClientLifecycle|ScreenCompat|RangeBoxes|PanelRenderer|LineBoxRenderer|RangeRenderPlan|RangeLineSubmitter|ConfigScreenLayout|ConfigEntries)");
+            "Torchmaster(LightRangeDisplay|LightRangeRenderer|LightScreen|ClientLifecycle|ScreenCompat|RangeBoxes|PanelRenderer|LineBoxRenderer|RangeRenderPlan|RangeLineSubmitter|RangeRenderSession|ConfigScreenLayout|ConfigEntries|ConfigWidgetRows)");
     private static final Pattern STORAGE_RUNTIME_DETAIL = Pattern.compile(
             "(SavedLightStore|SavedLightStoreStateFactory|MinecraftLightStoreAccess|LightStoreBridge|LightStoreConfigView)");
     private static final Pattern RUNTIME_REGISTRY_FACADE = Pattern.compile("getRegistryForLevel\\s*\\(");
@@ -33,6 +33,9 @@ class StonecutterSourcePolicyTest
     private static final Pattern SCREEN_PANEL_RAW_FILL_COLOR = Pattern.compile("0xAA101010|0xFF404040|0xFF202020");
     private static final Pattern CONFIG_SCREEN_RAW_SAVE_COLLECTION = Pattern.compile("List<\\s*(Integer|Boolean|List<String>)\\s*>\\s+\\w+\\s*=\\s*new\\s+ArrayList|fromEntries\\s*\\(");
     private static final Pattern RANGE_RENDERER_DIRECT_SNAPSHOT_LOOP = Pattern.compile("for\\s*\\([^)]*RangeSnapshot[^)]*:\\s*TorchmasterLightRangeDisplay\\.snapshots");
+    private static final Pattern CONFIG_SCREEN_DIRECT_WIDGET_STATE = Pattern.compile("setWidget[XY]\\s*\\(|\\.visible\\s*=|\\.active\\s*=");
+    private static final Pattern RANGE_RENDERER_DIRECT_SESSION_DETAIL = Pattern.compile("TorchmasterLightRangeDisplay\\.snapshots\\s*\\(|RenderLayer\\.getLines\\s*\\(|WorldRenderer\\.drawBox\\s*\\(|\\.lineWidth\\s*\\(");
+    private static final Pattern STORAGE_SERIALIZER_RUNTIME_LOGGER = Pattern.compile("TorchmasterRuntime\\.LOG");
     private static final Pattern LOADER_GATED_FILE_START = Pattern.compile("//\\?\\s*(if|elif|else if)\\b.*\\b(fabric|forge|neoforge)\\b.*\\{");
 
     @Test
@@ -162,6 +165,30 @@ class StonecutterSourcePolicyTest
         Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterLightRangeRenderer.java");
 
         assertTrue(!hasRangeRendererDirectSnapshotLoop(path), () -> "Use TorchmasterRangeRenderPlan instead of hand-written snapshot loops: " + path);
+    }
+
+    @Test
+    void configScreenDoesNotSetWidgetStateDirectly() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterConfigScreen.java");
+
+        assertTrue(!hasConfigScreenDirectWidgetState(path), () -> "Use TorchmasterConfigWidgetRows/TorchmasterScreenCompat for widget position and visibility state: " + path);
+    }
+
+    @Test
+    void rangeRendererDelegatesSessionDetails() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterLightRangeRenderer.java");
+
+        assertTrue(!hasRangeRendererDirectSessionDetail(path), () -> "Use TorchmasterRangeRenderSession and line submitter helpers for render session details: " + path);
+    }
+
+    @Test
+    void storageSerializerDoesNotUseRuntimeLoggerFacade() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/storage/SavedLightStoreSerializer.java");
+
+        assertTrue(!hasStorageSerializerRuntimeLogger(path), () -> "Use storage-local logging instead of TorchmasterRuntime.LOG in storage serializer: " + path);
     }
 
     @Test
@@ -304,6 +331,33 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> RANGE_RENDERER_DIRECT_SNAPSHOT_LOOP.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasConfigScreenDirectWidgetState(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> CONFIG_SCREEN_DIRECT_WIDGET_STATE.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasRangeRendererDirectSessionDetail(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> RANGE_RENDERER_DIRECT_SESSION_DETAIL.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasStorageSerializerRuntimeLogger(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> STORAGE_SERIALIZER_RUNTIME_LOGGER.matcher(line).find());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }

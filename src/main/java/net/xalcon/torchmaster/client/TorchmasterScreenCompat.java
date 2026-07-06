@@ -100,6 +100,54 @@ public abstract class TorchmasterScreenCompat extends Screen
         *///?}
     }
 
+    static void setWidgetX(TextFieldWidget widget, int x)
+    {
+        //? if >=1.19.4 {
+        widget.setX(x);
+        //?} else {
+        /*widget.x = x;
+        *///?}
+    }
+
+    static void setWidgetY(TextFieldWidget widget, int y)
+    {
+        //? if >=1.19.4 {
+        widget.setY(y);
+        //?} else {
+        /*widget.y = y;
+        *///?}
+    }
+
+    static void setWidgetX(ButtonWidget widget, int x)
+    {
+        //? if >=1.19.4 {
+        widget.setX(x);
+        //?} else {
+        /*widget.x = x;
+        *///?}
+    }
+
+    static void setWidgetY(ButtonWidget widget, int y)
+    {
+        //? if >=1.19.4 {
+        widget.setY(y);
+        //?} else {
+        /*widget.y = y;
+        *///?}
+    }
+
+    static void setWidgetVisible(TextFieldWidget widget, boolean visible)
+    {
+        widget.visible = visible;
+        widget.active = visible;
+    }
+
+    static void setWidgetVisible(ButtonWidget widget, boolean visible)
+    {
+        widget.visible = visible;
+        widget.active = visible;
+    }
+
     protected static CompatText booleanLabel(boolean value)
     {
         return text(value ? "options.on" : "options.off");

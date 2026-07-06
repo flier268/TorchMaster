@@ -51,4 +51,14 @@ class TorchmasterConfigScreenLayoutTest
 
         assertTrue(totalButtonWidth <= layout.panelWidth());
     }
+
+    @Test
+    void scrollMathUsesSameRowHeightAsLayout()
+    {
+        TorchmasterConfigScreenLayout wide = new TorchmasterConfigScreenLayout(800, 220);
+        TorchmasterConfigScreenLayout compact = new TorchmasterConfigScreenLayout(360, 220);
+
+        assertEquals(32, TorchmasterConfigWidgetRows.scrollOffset(0, -1.0D, 11, wide, 220));
+        assertEquals(44, TorchmasterConfigWidgetRows.scrollOffset(0, -1.0D, 11, compact, 220));
+    }
 }

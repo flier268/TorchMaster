@@ -14,17 +14,7 @@ public final class MinecraftLightStoreAccess {
             ServerWorld serverLevel = (ServerWorld)level;
             String dimensionIdentifier = dimensionIdentifier(level);
             String storageId = storageId(dimensionIdentifier);
-            //? if >=1.21.11 {
-            /*return Optional.of(serverLevel.getPersistentStateManager().getOrCreate(SavedLightStoreStateFactory.type(storageId)));
-            *///?} elif fabric && forge && >=1.21.5 {
-            /*return Optional.of(serverLevel.getDataStorage().computeIfAbsent(SavedLightStoreStateFactory.type(storageId)));
-            *///?} elif >=1.20.6 {
-            return Optional.of(serverLevel.getPersistentStateManager().getOrCreate(SavedLightStoreStateFactory.FACTORY, storageId));
-            //?} elif >=1.17 {
-            /*return Optional.of(serverLevel.getPersistentStateManager().getOrCreate(SavedLightStoreStateFactory::load, SavedLightStore::new, storageId));
-            *///?} else {
-            /*return Optional.of(serverLevel.getPersistentStateManager().getOrCreate(SavedLightStore::new, storageId));
-            *///?}
+            return Optional.of(SavedLightStoreStateFactory.get(serverLevel, storageId));
         }
         return Optional.empty();
     }
