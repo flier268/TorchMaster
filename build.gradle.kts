@@ -113,6 +113,12 @@ val platformHelperClass = when {
     isNeoForge -> "net.xalcon.torchmaster.platform.NeoForgePlatformHelper"
     else -> throw GradleException("Unsupported loader '$activeLoader' for Stonecutter project '$activeProject'")
 }
+val contentRegistrarClass = when {
+    isFabric -> "net.xalcon.torchmaster.content.FabricContentRegistrar"
+    isForge -> "net.xalcon.torchmaster.content.ForgeContentRegistrar"
+    isNeoForge -> "net.xalcon.torchmaster.content.NeoforgeContentRegistrar"
+    else -> throw GradleException("Unsupported loader '$activeLoader' for Stonecutter project '$activeProject'")
+}
 val resourcePackFormat = resourcePackFormat(minecraftVersion)
 val dataPackFormat = dataPackFormat(minecraftVersion)
 val supportedPackFormats = "[${minOf(resourcePackFormat, dataPackFormat)}, ${maxOf(resourcePackFormat, dataPackFormat)}]"
@@ -206,7 +212,7 @@ repositories {
 sourceSets {
     main {
         java {
-            srcDir(rootProject.file("src/$activeLoader"))
+            srcDir(rootProject.file("src/$activeLoader/java"))
         }
         if (isFabric) {
             output.setResourcesDir(java.classesDirectory)
@@ -331,6 +337,7 @@ tasks.named<ProcessResources>("processResources") {
     val serviceImplementations = mapOf(
         "net.xalcon.torchmaster.platform.RegistrationProvider\$Factory" to registrationFactoryClass,
         "net.xalcon.torchmaster.platform.services.IPlatformHelper" to platformHelperClass,
+        "net.xalcon.torchmaster.content.ContentRegistrar" to contentRegistrarClass,
     )
 
     filesMatching(listOf("pack.mcmeta", "fabric.mod.json", "META-INF/mods.toml", "META-INF/neoforge.mods.toml", "*.mixins.json")) {

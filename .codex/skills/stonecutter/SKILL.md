@@ -29,6 +29,9 @@ For this repo:
 - Registered project nodes and `vcsVersion` must be read from `settings.gradle(.kts)` instead of copied into this skill.
 - CLI examples: `./gradlew "Set active project to PROJECT_NODE"`, `./gradlew "Refresh active project"`, `./gradlew "Reset active project"`.
 - Tasks named `stonecutterSwitchTo...` are lifecycle/internal tasks; prefer the human-readable root tasks or the IDE Stonecutter actions.
+- `src/main` should not contain loader entrypoints unless they require Stonecutter-transformed version branches. Put Fabric, Forge, and NeoForge initialization classes under `src/[loader]/java` only when they do not depend on raw Stonecutter lookup/version branch processing.
+- Version conditionals introduced by content-registration refactors should live in `net.xalcon.torchmaster.minecraft.adapter`, `net.xalcon.torchmaster.minecraft.content`, or narrowly scoped loader lifecycle adapters. Do not put version branches in `domain`, `port`, or shared content definition classes.
+- Shared item/block ids and metadata belong in content definitions; do not use Stonecutter to maintain three loader-specific copies of content details.
 
 ## Comment Syntax
 
@@ -143,3 +146,4 @@ Before finishing Stonecutter work:
 - Ensure branch chains use closed scopes except possibly the final branch.
 - Prefer narrow predicates and include loader constants when APIs differ by loader.
 - Do not manually edit generated source under `versions/.../build/generated/` for lasting changes.
+- Confirm any phase refactor updates the next-phase plan under `docs/refactor/`, including remaining Stonecutter-heavy areas and the next verification matrix.

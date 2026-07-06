@@ -8,15 +8,14 @@ import net.minecraft.entity.SpawnReason;
 //import net.minecraft.entity.SpawnType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.xalcon.torchmaster.TorchmasterRuntime;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
 import net.xalcon.torchmaster.domain.SpawnBlockingRules;
 import net.xalcon.torchmaster.minecraft.adapter.MinecraftConfigView;
-import net.xalcon.torchmaster.minecraft.adapter.MinecraftAdapterViews;
 import net.xalcon.torchmaster.minecraft.adapter.MinecraftEventResultAdapter;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnBlocker;
 import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnReasonAdapter;
 import net.xalcon.torchmaster.platform.Services;
 
@@ -47,23 +46,19 @@ public class SpawnEventBridge
         *///?} else {
         World level = entity.getEntityWorld();
         //?}
-        EntityType<?> entityType = entity.getType();
-
-        TorchmasterRuntime.getRegistryForLevel(level).ifPresent(reg ->
+        if(MinecraftSpawnBlocker.shouldBlockEntity(
+                level,
+                entity.getType(),
+                location,
+                MinecraftSpawnReasonAdapter.toPort(spawnType)))
         {
-            if(reg.shouldBlockEntityType(
-                    MinecraftAdapterViews.entityTypeKey(EntityType.getId(entityType)),
-                    MinecraftAdapterViews.vec3(location),
-                    MinecraftSpawnReasonAdapter.toPort(spawnType)))
-            {
-                container.setResult(EventResult.DENY);
-                TorchmasterRuntime.LOG.debug("Blocking spawn of {}", EntityType.getId(entityType));
-            }
-            else
-            {
-                TorchmasterRuntime.LOG.debug("Allowed spawn of {}", EntityType.getId(entityType));
-            }
-        });
+            container.setResult(EventResult.DENY);
+            TorchmasterRuntime.LOG.debug("Blocking spawn of {}", EntityType.getId(entity.getType()));
+        }
+        else
+        {
+            TorchmasterRuntime.LOG.debug("Allowed spawn of {}", EntityType.getId(entity.getType()));
+        }
     }
 
     public static void onPlayerSpawnPhantoms(PlayerEntity player, final Vec3d location, final EventResultContainer container)
@@ -82,35 +77,32 @@ public class SpawnEventBridge
         World level = player.getEntityWorld();
         //?}
 
-        TorchmasterRuntime.getRegistryForLevel(level).ifPresent(reg ->
+        if(MinecraftSpawnBlocker.shouldBlockEntity(
+                level,
+                EntityType.PHANTOM,
+                //? if >=1.21.11
+                //player.getEntityPos()
+                //? if <1.21.11
+                player.getPos()
+                ,
+                MinecraftSpawnReasonAdapter.toPort(
+                //? if fabric && forge && >=1.21.2 {
+                /*EntitySpawnReason.NATURAL
+                *///?} else {
+                //? if >=1.16.5
+                SpawnReason.NATURAL
+                //? if <1.16.5
+                //SpawnType.NATURAL
+                //?}
+                )))
         {
-            if(reg.shouldBlockEntityType(
-                    MinecraftAdapterViews.entityTypeKey(EntityType.getId(EntityType.PHANTOM)),
-                    MinecraftAdapterViews.vec3(
-                    //? if >=1.21.11
-                    //player.getEntityPos()
-                    //? if <1.21.11
-                    player.getPos()
-                    ),
-                    MinecraftSpawnReasonAdapter.toPort(
-                    //? if fabric && forge && >=1.21.2 {
-                    /*EntitySpawnReason.NATURAL
-                    *///?} else {
-                    //? if >=1.16.5
-                    SpawnReason.NATURAL
-                    //? if <1.16.5
-                    //SpawnType.NATURAL
-                    //?}
-                    )))
-            {
-                container.setResult(EventResult.DENY);
-                TorchmasterRuntime.LOG.debug("Blocking spawn of {}", EntityType.getId(EntityType.PHANTOM));
-            }
-            else
-            {
-                TorchmasterRuntime.LOG.debug("Allowed spawn of {}", EntityType.getId(EntityType.PHANTOM));
-            }
-        });
+            container.setResult(EventResult.DENY);
+            TorchmasterRuntime.LOG.debug("Blocking spawn of {}", EntityType.getId(EntityType.PHANTOM));
+        }
+        else
+        {
+            TorchmasterRuntime.LOG.debug("Allowed spawn of {}", EntityType.getId(EntityType.PHANTOM));
+        }
     }
 
     public static void onVillageSiege(World level, Vec3d attemptedSpawnPos, EventResultContainer container)
@@ -122,25 +114,19 @@ public class SpawnEventBridge
                 new MinecraftConfigView(config)))
             return;
 
-        TorchmasterRuntime.getRegistryForLevel(level).ifPresent(reg ->
+        if(MinecraftSpawnBlocker.shouldBlockVillageSiege(level, attemptedSpawnPos))
         {
-            if(reg.shouldBlockVillageZombieRaid(MinecraftAdapterViews.vec3(attemptedSpawnPos)))
-            {
-                container.setResult(EventResult.DENY);
-                TorchmasterRuntime.LOG.debug("Blocking village siege @ {}", attemptedSpawnPos);
-            }
-            else
-            {
-                TorchmasterRuntime.LOG.debug("Allowed village siege @ {}", attemptedSpawnPos);
-            }
-        });
+            container.setResult(EventResult.DENY);
+            TorchmasterRuntime.LOG.debug("Blocking village siege @ {}", attemptedSpawnPos);
+        }
+        else
+        {
+            TorchmasterRuntime.LOG.debug("Allowed village siege @ {}", attemptedSpawnPos);
+        }
     }
 
     public static void onServerLevelTickEnd(MinecraftServer server, BooleanSupplier haveTime)
     {
-        for(ServerWorld level : server.getWorlds())
-        {
-            TorchmasterRuntime.getRegistryForLevel(level).ifPresent(reg -> reg.onGlobalTick(MinecraftAdapterViews.world(level)));
-        }
+        MinecraftSpawnBlocker.tickStores(server);
     }
 }

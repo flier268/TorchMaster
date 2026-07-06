@@ -18,6 +18,10 @@ Do not provide progress updates while `gradlew` is running; when reporting, only
 - Before committing, confirm the active project is back to `vcsVersion` to avoid committing Stonecutter comment-switching noise.
 - Do not use reflection as a replacement for Stonecutter conditional compilation or version branches.
 - Do not replace strongly typed types with string IDs; prefer keeping and using Minecraft or project-provided strongly typed APIs, keys, registry types, enums, or value objects.
+- Keep item/block ids and shared content metadata in common content definitions; do not duplicate item/block details across Fabric, Forge, and NeoForge source roots.
+- Keep Minecraft object construction and version-specific registry/settings conversion in Minecraft adapter/content factory code, not in business/domain classes or loader entrypoints.
+- Loader-specific Java that does not need Stonecutter-transformed version branches should live under `src/[fabric|forge|neoforge]/java` with normal Java package paths. Entry points with version branches remain in `src/main` until a dedicated source-root strategy is implemented; treat moving them as a separate planned refactor.
+- Each staged refactor phase must finish by creating or updating the next-phase plan under `docs/refactor/`. If coupling remains, document the remaining coupling points, the next processing order, validation targets, and explicit anti-regression instructions for future agents.
 
 ## CodeGraph
 

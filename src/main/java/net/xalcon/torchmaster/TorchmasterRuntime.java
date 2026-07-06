@@ -1,11 +1,10 @@
 package net.xalcon.torchmaster;
 
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
 import net.xalcon.torchmaster.compat.VanillaCompat;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
-import net.xalcon.torchmaster.minecraft.storage.SavedLightStore;
 import net.xalcon.torchmaster.minecraft.storage.LightStoreBridge;
+import net.xalcon.torchmaster.minecraft.storage.MinecraftLightStoreAccess;
 import net.xalcon.torchmaster.platform.Services;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -50,29 +49,7 @@ public class TorchmasterRuntime
 
     public static Optional<LightStoreBridge> getRegistryForLevel(World level)
     {
-        if(level instanceof ServerWorld)
-        {
-            ServerWorld serverLevel = (ServerWorld)level;
-            //? if fabric && forge && >=1.21.11 {
-            /*String dimensionIdentifier = level.dimension().identifier().toDebugFileName();
-*///?} elif >=1.17 {
-            String dimensionIdentifier = level.getRegistryKey().getValue().toUnderscoreSeparatedString();
-//?} else {
-            /*String dimensionIdentifier = "overworld";
-            *///?}
-            //? if >=1.21.11 {
-            /*return Optional.of(serverLevel.getPersistentStateManager().getOrCreate(SavedLightStore.type("torchmaster_lights_" + dimensionIdentifier)));
-*///?} elif fabric && forge && >=1.21.5 {
-            /*return Optional.of(serverLevel.getDataStorage().computeIfAbsent(SavedLightStore.type("torchmaster_lights_" + dimensionIdentifier)));
-*///?} elif >=1.20.6 {
-            return Optional.of(serverLevel.getPersistentStateManager().getOrCreate(SavedLightStore.Factory, "torchmaster_lights_" + dimensionIdentifier));
-//?} elif >=1.17 {
-            /*return Optional.of(serverLevel.getPersistentStateManager().getOrCreate(SavedLightStore::load, SavedLightStore::new, "torchmaster_lights_" + dimensionIdentifier));
-*///?} else {
-            /*return Optional.of(serverLevel.getPersistentStateManager().getOrCreate(SavedLightStore::new, "torchmaster_lights_" + dimensionIdentifier));
-            *///?}
-        }
-        return Optional.empty();
+        return MinecraftLightStoreAccess.get(level);
     }
 
     public static void onWorldLoaded()

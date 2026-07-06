@@ -7,8 +7,6 @@ final class TorchmasterLightScreenModel
 {
     static final String TITLE_KEY = "screen.torchmaster.light.title";
     static final String RANGE_KEY = "screen.torchmaster.light.range";
-    private static final String MEGA_TORCH_BLOCK_KEY = "block.torchmaster.megatorch";
-    private static final String DREAD_LAMP_BLOCK_KEY = "block.torchmaster.dreadlamp";
     private static final String SHOW_RANGE_KEY = "screen.torchmaster.light.showRange";
     private static final String HIDE_RANGE_KEY = "screen.torchmaster.light.hideRange";
 
@@ -18,7 +16,7 @@ final class TorchmasterLightScreenModel
     TorchmasterLightScreenModel(LightType lightType, ITorchmasterConfig config)
     {
         this.lightType = lightType;
-        this.radius = lightType == LightType.MegaTorch ? config.getMegaTorchRadius() : config.getDreadLampRadius();
+        this.radius = radius(lightType, config);
     }
 
     LightType lightType()
@@ -33,11 +31,23 @@ final class TorchmasterLightScreenModel
 
     String blockKey()
     {
-        return lightType == LightType.MegaTorch ? MEGA_TORCH_BLOCK_KEY : DREAD_LAMP_BLOCK_KEY;
+        return lightType.blockTranslationKey();
     }
 
     String visibilityButtonKey(boolean visible)
     {
         return visible ? HIDE_RANGE_KEY : SHOW_RANGE_KEY;
+    }
+
+    private static int radius(LightType lightType, ITorchmasterConfig config)
+    {
+        switch (lightType.kind()) {
+            case MEGA_TORCH:
+                return config.getMegaTorchRadius();
+            case DREAD_LAMP:
+                return config.getDreadLampRadius();
+            default:
+                return 0;
+        }
     }
 }

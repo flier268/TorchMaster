@@ -5,6 +5,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.World;
 import net.xalcon.torchmaster.TorchmasterContent;
+import net.xalcon.torchmaster.domain.LightDefinition;
 import net.xalcon.torchmaster.port.BlockPosView;
 import net.xalcon.torchmaster.domain.LightKind;
 import net.xalcon.torchmaster.minecraft.light.MinecraftBlockingLight;
@@ -57,7 +58,7 @@ public class MegatorchBlockingLight implements MinecraftBlockingLight
     @Override
     public String displayName()
     {
-        return "Mega Torch";
+        return LightDefinition.MEGA_TORCH.displayName();
     }
 
     public BlockPos getPos()

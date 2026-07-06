@@ -7,7 +7,6 @@ import net.minecraft.registry.RegistryKey;
 //import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.xalcon.torchmaster.TorchmasterContent;
 import net.xalcon.torchmaster.blocks.LightType;
 
 import java.util.ArrayList;
@@ -121,13 +120,7 @@ public final class TorchmasterLightRangeDisplay
 
     private static boolean isExpectedLight(World level, BlockPos pos, LightType lightType)
     {
-        if (lightType == LightType.MegaTorch) {
-            return level.getBlockState(pos).getBlock() == TorchmasterContent.blockMegaTorch.get();
-        }
-        if (lightType == LightType.DreadLamp) {
-            return level.getBlockState(pos).getBlock() == TorchmasterContent.blockDreadLamp.get();
-        }
-        return false;
+        return lightType.matchesBlock(level.getBlockState(pos).getBlock());
     }
 
     private static void refreshRandomAirBlocks(World level, Display display)
@@ -209,7 +202,7 @@ public final class TorchmasterLightRangeDisplay
     {
         //? if <1.16.5
         /*return dimension == null ? "legacy" : dimension.toString();
-        *///? if fabric && forge && >=1.21.11 {
+*/        /**///? if fabric && forge && >=1.21.11 {
         /*return dimension.identifier().toString();
 	*///?} else if >=1.16.5 {
         return dimension.getValue().toString();

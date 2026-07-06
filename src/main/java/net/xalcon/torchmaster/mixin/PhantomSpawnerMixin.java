@@ -10,6 +10,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.SpawnHelper;
 import net.minecraft.world.spawner.PhantomSpawner;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftEventResultDecisions;
 import net.xalcon.torchmaster.utils.NaturalSpawnerWrapper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -56,15 +57,9 @@ public abstract class PhantomSpawnerMixin {
         if(player == null)
             return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType);
 
-        switch(NaturalSpawnerWrapper.isValidEmptySpawnBlock(player)) {
-            case ALLOW:
-                return true;
-            case DENY:
-                return false;
-            case DEFAULT:
-            default:
-                return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType);
-        }
+        return MinecraftEventResultDecisions.resolve(
+                NaturalSpawnerWrapper.isValidEmptySpawnBlock(player),
+                () -> SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType));
     }
 
     //? if >=1.21.11 {
@@ -92,6 +87,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.SpawnHelper;
 import net.minecraft.world.spawner.PhantomSpawner;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftEventResultDecisions;
 import net.xalcon.torchmaster.utils.NaturalSpawnerWrapper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -129,15 +125,9 @@ public abstract class PhantomSpawnerMixin {
         if(player == null)
             return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType);
 
-        switch(NaturalSpawnerWrapper.isValidEmptySpawnBlock(player)) {
-            case ALLOW:
-                return true;
-            case DENY:
-                return false;
-            case DEFAULT:
-            default:
-                return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType);
-        }
+        return MinecraftEventResultDecisions.resolve(
+                NaturalSpawnerWrapper.isValidEmptySpawnBlock(player),
+                () -> SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType));
     }
 
     @Inject(method = "spawn(Lnet/minecraft/server/world/ServerWorld;ZZ)I", at = @At("RETURN"))
@@ -157,6 +147,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.SpawnHelper;
 import net.minecraft.world.gen.PhantomSpawner;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftEventResultDecisions;
 import net.xalcon.torchmaster.utils.NaturalSpawnerWrapper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -194,15 +185,9 @@ public abstract class PhantomSpawnerMixin {
         if(player == null)
             return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType);
 
-        switch(NaturalSpawnerWrapper.isValidEmptySpawnBlock(player)) {
-            case ALLOW:
-                return true;
-            case DENY:
-                return false;
-            case DEFAULT:
-            default:
-                return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType);
-        }
+        return MinecraftEventResultDecisions.resolve(
+                NaturalSpawnerWrapper.isValidEmptySpawnBlock(player),
+                () -> SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState, entityType));
     }
 
     @Inject(method = "spawn(Lnet/minecraft/server/world/ServerWorld;ZZ)I", at = @At("RETURN"))
@@ -221,6 +206,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.SpawnHelper;
 import net.minecraft.world.gen.PhantomSpawner;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftEventResultDecisions;
 import net.xalcon.torchmaster.utils.NaturalSpawnerWrapper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -258,15 +244,9 @@ public abstract class PhantomSpawnerMixin {
         if(player == null)
             return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState);
 
-        switch(NaturalSpawnerWrapper.isValidEmptySpawnBlock(player)) {
-            case ALLOW:
-                return true;
-            case DENY:
-                return false;
-            case DEFAULT:
-            default:
-                return SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState);
-        }
+        return MinecraftEventResultDecisions.resolve(
+                NaturalSpawnerWrapper.isValidEmptySpawnBlock(player),
+                () -> SpawnHelper.isClearForSpawn(block, pos, blockState, fluidState));
     }
 
     @Inject(method = "spawn(Lnet/minecraft/server/world/ServerWorld;ZZ)I", at = @At("RETURN"))

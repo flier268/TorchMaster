@@ -21,6 +21,20 @@ class FeralFlareLightPlannerTest {
     }
 
     @Test
+    void placementRequiresCapacityAndLowLight() {
+        assertTrue(FeralFlareLightPlanner.shouldPlaceLight(2, 10, 4, 8));
+        assertFalse(FeralFlareLightPlanner.shouldPlaceLight(10, 10, 4, 8));
+        assertFalse(FeralFlareLightPlanner.shouldPlaceLight(2, 10, 8, 8));
+    }
+
+    @Test
+    void removalRequiresKnownChildAndMissingBlock() {
+        assertTrue(FeralFlareLightPlanner.shouldRemoveChildLight(new BlockPosView(1, 2, 3), false));
+        assertFalse(FeralFlareLightPlanner.shouldRemoveChildLight(new BlockPosView(1, 2, 3), true));
+        assertFalse(FeralFlareLightPlanner.shouldRemoveChildLight(null, false));
+    }
+
+    @Test
     void encodesAndDecodesRelativePosition() {
         BlockPosView origin = new BlockPosView(100, 64, -100);
         BlockPosView target = new BlockPosView(96, 70, -90);

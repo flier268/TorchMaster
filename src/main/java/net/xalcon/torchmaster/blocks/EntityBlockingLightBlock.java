@@ -17,6 +17,7 @@ import net.minecraft.util.ActionResult;
 //import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 //? if >=1.19
 import net.minecraft.util.math.random.Random;
 //? if <1.19
@@ -25,7 +26,7 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.xalcon.torchmaster.TorchmasterClientBridge;
-import net.xalcon.torchmaster.TorchmasterRuntime;
+import net.xalcon.torchmaster.minecraft.light.BlockingLightLifecycle;
 
 public class EntityBlockingLightBlock extends Block
 {
@@ -42,7 +43,7 @@ public class EntityBlockingLightBlock extends Block
     public VoxelShape getOutlineShape(BlockState state, BlockView blockGetter, BlockPos pos, ShapeContext ctx) {
     //? if <1.16.5
     //public VoxelShape getOutlineShape(BlockState state, BlockView blockGetter, BlockPos pos, EntityContext ctx) {
-        return lightType.Shape;
+        return lightType.shape();
     }
 
     //? if >=1.20.6 {
@@ -97,9 +98,10 @@ public class EntityBlockingLightBlock extends Block
     /*public void randomDisplayTick(BlockState state, World level, BlockPos pos, Random randomSource)
     *///?}
     {
-        double d0 = (double)pos.getX() + lightType.FlameOffset.x;
-        double d1 = (double)pos.getY() + lightType.FlameOffset.y;
-        double d2 = (double)pos.getZ() + lightType.FlameOffset.z;
+        Vec3d flameOffset = lightType.flameOffset();
+        double d0 = (double)pos.getX() + flameOffset.x;
+        double d1 = (double)pos.getY() + flameOffset.y;
+        double d2 = (double)pos.getZ() + flameOffset.z;
         //? if >=1.21.11 {
         /*level.addParticleClient(ParticleTypes.SMOKE, d0, d1, d2, 0.0f, 0.0f, 0.0f);
         level.addParticleClient(ParticleTypes.FLAME, d0, d1, d2, 0.0f, 0.0f, 0.0f);
@@ -112,9 +114,7 @@ public class EntityBlockingLightBlock extends Block
     @Override
     public void onBlockAdded(BlockState state, World level, BlockPos pos, BlockState oldState, boolean moving) {
         super.onBlockAdded(state, level, pos, oldState, moving);
-        TorchmasterRuntime.getRegistryForLevel(level)
-            .ifPresent(reg ->
-                    reg.registerLight(lightType.KeyFactory.apply(pos), lightType.LightFactory.apply(pos)));
+        BlockingLightLifecycle.register(level, pos, lightType);
     }
 
     //? if >=1.21.11 {
@@ -142,25 +142,19 @@ public class EntityBlockingLightBlock extends Block
     //? if >=1.21.5 {
     /*@Override
     protected void onStateReplaced(BlockState state, ServerWorld level, BlockPos pos, boolean moving) {
-        TorchmasterRuntime.getRegistryForLevel(level)
-            .ifPresent(reg ->
-                    reg.unregisterLight(lightType.KeyFactory.apply(pos)));
+        BlockingLightLifecycle.unregister(level, pos, lightType);
         super.onStateReplaced(state, level, pos, moving);
     }
     *///?} else if >=1.17 {
     @Override
     public void onStateReplaced(BlockState state, World level, BlockPos pos, BlockState oldState, boolean moving) {
-        TorchmasterRuntime.getRegistryForLevel(level)
-            .ifPresent(reg ->
-                    reg.unregisterLight(lightType.KeyFactory.apply(pos)));
+        BlockingLightLifecycle.unregister(level, pos, lightType);
         super.onStateReplaced(state, level, pos, oldState, moving);
     }
 //?} else if <1.16.5 {
     /*@Override
     public void onBlockRemoved(BlockState state, World level, BlockPos pos, BlockState oldState, boolean moving) {
-        TorchmasterRuntime.getRegistryForLevel(level)
-            .ifPresent(reg ->
-                    reg.unregisterLight(lightType.KeyFactory.apply(pos)));
+        BlockingLightLifecycle.unregister(level, pos, lightType);
         super.onBlockRemoved(state, level, pos, oldState, moving);
     }
     *///?}

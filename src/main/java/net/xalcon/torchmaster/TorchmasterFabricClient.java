@@ -15,14 +15,11 @@ import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 //?}
-import net.minecraft.client.MinecraftClient;
 //? if >=1.21.11
 //import net.minecraft.client.render.BlockRenderLayer;
 //? if >=1.16 && <1.21.11
 import net.minecraft.client.render.RenderLayer;
-import net.xalcon.torchmaster.client.TorchmasterLightRangeDisplay;
-import net.xalcon.torchmaster.client.TorchmasterLightRangeRenderer;
-import net.xalcon.torchmaster.client.TorchmasterLightScreen;
+import net.xalcon.torchmaster.client.TorchmasterClientLifecycle;
 
 @Environment(EnvType.CLIENT)
 public class TorchmasterFabricClient implements ClientModInitializer
@@ -31,7 +28,7 @@ public class TorchmasterFabricClient implements ClientModInitializer
     public void onInitializeClient()
     {
         configureRenderLayers();
-        TorchmasterClientBridge.setLightScreenOpener(TorchmasterLightScreen::open);
+        TorchmasterClientLifecycle.installLightScreenOpener();
         registerClientTick();
         registerRangeRenderer();
     }
@@ -48,9 +45,9 @@ public class TorchmasterFabricClient implements ClientModInitializer
     private static void registerClientTick()
     {
         //? if >=1.16 {
-        ClientTickEvents.END_CLIENT_TICK.register(client -> TorchmasterLightRangeDisplay.tick());
+        ClientTickEvents.END_CLIENT_TICK.register(client -> TorchmasterClientLifecycle.onEndClientTick());
         //?} else {
-        /*ClientTickCallback.EVENT.register(client -> TorchmasterLightRangeDisplay.tick());
+        /*ClientTickCallback.EVENT.register(client -> TorchmasterClientLifecycle.onEndClientTick());
         *///?}
     }
 
@@ -58,16 +55,12 @@ public class TorchmasterFabricClient implements ClientModInitializer
     {
         //? if >=1.21.11 {
         /*WorldRenderEvents.AFTER_ENTITIES.register(context -> {
-            MinecraftClient minecraft = MinecraftClient.getInstance();
-            if (minecraft.world != null) {
-                TorchmasterLightRangeRenderer.render(minecraft.world, minecraft.gameRenderer.getCamera(), context.matrices(), context.consumers());
-            }
+            TorchmasterClientLifecycle.renderCurrentRange(context.matrices(), context.consumers());
         });
         *///?} else if >=1.16 {
         WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
-            MinecraftClient minecraft = MinecraftClient.getInstance();
-            if (minecraft.world != null && context.matrixStack() != null) {
-                TorchmasterLightRangeRenderer.render(minecraft.world, context.camera(), context.matrixStack());
+            if (context.matrixStack() != null) {
+                TorchmasterClientLifecycle.renderCurrentRange(context.matrixStack());
             }
         });
         //?}

@@ -5,6 +5,7 @@ import net.minecraft.block.spawner.MobSpawnerLogic;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.world.WorldAccess;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftEventResultDecisions;
 import net.xalcon.torchmaster.utils.MobWrapper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,15 +23,9 @@ public abstract class BaseSpawnerMixin
     )
     private static boolean torchmaster_serverTick_checkSpawnRules(MobEntity mob, WorldAccess level, SpawnReason spawnReason)
     {
-        switch(MobWrapper.checkSpawnRules(mob, spawnReason)) {
-            case ALLOW:
-                return true;
-            case DENY:
-                return false;
-            case DEFAULT:
-            default:
-                return mob.canSpawn(level, spawnReason);
-        }
+        return MinecraftEventResultDecisions.resolve(
+                MobWrapper.checkSpawnRules(mob, spawnReason),
+                () -> mob.canSpawn(level, spawnReason));
     }
 }
 //?} else if fabric && >=1.17 {
@@ -38,6 +33,7 @@ public abstract class BaseSpawnerMixin
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.MobSpawnerLogic;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftEventResultDecisions;
 import net.xalcon.torchmaster.utils.MobWrapper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -55,15 +51,9 @@ public abstract class BaseSpawnerMixin
     )
     private static boolean torchmaster_serverTick_checkSpawnRules(MobEntity mob, WorldAccess level, SpawnReason spawnReason)
     {
-        switch(MobWrapper.checkSpawnRules(mob, spawnReason)) {
-            case ALLOW:
-                return true;
-            case DENY:
-                return false;
-            case DEFAULT:
-            default:
-                return mob.canSpawn(level, spawnReason);
-        }
+        return MinecraftEventResultDecisions.resolve(
+                MobWrapper.checkSpawnRules(mob, spawnReason),
+                () -> mob.canSpawn(level, spawnReason));
     }
 }
 *///?} else if fabric {

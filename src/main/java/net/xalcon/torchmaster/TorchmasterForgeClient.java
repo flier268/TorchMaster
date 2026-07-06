@@ -1,23 +1,20 @@
 package net.xalcon.torchmaster;
 
 //? if forge && >=1.19 {
-/*import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.math.MatrixStack;
+/*import net.minecraft.client.util.math.MatrixStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.xalcon.torchmaster.client.TorchmasterLightRangeDisplay;
-import net.xalcon.torchmaster.client.TorchmasterLightRangeRenderer;
-import net.xalcon.torchmaster.client.TorchmasterLightScreen;
+import net.xalcon.torchmaster.client.TorchmasterClientLifecycle;
 
 @Mod.EventBusSubscriber(modid = Constants.MOD_ID, value = Dist.CLIENT)
 public final class TorchmasterForgeClient
 {
     static
     {
-        TorchmasterClientBridge.setLightScreenOpener(TorchmasterLightScreen::open);
+        TorchmasterClientLifecycle.installLightScreenOpener();
     }
 
     private TorchmasterForgeClient()
@@ -30,7 +27,7 @@ public final class TorchmasterForgeClient
         if (event.phase != TickEvent.Phase.END) {
             return;
         }
-        TorchmasterLightRangeDisplay.tick();
+        TorchmasterClientLifecycle.onEndClientTick();
     }
 
     @SubscribeEvent
@@ -42,39 +39,26 @@ public final class TorchmasterForgeClient
         //? if >=1.20.6 {
         MatrixStack poseStack = new MatrixStack();
         poseStack.multiplyPositionMatrix(event.getPoseStack());
-        renderRange(poseStack);
+        TorchmasterClientLifecycle.renderCurrentRange(poseStack);
         //?} else {
-        /^renderRange(event.getPoseStack());^/
+        /^TorchmasterClientLifecycle.renderCurrentRange(event.getPoseStack());^/
         //?}
-    }
-
-    private static void renderRange(MatrixStack poseStack)
-    {
-        MinecraftClient minecraft = MinecraftClient.getInstance();
-        if (minecraft.world == null) {
-            return;
-        }
-        TorchmasterLightRangeRenderer.render(minecraft.world, minecraft.gameRenderer.getCamera(), poseStack);
     }
 }
 *///?} else if forge && >=1.15 {
-/*import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraftforge.api.distmarker.Dist;
+/*import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.xalcon.torchmaster.client.TorchmasterLightRangeDisplay;
-import net.xalcon.torchmaster.client.TorchmasterLightRangeRenderer;
-import net.xalcon.torchmaster.client.TorchmasterLightScreen;
+import net.xalcon.torchmaster.client.TorchmasterClientLifecycle;
 
 @Mod.EventBusSubscriber(modid = Constants.MOD_ID, value = Dist.CLIENT)
 public final class TorchmasterForgeClient
 {
     static
     {
-        TorchmasterClientBridge.setLightScreenOpener(TorchmasterLightScreen::open);
+        TorchmasterClientLifecycle.installLightScreenOpener();
     }
 
     private TorchmasterForgeClient()
@@ -87,41 +71,29 @@ public final class TorchmasterForgeClient
         if (event.phase != TickEvent.Phase.END) {
             return;
         }
-        TorchmasterLightRangeDisplay.tick();
+        TorchmasterClientLifecycle.onEndClientTick();
     }
 
     @SubscribeEvent
     public static void onRenderWorldLast(RenderWorldLastEvent event)
     {
-        renderRange(event.getMatrixStack());
-    }
-
-    private static void renderRange(MatrixStack poseStack)
-    {
-        MinecraftClient minecraft = MinecraftClient.getInstance();
-        if (minecraft.world == null) {
-            return;
-        }
-        TorchmasterLightRangeRenderer.render(minecraft.world, minecraft.gameRenderer.getCamera(), poseStack);
+        TorchmasterClientLifecycle.renderCurrentRange(event.getMatrixStack());
     }
 }
 *///?} else if forge {
-/*import net.minecraft.client.MinecraftClient;
-import net.minecraftforge.api.distmarker.Dist;
+/*import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.xalcon.torchmaster.client.TorchmasterLightRangeDisplay;
-import net.xalcon.torchmaster.client.TorchmasterLightRangeRenderer;
-import net.xalcon.torchmaster.client.TorchmasterLightScreen;
+import net.xalcon.torchmaster.client.TorchmasterClientLifecycle;
 
 @Mod.EventBusSubscriber(modid = Constants.MOD_ID, value = Dist.CLIENT)
 public final class TorchmasterForgeClient
 {
     static
     {
-        TorchmasterClientBridge.setLightScreenOpener(TorchmasterLightScreen::open);
+        TorchmasterClientLifecycle.installLightScreenOpener();
     }
 
     private TorchmasterForgeClient()
@@ -134,16 +106,13 @@ public final class TorchmasterForgeClient
         if (event.phase != TickEvent.Phase.END) {
             return;
         }
-        TorchmasterLightRangeDisplay.tick();
+        TorchmasterClientLifecycle.onEndClientTick();
     }
 
     @SubscribeEvent
     public static void onRenderWorldLast(RenderWorldLastEvent event)
     {
-        MinecraftClient minecraft = MinecraftClient.getInstance();
-        if (minecraft.world != null) {
-            TorchmasterLightRangeRenderer.render(minecraft.world, minecraft.gameRenderer.getCamera());
-        }
+        TorchmasterClientLifecycle.renderCurrentRange();
     }
 }
 *///?}
