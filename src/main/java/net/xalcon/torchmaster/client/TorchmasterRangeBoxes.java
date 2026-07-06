@@ -19,6 +19,11 @@ public final class TorchmasterRangeBoxes
                 center.getZ() + radius + 1);
     }
 
+    public static Box box(double minX, double minY, double minZ, double maxX, double maxY, double maxZ)
+    {
+        return new Box(minX, minY, minZ, maxX, maxY, maxZ);
+    }
+
     public static Box sampleBox(BlockPos pos)
     {
         return new Box(

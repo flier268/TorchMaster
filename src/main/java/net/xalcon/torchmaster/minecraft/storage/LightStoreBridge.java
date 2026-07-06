@@ -10,6 +10,8 @@ public interface LightStoreBridge
 {
     boolean shouldBlockEntityType(EntityTypeKey entityType, Vec3View pos, SpawnReason spawnType);
     boolean shouldBlockVillageZombieRaid(Vec3View pos);
+    boolean shouldBlockNaturalSpawnPosition(Vec3View pos);
+    boolean shouldBlockNaturalSpawnChunk(int chunkX, int chunkZ);
 
     /**
      * Warning: The persisted light instance should not be directly attached to any chunk data!

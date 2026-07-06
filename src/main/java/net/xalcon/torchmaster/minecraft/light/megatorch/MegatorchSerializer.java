@@ -39,9 +39,10 @@ public class MegatorchSerializer implements LightNbtSerializer
         //CompoundTag nbt = new CompoundTag();
         //? if >=1.21.11 {
         /*nbt.put("pos", BlockPos.CODEC, megatorchLight.getPos());
-*///?} else {
+	*///?} else {
         nbt.put("pos", NbtHelper.fromBlockPos(megatorchLight.getPos()));
         //?}
+        nbt.putBoolean("diamondBase", megatorchLight.hasDiamondBase());
 
         return nbt;
     }
@@ -59,7 +60,12 @@ public class MegatorchSerializer implements LightNbtSerializer
 	//?} else {
         /*Optional<BlockPos> pos = Optional.of(NbtHelper.toBlockPos(nbt.getCompound("pos")));
         *///?}
-        return pos.map(MegatorchBlockingLight::new);
+        //? if >=1.21.11 {
+        /*boolean diamondBase = nbt.getBoolean("diamondBase").orElse(false);
+        *///?} else {
+        boolean diamondBase = nbt.getBoolean("diamondBase");
+        //?}
+        return pos.map(blockPos -> new MegatorchBlockingLight(blockPos, diamondBase));
     }
 
     @Override

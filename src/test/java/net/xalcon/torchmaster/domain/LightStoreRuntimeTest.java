@@ -4,6 +4,7 @@ import net.xalcon.torchmaster.port.BlockPosView;
 import net.xalcon.torchmaster.port.ConfigView;
 import net.xalcon.torchmaster.port.EntityTypeKey;
 import net.xalcon.torchmaster.port.LightInfo;
+import net.xalcon.torchmaster.port.SpawnReason;
 import net.xalcon.torchmaster.port.Vec3View;
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +34,29 @@ class LightStoreRuntimeTest
         runtime.registerLight("mega", light(LightKind.MEGA_TORCH, 0, 64, 0));
 
         assertTrue(runtime.shouldBlockEntity(context(filter(ZOMBIE), filter(SKELETON)), ZOMBIE, new Vec3View(3.5, 64, 3.5)));
+    }
+
+    @Test
+    void diamondBaseMegaTorchBlocksNaturalPositionButNotSpawnerEntity()
+    {
+        LightStoreRuntime runtime = new LightStoreRuntime();
+        runtime.registerLight("mega", light(LightKind.MEGA_TORCH, 0, 64, 0, true));
+
+        LightStoreRuntimeContext context = context(filter(ZOMBIE), filter(SKELETON));
+        assertTrue(runtime.shouldBlockNaturalSpawnPosition(context, new Vec3View(3.5, 64, 3.5)));
+        assertTrue(runtime.shouldBlockEntity(context, ZOMBIE, new Vec3View(3.5, 64, 3.5), SpawnReason.NATURAL));
+        assertFalse(runtime.shouldBlockEntity(context, ZOMBIE, new Vec3View(3.5, 64, 3.5), SpawnReason.SPAWNER));
+    }
+
+    @Test
+    void diamondBaseMegaTorchBlocksNaturalSpawnChunks()
+    {
+        LightStoreRuntime runtime = new LightStoreRuntime();
+        runtime.registerLight("mega", light(LightKind.MEGA_TORCH, 0, 64, 0, true));
+
+        LightStoreRuntimeContext context = context(filter(ZOMBIE), filter(SKELETON));
+        assertTrue(runtime.shouldBlockNaturalSpawnChunk(context, 1, 0));
+        assertFalse(runtime.shouldBlockNaturalSpawnChunk(context, 2, 0));
     }
 
     @Test
@@ -135,6 +159,11 @@ class LightStoreRuntimeTest
 
     private static LightEntry light(LightKind kind, int x, int y, int z)
     {
+        return light(kind, x, y, z, false);
+    }
+
+    private static LightEntry light(LightKind kind, int x, int y, int z, boolean naturalSpawnOnly)
+    {
         return new LightEntry()
         {
             @Override
@@ -158,8 +187,14 @@ class LightStoreRuntimeTest
                     case DREAD_LAMP:
                         return "Dread Lamp";
                     default:
-                        return "Light";
+                    return "Light";
                 }
+            }
+
+            @Override
+            public boolean blocksNaturalSpawnsOnly()
+            {
+                return naturalSpawnOnly;
             }
         };
     }

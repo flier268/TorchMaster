@@ -5,14 +5,22 @@ package net.xalcon.torchmaster.minecraft.spawn;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import net.xalcon.torchmaster.events.EventResult;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnBlocker;
 //?} else if fabric {
 /*import net.minecraft.entity.SpawnType;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import net.xalcon.torchmaster.events.EventResult;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnBlocker;
 *///?}
 
 public final class FabricSpawnEventHooks
@@ -49,6 +57,18 @@ public final class FabricSpawnEventHooks
         //?}
         return MinecraftSpawnEventContainers.invokeDefault(container ->
                 MinecraftSpawnEventHooks.onPlayerSpawnPhantoms(player, position, container));
+    }
+    //?}
+
+    //? if fabric {
+    public static boolean shouldSkipNaturalSpawnPosition(World level, BlockPos pos)
+    {
+        return MinecraftSpawnBlocker.shouldBlockNaturalSpawnPosition(level, pos);
+    }
+
+    public static boolean shouldSkipNaturalSpawnChunk(World level, ChunkPos chunkPos)
+    {
+        return MinecraftSpawnBlocker.shouldBlockNaturalSpawnChunk(level, chunkPos);
     }
     //?}
 }

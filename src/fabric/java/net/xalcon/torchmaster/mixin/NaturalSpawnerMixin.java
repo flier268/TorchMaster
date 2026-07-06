@@ -3,7 +3,11 @@ package net.xalcon.torchmaster.mixin;
 //? if fabric {
 //? if >=1.16.5 {
 import net.minecraft.entity.SpawnReason;
+//? if >=1.21.11
+//import net.minecraft.entity.SpawnGroup;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.WorldAccess;
+import net.minecraft.world.chunk.WorldChunk;
 //?} else {
 /*import net.minecraft.entity.SpawnType;
 import net.minecraft.world.IWorld;
@@ -14,13 +18,61 @@ import net.xalcon.torchmaster.minecraft.adapter.MinecraftEventResultDecisions;
 import net.xalcon.torchmaster.minecraft.spawn.FabricSpawnEventHooks;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+//? if >=1.16.5
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 //?}
+//? if >=1.21.11
+//import java.util.List;
 
 //? if fabric
 @Mixin(SpawnHelper.class)
 public abstract class NaturalSpawnerMixin
 {
+    //? if fabric && >=1.21.11 {
+    /*@Inject(
+            method = "spawn(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/world/chunk/WorldChunk;Lnet/minecraft/world/SpawnHelper$Info;Ljava/util/List;)V",
+            at = @At("HEAD"),
+            cancellable = true
+    )
+    private static void torchmaster_spawn_skipDiamondBaseBlockedNaturalSpawnChunk(
+            ServerWorld level,
+            WorldChunk chunk,
+            SpawnHelper.Info info,
+            List<SpawnGroup> spawnGroups,
+            CallbackInfo ci)
+    {
+        torchmaster$cancelDiamondBaseBlockedNaturalSpawnChunk(level, chunk, ci);
+    }
+    *///?} else if fabric && >=1.16.5 {
+    @Inject(
+            method = "spawn(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/world/chunk/WorldChunk;Lnet/minecraft/world/SpawnHelper$Info;ZZZ)V",
+            at = @At("HEAD"),
+            cancellable = true
+    )
+    private static void torchmaster_spawn_skipDiamondBaseBlockedNaturalSpawnChunk(
+            ServerWorld level,
+            WorldChunk chunk,
+            SpawnHelper.Info info,
+            boolean spawnAnimals,
+            boolean spawnMonsters,
+            boolean rare,
+            CallbackInfo ci)
+    {
+        torchmaster$cancelDiamondBaseBlockedNaturalSpawnChunk(level, chunk, ci);
+    }
+    //?}
+
+    //? if fabric && >=1.16.5 {
+    private static void torchmaster$cancelDiamondBaseBlockedNaturalSpawnChunk(ServerWorld level, WorldChunk chunk, CallbackInfo ci)
+    {
+        if (FabricSpawnEventHooks.shouldSkipNaturalSpawnChunk(level, chunk.getPos())) {
+            ci.cancel();
+        }
+    }
+    //?}
+
     //? if fabric {
     @Redirect(
             //? if >=1.16.5

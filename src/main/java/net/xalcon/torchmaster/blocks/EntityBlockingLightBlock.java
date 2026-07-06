@@ -27,6 +27,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.xalcon.torchmaster.TorchmasterClientBridge;
 import net.xalcon.torchmaster.minecraft.light.BlockingLightLifecycle;
+import net.xalcon.torchmaster.minecraft.light.MinecraftBlockingLight;
 
 public class EntityBlockingLightBlock extends Block
 {
@@ -114,7 +115,17 @@ public class EntityBlockingLightBlock extends Block
     @Override
     public void onBlockAdded(BlockState state, World level, BlockPos pos, BlockState oldState, boolean moving) {
         super.onBlockAdded(state, level, pos, oldState, moving);
-        BlockingLightLifecycle.register(level, pos, lightType);
+        BlockingLightLifecycle.register(level, lightType.key(pos), createLight(state, pos));
+    }
+
+    protected MinecraftBlockingLight createLight(BlockState state, BlockPos pos)
+    {
+        return lightType.createLight(pos);
+    }
+
+    protected void updateLight(World level, BlockState state, BlockPos pos)
+    {
+        BlockingLightLifecycle.register(level, lightType.key(pos), createLight(state, pos));
     }
 
     //? if >=1.21.11 {
@@ -147,15 +158,19 @@ public class EntityBlockingLightBlock extends Block
     }
     *///?} else if >=1.17 {
     @Override
-    public void onStateReplaced(BlockState state, World level, BlockPos pos, BlockState oldState, boolean moving) {
-        BlockingLightLifecycle.unregister(level, pos, lightType);
-        super.onStateReplaced(state, level, pos, oldState, moving);
+    public void onStateReplaced(BlockState state, World level, BlockPos pos, BlockState newState, boolean moving) {
+        if (state.getBlock() != newState.getBlock()) {
+            BlockingLightLifecycle.unregister(level, pos, lightType);
+        }
+        super.onStateReplaced(state, level, pos, newState, moving);
     }
 //?} else if <1.16.5 {
     /*@Override
-    public void onBlockRemoved(BlockState state, World level, BlockPos pos, BlockState oldState, boolean moving) {
-        BlockingLightLifecycle.unregister(level, pos, lightType);
-        super.onBlockRemoved(state, level, pos, oldState, moving);
+    public void onBlockRemoved(BlockState state, World level, BlockPos pos, BlockState newState, boolean moving) {
+        if (state.getBlock() != newState.getBlock()) {
+            BlockingLightLifecycle.unregister(level, pos, lightType);
+        }
+        super.onBlockRemoved(state, level, pos, newState, moving);
     }
     *///?}
 }

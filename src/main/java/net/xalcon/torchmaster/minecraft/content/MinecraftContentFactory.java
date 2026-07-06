@@ -9,6 +9,7 @@ import net.xalcon.torchmaster.blocks.EntityBlockingLightBlock;
 import net.xalcon.torchmaster.blocks.FeralFlareLanternBlock;
 import net.xalcon.torchmaster.blocks.InvisibleLightBlock;
 import net.xalcon.torchmaster.blocks.LightType;
+import net.xalcon.torchmaster.blocks.MegaTorchBlock;
 import net.xalcon.torchmaster.content.TorchmasterContentDefinitions;
 import net.xalcon.torchmaster.items.FrozenPearlItem;
 import net.xalcon.torchmaster.items.TMItemBlock;
@@ -33,7 +34,7 @@ public final class MinecraftContentFactory
         LightType lightType = LightType.forKind(definition.lightKind());
         switch (lightType.kind()) {
             case MEGA_TORCH:
-                return new EntityBlockingLightBlock(blockProperties(definition.id(), MinecraftBlockProperties.megaTorch()), lightType);
+                return new MegaTorchBlock(blockProperties(definition.id(), MinecraftBlockProperties.megaTorch()), lightType);
             case DREAD_LAMP:
                 return new EntityBlockingLightBlock(blockProperties(definition.id(), MinecraftBlockProperties.dreadLamp()), lightType);
             default:

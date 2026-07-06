@@ -37,6 +37,21 @@ class TorchmasterRangeRenderPlanTest
     }
 
     @Test
+    void snapshotCanProvideEffectiveRangeBox()
+    {
+        TorchmasterRangeBoxes.Box effectiveBox = TorchmasterRangeBoxes.box(-32, -4, -16, 48, 13, 64);
+        TorchmasterLightRangeDisplay.RangeSnapshot snapshot = new TorchmasterLightRangeDisplay.RangeSnapshot(
+                new BlockPos(10, 4, 30),
+                effectiveBox,
+                Collections.emptyList());
+
+        TorchmasterRangeRenderPlan plan = TorchmasterRangeRenderPlan.fromSnapshots(Collections.singletonList(snapshot));
+
+        assertEquals(1, plan.entries().size());
+        assertBox(plan.entries().get(0).box, -32, -4, -16, 48, 13, 64);
+    }
+
+    @Test
     void rangeStyleIsDeterministicAndBrightEnough()
     {
         BlockPos pos = new BlockPos(10, 20, 30);

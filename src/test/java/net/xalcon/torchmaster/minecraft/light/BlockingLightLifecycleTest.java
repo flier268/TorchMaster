@@ -74,6 +74,16 @@ class BlockingLightLifecycleTest {
         }
 
         @Override
+        public boolean shouldBlockNaturalSpawnPosition(Vec3View pos) {
+            return false;
+        }
+
+        @Override
+        public boolean shouldBlockNaturalSpawnChunk(int chunkX, int chunkZ) {
+            return false;
+        }
+
+        @Override
         public void registerLight(String lightKey, LightEntry light) {
             this.registeredKey = lightKey;
             this.registeredLight = (MinecraftBlockingLight)light;

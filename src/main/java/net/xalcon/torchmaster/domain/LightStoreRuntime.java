@@ -2,6 +2,7 @@ package net.xalcon.torchmaster.domain;
 
 import net.xalcon.torchmaster.port.EntityTypeKey;
 import net.xalcon.torchmaster.port.LightInfo;
+import net.xalcon.torchmaster.port.SpawnReason;
 import net.xalcon.torchmaster.port.Vec3View;
 
 import java.util.Optional;
@@ -22,10 +23,44 @@ public final class LightStoreRuntime
 
     public boolean shouldBlockEntity(LightStoreRuntimeContext context, EntityTypeKey entityType, Vec3View position)
     {
+        return shouldBlockEntity(context, entityType, position, SpawnReason.UNKNOWN);
+    }
+
+    public boolean shouldBlockEntity(LightStoreRuntimeContext context, EntityTypeKey entityType, Vec3View position, SpawnReason spawnReason)
+    {
         for (LightEntry light : lights.entries()) {
+            if (spawnReason.isNatural() && LightRules.blocksNaturalSpawnPosition(
+                    light.kind(), light.blocksNaturalSpawnsOnly(), position, light.position(), radiusFor(light.kind(), context))) {
+                return true;
+            }
+            if (light.blocksNaturalSpawnsOnly()) {
+                continue;
+            }
             EntityFilter filter = filterFor(light.kind(), context);
             int radius = radiusFor(light.kind(), context);
             if (LightRules.blocksEntity(light.kind(), filter, entityType, position, light.position(), radius)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean shouldBlockNaturalSpawnPosition(LightStoreRuntimeContext context, Vec3View position)
+    {
+        for (LightEntry light : lights.entries()) {
+            if (LightRules.blocksNaturalSpawnPosition(
+                    light.kind(), light.blocksNaturalSpawnsOnly(), position, light.position(), radiusFor(light.kind(), context))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean shouldBlockNaturalSpawnChunk(LightStoreRuntimeContext context, int chunkX, int chunkZ)
+    {
+        for (LightEntry light : lights.entries()) {
+            if (LightRules.blocksNaturalSpawnChunk(
+                    light.kind(), light.blocksNaturalSpawnsOnly(), chunkX, chunkZ, light.position(), radiusFor(light.kind(), context))) {
                 return true;
             }
         }

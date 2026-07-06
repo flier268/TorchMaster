@@ -36,6 +36,26 @@ class MinecraftSpawnBlockerTest {
     }
 
     @Test
+    void naturalSpawnPositionCheckDelegatesToLightStore() {
+        FakeLightStore store = new FakeLightStore(false, false);
+        store.blockNaturalPosition = true;
+        Vec3View position = new Vec3View(8.0, 64.0, 8.0);
+
+        assertTrue(MinecraftSpawnBlocker.shouldBlockNaturalSpawnPosition(store, position));
+        assertSame(position, store.naturalSpawnPosition);
+    }
+
+    @Test
+    void naturalSpawnChunkCheckDelegatesToLightStore() {
+        FakeLightStore store = new FakeLightStore(false, false);
+        store.blockNaturalChunk = true;
+
+        assertTrue(MinecraftSpawnBlocker.shouldBlockNaturalSpawnChunk(store, 2, -3));
+        assertEquals(2, store.chunkX);
+        assertEquals(-3, store.chunkZ);
+    }
+
+    @Test
     void returnsStoreDecisionWithoutForcingDeny() {
         FakeLightStore store = new FakeLightStore(false, false);
 
@@ -53,6 +73,11 @@ class MinecraftSpawnBlockerTest {
         private Vec3View position;
         private SpawnReason spawnReason;
         private Vec3View villageSiegePosition;
+        private Vec3View naturalSpawnPosition;
+        private boolean blockNaturalPosition;
+        private boolean blockNaturalChunk;
+        private int chunkX;
+        private int chunkZ;
 
         private FakeLightStore(boolean blockEntity, boolean blockVillageSiege) {
             this.blockEntity = blockEntity;
@@ -71,6 +96,19 @@ class MinecraftSpawnBlockerTest {
         public boolean shouldBlockVillageZombieRaid(Vec3View pos) {
             this.villageSiegePosition = pos;
             return blockVillageSiege;
+        }
+
+        @Override
+        public boolean shouldBlockNaturalSpawnPosition(Vec3View pos) {
+            this.naturalSpawnPosition = pos;
+            return blockNaturalPosition;
+        }
+
+        @Override
+        public boolean shouldBlockNaturalSpawnChunk(int chunkX, int chunkZ) {
+            this.chunkX = chunkX;
+            this.chunkZ = chunkZ;
+            return blockNaturalChunk;
         }
 
         @Override

@@ -15,6 +15,11 @@ public final class BlockingLightLifecycle {
                 .ifPresent(registry -> register(registry, lightType.key(pos), lightType.createLight(pos)));
     }
 
+    public static void register(World level, String lightKey, MinecraftBlockingLight light) {
+        MinecraftLightStoreAccess.get(level)
+                .ifPresent(registry -> register(registry, lightKey, light));
+    }
+
     public static void unregister(World level, BlockPos pos, LightType lightType) {
         MinecraftLightStoreAccess.get(level)
                 .ifPresent(registry -> unregister(registry, lightType.key(pos)));

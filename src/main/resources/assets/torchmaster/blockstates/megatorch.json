@@ -1,5 +1,6 @@
 {
   "variants": {
-    "": { "model": "torchmaster:block/megatorch" }
+    "diamond_base=false": { "model": "torchmaster:block/megatorch" },
+    "diamond_base=true": { "model": "torchmaster:block/megatorch_diamond_base" }
   }
 }

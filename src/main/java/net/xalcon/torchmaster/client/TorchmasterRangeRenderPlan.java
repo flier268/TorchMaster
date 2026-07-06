@@ -21,7 +21,7 @@ public final class TorchmasterRangeRenderPlan
         for (TorchmasterLightRangeDisplay.RangeSnapshot snapshot : snapshots) {
             TorchmasterLineBoxRenderer.Style rangeStyle = TorchmasterLineBoxRenderer.rangeStyle(snapshot.pos);
             TorchmasterLineBoxRenderer.Style sampleStyle = TorchmasterLineBoxRenderer.sampleStyle(snapshot.pos);
-            entries.add(new Entry(TorchmasterRangeBoxes.rangeBox(snapshot.pos, snapshot.radius), rangeStyle));
+            entries.add(new Entry(snapshot.rangeBox, rangeStyle));
             for (BlockPos pos : snapshot.randomAirBlocks) {
                 entries.add(new Entry(TorchmasterRangeBoxes.sampleBox(pos), sampleStyle));
             }

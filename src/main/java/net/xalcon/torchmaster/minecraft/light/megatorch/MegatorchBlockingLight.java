@@ -1,8 +1,6 @@
 package net.xalcon.torchmaster.minecraft.light.megatorch;
 
-import net.minecraft.block.Block;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.World;
 import net.xalcon.torchmaster.TorchmasterContent;
 import net.xalcon.torchmaster.domain.LightDefinition;
@@ -13,12 +11,18 @@ import net.xalcon.torchmaster.minecraft.adapter.MinecraftAdapterViews;
 
 public class MegatorchBlockingLight implements MinecraftBlockingLight
 {
-    public static final VoxelShape SHAPE = Block.createCuboidShape(6.0D, 0.0D, 6.0D, 10.0D, 16.0D, 10.0D);
     private BlockPos pos;
+    private final boolean diamondBase;
 
     public MegatorchBlockingLight(BlockPos pos)
     {
+        this(pos, false);
+    }
+
+    public MegatorchBlockingLight(BlockPos pos, boolean diamondBase)
+    {
         this.pos = pos;
+        this.diamondBase = diamondBase;
     }
 
     @Override
@@ -61,8 +65,19 @@ public class MegatorchBlockingLight implements MinecraftBlockingLight
         return LightDefinition.MEGA_TORCH.displayName();
     }
 
+    @Override
+    public boolean blocksNaturalSpawnsOnly()
+    {
+        return diamondBase;
+    }
+
     public BlockPos getPos()
     {
         return pos;
+    }
+
+    public boolean hasDiamondBase()
+    {
+        return diamondBase;
     }
 }

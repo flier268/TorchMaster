@@ -1,6 +1,7 @@
 package net.xalcon.torchmaster.client;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.block.BlockState;
 //? if >=1.19.4
 import net.minecraft.registry.RegistryKey;
 //? if >=1.16.5 && <1.19.4
@@ -8,6 +9,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.xalcon.torchmaster.blocks.LightType;
+import net.xalcon.torchmaster.blocks.MegaTorchBlock;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
 
 import java.util.ArrayList;
@@ -135,7 +137,7 @@ public final class TorchmasterLightRangeDisplay
                 iterator.remove();
                 continue;
             }
-            snapshots.add(new RangeSnapshot(display.pos, display.radius, new ArrayList<>(display.randomAirBlocks)));
+            snapshots.add(new RangeSnapshot(display.pos, rangeBox(level, display), new ArrayList<>(display.randomAirBlocks)));
         }
         return snapshots;
     }
@@ -148,34 +150,81 @@ public final class TorchmasterLightRangeDisplay
     private static void refreshRandomAirBlocks(World level, Display display)
     {
         display.randomAirBlocks.clear();
-        int radius = display.radius;
-        long diameter = (long)radius * 2L + 1L;
-        int target = sampleTarget(diameter);
+        TorchmasterRangeBoxes.Box box = rangeBox(level, display);
+        long width = Math.max(1L, (long)Math.ceil(box.maxX - box.minX));
+        long height = Math.max(1L, (long)Math.ceil(box.maxY - box.minY));
+        long depth = Math.max(1L, (long)Math.ceil(box.maxZ - box.minZ));
+        int target = sampleTarget(width, height, depth);
         int maxAttempts = target * 8;
         int attempts = 0;
 
         while (display.randomAirBlocks.size() < target && attempts++ < maxAttempts) {
-            int dx = randomOffset(radius, diameter);
-            int dy = randomOffset(radius, diameter);
-            int dz = randomOffset(radius, diameter);
             BlockPos pos = new BlockPos(
-                    addClamped(display.pos.getX(), dx),
-                    addClamped(display.pos.getY(), dy),
-                    addClamped(display.pos.getZ(), dz));
+                    randomCoordinate(box.minX, width),
+                    randomCoordinate(box.minY, height),
+                    randomCoordinate(box.minZ, depth));
             if (isAir(level, pos)) {
                 display.randomAirBlocks.add(pos.toImmutable());
             }
         }
     }
 
-    private static int randomOffset(int radius, long diameter)
+    private static TorchmasterRangeBoxes.Box rangeBox(World level, Display display)
     {
-        return (int)(Math.floor(RANDOM.nextDouble() * diameter) - radius);
+        if (display.lightType == LightType.MegaTorch && hasDiamondBase(level, display.pos)) {
+            return diamondBaseRangeBox(level, display.pos, display.radius);
+        }
+        return TorchmasterRangeBoxes.rangeBox(display.pos, display.radius);
     }
 
-    private static int sampleTarget(long diameter)
+    private static boolean hasDiamondBase(World level, BlockPos pos)
     {
-        long volume = cappedMultiply(cappedMultiply(diameter, diameter), diameter);
+        BlockState state = level.getBlockState(pos);
+        return state.getBlock() instanceof MegaTorchBlock && state.get(MegaTorchBlock.DIAMOND_BASE);
+    }
+
+    private static TorchmasterRangeBoxes.Box diamondBaseRangeBox(World level, BlockPos pos, int radius)
+    {
+        int chunkRadius = (radius + 15) >> 4;
+        int chunkX = pos.getX() >> 4;
+        int chunkZ = pos.getZ() >> 4;
+        int minY = worldBottomY(level);
+        int maxY = worldTopYExclusive(level);
+        return TorchmasterRangeBoxes.box(
+                (chunkX - chunkRadius) << 4,
+                minY,
+                (chunkZ - chunkRadius) << 4,
+                (chunkX + chunkRadius + 1) << 4,
+                maxY,
+                (chunkZ + chunkRadius + 1) << 4);
+    }
+
+    private static int worldBottomY(World level)
+    {
+        //? if >=1.17 {
+        return level.getBottomY();
+        //?} else {
+        /*return 0;
+        *///?}
+    }
+
+    private static int worldTopYExclusive(World level)
+    {
+        //? if >=1.17 {
+        return addClamped(level.getBottomY(), level.getHeight());
+        //?} else {
+        /*return 256;
+        *///?}
+    }
+
+    private static int randomCoordinate(double min, long size)
+    {
+        return addClamped((long)Math.floor(min), (long)Math.floor(RANDOM.nextDouble() * size));
+    }
+
+    private static int sampleTarget(long width, long height, long depth)
+    {
+        long volume = cappedMultiply(cappedMultiply(width, height), depth);
         return (int)Math.min(MAX_RANDOM_AIR_BLOCKS, Math.max(1L, volume / AIR_SAMPLE_DIVISOR));
     }
 
@@ -187,9 +236,9 @@ public final class TorchmasterLightRangeDisplay
         return left * right;
     }
 
-    private static int addClamped(int value, int offset)
+    private static int addClamped(long value, long offset)
     {
-        long result = (long)value + offset;
+        long result = value + offset;
         if (result > Integer.MAX_VALUE) {
             return Integer.MAX_VALUE;
         }
@@ -235,12 +284,24 @@ public final class TorchmasterLightRangeDisplay
     {
         public final BlockPos pos;
         public final int radius;
+        public final TorchmasterRangeBoxes.Box rangeBox;
         public final List<BlockPos> randomAirBlocks;
 
         RangeSnapshot(BlockPos pos, int radius, List<BlockPos> randomAirBlocks)
         {
+            this(pos, TorchmasterRangeBoxes.rangeBox(pos, radius), radius, randomAirBlocks);
+        }
+
+        RangeSnapshot(BlockPos pos, TorchmasterRangeBoxes.Box rangeBox, List<BlockPos> randomAirBlocks)
+        {
+            this(pos, rangeBox, 0, randomAirBlocks);
+        }
+
+        private RangeSnapshot(BlockPos pos, TorchmasterRangeBoxes.Box rangeBox, int radius, List<BlockPos> randomAirBlocks)
+        {
             this.pos = pos;
             this.radius = radius;
+            this.rangeBox = rangeBox;
             this.randomAirBlocks = randomAirBlocks;
         }
     }

@@ -8,4 +8,9 @@ public interface LightEntry {
     BlockPosView position();
 
     String displayName();
+
+    default boolean blocksNaturalSpawnsOnly()
+    {
+        return false;
+    }
 }

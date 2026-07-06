@@ -1,6 +1,8 @@
 package net.xalcon.torchmaster.minecraft.adapter;
 
 import net.minecraft.entity.EntityType;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.xalcon.torchmaster.minecraft.storage.LightStoreBridge;
@@ -28,11 +30,32 @@ public final class MinecraftSpawnBlocker {
                 .orElse(false);
     }
 
+    public static boolean shouldBlockNaturalSpawnPosition(World level, BlockPos pos) {
+        Vec3View position = new Vec3View(pos.getX(), pos.getY(), pos.getZ());
+        return MinecraftLightStoreAccess.get(level)
+                .map(store -> shouldBlockNaturalSpawnPosition(store, position))
+                .orElse(false);
+    }
+
+    public static boolean shouldBlockNaturalSpawnChunk(World level, ChunkPos chunkPos) {
+        return MinecraftLightStoreAccess.get(level)
+                .map(store -> shouldBlockNaturalSpawnChunk(store, chunkPos.x, chunkPos.z))
+                .orElse(false);
+    }
+
     static boolean shouldBlockEntity(LightStoreBridge store, EntityTypeKey entityType, Vec3View position, SpawnReason spawnReason) {
         return store.shouldBlockEntityType(entityType, position, spawnReason);
     }
 
     static boolean shouldBlockVillageSiege(LightStoreBridge store, Vec3View attemptedSpawnPos) {
         return store.shouldBlockVillageZombieRaid(attemptedSpawnPos);
+    }
+
+    static boolean shouldBlockNaturalSpawnPosition(LightStoreBridge store, Vec3View position) {
+        return store.shouldBlockNaturalSpawnPosition(position);
+    }
+
+    static boolean shouldBlockNaturalSpawnChunk(LightStoreBridge store, int chunkX, int chunkZ) {
+        return store.shouldBlockNaturalSpawnChunk(chunkX, chunkZ);
     }
 }

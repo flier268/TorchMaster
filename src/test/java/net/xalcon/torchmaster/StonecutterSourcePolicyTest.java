@@ -643,6 +643,27 @@ class StonecutterSourcePolicyTest
         assertTrue(!hasFeralFlareLifecycleDirectTickDecision(path), () -> "Keep Feral Flare tick/check-index rules in domain.FeralFlareLightPlanner: " + path);
     }
 
+    @Test
+    void megaTorchBlockstateDeclaresDiamondBaseVariants() throws IOException
+    {
+        Path path = sourcePath("src/main/resources/assets/torchmaster/blockstates/megatorch.json");
+        String text = new String(Files.readAllBytes(path));
+
+        assertTrue(text.contains("\"diamond_base=false\""), "Mega Torch blockstate must keep the normal diamond_base=false variant");
+        assertTrue(text.contains("\"diamond_base=true\""), "Mega Torch blockstate must keep the diamond_base=true variant");
+        assertTrue(text.contains("torchmaster:block/megatorch_diamond_base"), "Diamond-base Mega Torch variant must use the diamond-base model");
+    }
+
+    @Test
+    void megaTorchDiamondStateStaysOutOfDomainSources() throws IOException
+    {
+        List<Path> violations = javaFilesIn("src/main/java/net/xalcon/torchmaster/domain")
+                .filter(path -> containsText(path, "diamond"))
+                .collect(Collectors.toList());
+
+        assertTrue(violations.isEmpty(), () -> "Keep diamond-base item/block state details in Minecraft block/light adapter code, not domain rules: " + violations);
+    }
+
     private static Stream<Path> javaFilesIn(String... roots) throws IOException
     {
         Stream.Builder<Path> files = Stream.builder();
@@ -1112,6 +1133,15 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> FERAL_FLARE_LIFECYCLE_DIRECT_TICK_DECISION.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean containsText(Path path, String text)
+    {
+        try {
+            return new String(Files.readAllBytes(path)).contains(text);
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }

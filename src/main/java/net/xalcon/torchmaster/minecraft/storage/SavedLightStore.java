@@ -35,13 +35,25 @@ public class SavedLightStore extends PersistentState implements LightStoreBridge
     @Override
     public boolean shouldBlockEntityType(EntityTypeKey entityType, Vec3View pos, SpawnReason spawnType)
     {
-        return runtime.shouldBlockEntity(MinecraftLightStoreRuntimeContext.create(), entityType, pos);
+        return runtime.shouldBlockEntity(MinecraftLightStoreRuntimeContext.create(), entityType, pos, spawnType);
     }
 
     @Override
     public boolean shouldBlockVillageZombieRaid(Vec3View pos)
     {
         return runtime.shouldBlockVillageSiege(MinecraftLightStoreRuntimeContext.create(), pos);
+    }
+
+    @Override
+    public boolean shouldBlockNaturalSpawnPosition(Vec3View pos)
+    {
+        return runtime.shouldBlockNaturalSpawnPosition(MinecraftLightStoreRuntimeContext.create(), pos);
+    }
+
+    @Override
+    public boolean shouldBlockNaturalSpawnChunk(int chunkX, int chunkZ)
+    {
+        return runtime.shouldBlockNaturalSpawnChunk(MinecraftLightStoreRuntimeContext.create(), chunkX, chunkZ);
     }
 
     @Override

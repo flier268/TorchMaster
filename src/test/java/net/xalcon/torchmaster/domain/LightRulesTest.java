@@ -90,4 +90,42 @@ class LightRulesTest {
                 8
         ));
     }
+
+    @Test
+    void naturalSpawnPositionRequiresNaturalSpawnOnlyMegaTorch() {
+        assertTrue(LightRules.blocksNaturalSpawnPosition(
+                LightKind.MEGA_TORCH,
+                true,
+                new Vec3View(1.0, 64.0, 1.0),
+                new BlockPosView(0, 64, 0),
+                8
+        ));
+        assertFalse(LightRules.blocksNaturalSpawnPosition(
+                LightKind.MEGA_TORCH,
+                false,
+                new Vec3View(1.0, 64.0, 1.0),
+                new BlockPosView(0, 64, 0),
+                8
+        ));
+    }
+
+    @Test
+    void naturalSpawnChunkUsesRadiusRoundedToChunks() {
+        assertTrue(LightRules.blocksNaturalSpawnChunk(
+                LightKind.MEGA_TORCH,
+                true,
+                4,
+                0,
+                new BlockPosView(0, 64, 0),
+                64
+        ));
+        assertFalse(LightRules.blocksNaturalSpawnChunk(
+                LightKind.MEGA_TORCH,
+                true,
+                5,
+                0,
+                new BlockPosView(0, 64, 0),
+                64
+        ));
+    }
 }
