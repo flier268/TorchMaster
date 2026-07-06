@@ -4,9 +4,8 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.village.ZombieSiegeManager;
-import net.xalcon.torchmaster.events.EventResult;
-import net.xalcon.torchmaster.events.EventResultContainer;
 import net.xalcon.torchmaster.events.SpawnEventBridge;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnEventContainers;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
@@ -37,9 +36,8 @@ public abstract class VillageSiegeMixin
         Vec3d result = torchmaster_callFindRandomSpawnPos(level, pos);
         if(result != null)
         {
-            EventResultContainer container = new EventResultContainer(EventResult.DEFAULT);
-            SpawnEventBridge.onVillageSiege(level, result, container);
-            if(container.getResult() == EventResult.DENY)
+            if(MinecraftSpawnEventContainers.deniesDefault(container ->
+                    SpawnEventBridge.onVillageSiege(level, result, container)))
                 return null;
         }
         return  result;

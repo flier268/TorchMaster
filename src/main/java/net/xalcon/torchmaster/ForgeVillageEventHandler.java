@@ -5,9 +5,9 @@ package net.xalcon.torchmaster;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
 import net.xalcon.torchmaster.events.SpawnEventBridge;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnEventContainers;
 
 @Mod.EventBusSubscriber(modid = Constants.MOD_ID)
 public class ForgeVillageEventHandler
@@ -15,11 +15,11 @@ public class ForgeVillageEventHandler
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onVillageSiegeEvent(VillageSiegeEvent event)
     {
-        EventResultContainer container = new EventResultContainer(EventResult.DEFAULT);
+        EventResultContainer container = MinecraftSpawnEventContainers.defaultContainer();
 
         SpawnEventBridge.onVillageSiege(event.getLevel(), event.getAttemptedSpawnPos(), container);
 
-        if(container.getResult() == EventResult.DENY)
+        if(MinecraftSpawnEventContainers.denies(container))
             event.setCanceled(true);
     }
 }
@@ -28,9 +28,9 @@ public class ForgeVillageEventHandler
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
 import net.xalcon.torchmaster.events.SpawnEventBridge;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnEventContainers;
 
 @Mod.EventBusSubscriber(modid = Constants.MOD_ID)
 public class ForgeVillageEventHandler
@@ -38,11 +38,11 @@ public class ForgeVillageEventHandler
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onVillageSiegeEvent(VillageSiegeEvent event)
     {
-        EventResultContainer container = new EventResultContainer(EventResult.DEFAULT);
+        EventResultContainer container = MinecraftSpawnEventContainers.defaultContainer();
 
         SpawnEventBridge.onVillageSiege(event.getWorld(), event.getAttemptedSpawnPos(), container);
 
-        if(container.getResult() == EventResult.DENY)
+        if(MinecraftSpawnEventContainers.denies(container))
             event.setCanceled(true);
     }
 }

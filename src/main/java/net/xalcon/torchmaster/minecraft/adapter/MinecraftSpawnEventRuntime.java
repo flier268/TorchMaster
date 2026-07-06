@@ -1,48 +1,30 @@
 package net.xalcon.torchmaster.minecraft.adapter;
 
-import net.xalcon.torchmaster.TorchmasterRuntime;
 import net.xalcon.torchmaster.domain.SpawnBlockingRules;
 import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
-import net.xalcon.torchmaster.platform.Services;
-import net.xalcon.torchmaster.port.ConfigView;
 
 import java.util.function.BooleanSupplier;
 
 public final class MinecraftSpawnEventRuntime
 {
-    private static final RuntimeServices DEFAULT_SERVICES = new RuntimeServices()
-    {
-        @Override
-        public ConfigView config()
-        {
-            return new MinecraftConfigView(Services.PLATFORM.getConfig());
-        }
-
-        @Override
-        public void debug(String message, Object... args)
-        {
-            TorchmasterRuntime.LOG.debug(message, args);
-        }
-    };
-
     private MinecraftSpawnEventRuntime()
     {
     }
 
     public static boolean shouldDenyEntitySpawn(MinecraftSpawnEventContext context, BooleanSupplier blockCheck)
     {
-        return shouldDenyEntitySpawn(context, blockCheck, DEFAULT_SERVICES);
+        return shouldDenyEntitySpawn(context, blockCheck, MinecraftRuntimeServices.DEFAULT);
     }
 
     public static boolean shouldDenyPhantomSpawn(MinecraftSpawnEventContext context, BooleanSupplier blockCheck)
     {
-        return shouldDenyPhantomSpawn(context, blockCheck, DEFAULT_SERVICES);
+        return shouldDenyPhantomSpawn(context, blockCheck, MinecraftRuntimeServices.DEFAULT);
     }
 
     public static boolean shouldDenyVillageSiege(MinecraftSpawnEventContext context, BooleanSupplier blockCheck)
     {
-        return shouldDenyVillageSiege(context, blockCheck, DEFAULT_SERVICES);
+        return shouldDenyVillageSiege(context, blockCheck, MinecraftRuntimeServices.DEFAULT);
     }
 
     public static void applyDeny(EventResultContainer container, boolean deny)
@@ -52,7 +34,7 @@ public final class MinecraftSpawnEventRuntime
         }
     }
 
-    static boolean shouldDenyEntitySpawn(MinecraftSpawnEventContext context, BooleanSupplier blockCheck, RuntimeServices services)
+    static boolean shouldDenyEntitySpawn(MinecraftSpawnEventContext context, BooleanSupplier blockCheck, MinecraftRuntimeServices services)
     {
         services.debug("CheckSpawn - Reason: {}, Type: {}, Pos: {}/{}/{}",
                 context.spawnReason(), context.entityType(), context.position().x(), context.position().y(), context.position().z());
@@ -62,7 +44,7 @@ public final class MinecraftSpawnEventRuntime
         return resolveBlockCheck(context, blockCheck, services, "spawn of {}", context.entityType());
     }
 
-    static boolean shouldDenyPhantomSpawn(MinecraftSpawnEventContext context, BooleanSupplier blockCheck, RuntimeServices services)
+    static boolean shouldDenyPhantomSpawn(MinecraftSpawnEventContext context, BooleanSupplier blockCheck, MinecraftRuntimeServices services)
     {
         services.debug("PlayerSpawnPhantoms - Pos: {}/{}/{}", context.position().x(), context.position().y(), context.position().z());
         if (SpawnBlockingRules.shouldSkipPhantomSpawnCheck(context.currentResult(), services.config())) {
@@ -71,7 +53,7 @@ public final class MinecraftSpawnEventRuntime
         return resolveBlockCheck(context, blockCheck, services, "spawn of {}", context.entityType());
     }
 
-    static boolean shouldDenyVillageSiege(MinecraftSpawnEventContext context, BooleanSupplier blockCheck, RuntimeServices services)
+    static boolean shouldDenyVillageSiege(MinecraftSpawnEventContext context, BooleanSupplier blockCheck, MinecraftRuntimeServices services)
     {
         services.debug("VillageSiegeEvent - Pos: {}", context.position());
         if (SpawnBlockingRules.shouldSkipVillageSiegeCheck(context.currentResult(), services.config())) {
@@ -80,7 +62,7 @@ public final class MinecraftSpawnEventRuntime
         return resolveBlockCheck(context, blockCheck, services, "village siege @ {}", context.position());
     }
 
-    private static boolean resolveBlockCheck(MinecraftSpawnEventContext context, BooleanSupplier blockCheck, RuntimeServices services,
+    private static boolean resolveBlockCheck(MinecraftSpawnEventContext context, BooleanSupplier blockCheck, MinecraftRuntimeServices services,
             String action, Object detail)
     {
         boolean denied = blockCheck.getAsBoolean();
@@ -88,10 +70,4 @@ public final class MinecraftSpawnEventRuntime
         return denied;
     }
 
-    interface RuntimeServices
-    {
-        ConfigView config();
-
-        void debug(String message, Object... args);
-    }
 }

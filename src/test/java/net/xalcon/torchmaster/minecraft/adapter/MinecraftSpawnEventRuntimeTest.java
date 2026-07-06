@@ -138,7 +138,7 @@ class MinecraftSpawnEventRuntimeTest
         };
     }
 
-    private static final class TestServices implements MinecraftSpawnEventRuntime.RuntimeServices
+    private static final class TestServices implements MinecraftRuntimeServices
     {
         private final ConfigView config;
 

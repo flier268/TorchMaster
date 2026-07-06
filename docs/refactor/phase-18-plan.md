@@ -1,31 +1,33 @@
-# Phase 18 Refactor Plan
+# Phase 18 Completion: Spawn Event Adapter + Runtime Glue Cleanup
 
-## Targets
+## Completed
 
-- Event result mapping cleanup.
-  - Extract NeoForge `MobSpawnEvent.PositionCheck.Result` and `PlayerSpawnPhantomsEvent.Result` conversion into a shared NeoForge adapter helper.
-  - Keep `NeoforgeEventHandler` as lifecycle/event wiring only.
-- Fabric wrapper cleanup.
-  - Centralize `EventResultContainer` creation and result extraction for Fabric wrapper calls.
-  - Keep mixins/wrappers thin and avoid importing domain spawn rules or storage internals.
-- Runtime logging/config facade review.
-  - Audit remaining direct `TorchmasterRuntime.LOG` and `Services.PLATFORM.getConfig()` usage in Minecraft-facing code.
-  - Extract small helpers only where they reduce repeated runtime glue without hiding business rules.
+- Added shared spawn event container helpers in `MinecraftSpawnEventContainers`.
+- Moved spawn runtime config/logging glue behind `MinecraftRuntimeServices`.
+- Updated Fabric spawn wrappers and village siege mixin to delegate container creation/result extraction.
+- Added NeoForge and Forge result mapping helpers so event handlers stay lifecycle-focused.
+- Removed the unregistered NeoForge template title-screen mixin.
+- Strengthened source policy tests for wrapper container handling, loader result mapping, spawn runtime platform glue, and template mixin cleanup.
 
-## Verification Plan
+## Remaining Coupling
 
-- Add focused tests for event result conversion helpers and wrapper result container helpers.
-- Run:
-  - `./gradlew :1.21.1-fabric:test :1.14.4-forge:test :1.20.6-neoforge:test :1.21.11-fabric:test`
-  - `./gradlew :1.14.4-fabric:test :1.21.11-fabric:test`
-  - `./gradlew build`
-  - `./gradlew "Reset active project"`
-  - reset後 `./gradlew :1.21.1-fabric:test`
-  - `git diff --check`
-- Confirm active project returns to `1.21.1-fabric`.
+- Spawn adapter classes still live across `events`, `utils`, and `minecraft.adapter`; naming/package boundaries can be tightened.
+- Forge spawn event classes remain Stonecutter-processed in `src/main` because old/new Forge event APIs need version branches.
+- Mixin redirect methods still decide the fallback method shape; only event result decisions are centralized.
+- Runtime config/logging helpers are still purpose-specific and should not be merged across unrelated storage/client paths without a clear boundary.
 
-## Anti-Regression Rules
+## Verification Matrix
 
-- Business rules stay in `domain` and project-owned ports; event helpers only translate external event APIs.
-- Loader roots must not duplicate spawn, render, storage, filter, or content details.
-- Do not use reflection or generated source edits.
+- `./gradlew :1.21.1-fabric:test :1.14.4-forge:test :1.20.6-neoforge:test :1.21.11-fabric:test`
+- `./gradlew :1.14.4-fabric:test :1.21.11-fabric:test`
+- `./gradlew build`
+- `./gradlew "Reset active project"`
+- reset後 `./gradlew :1.21.1-fabric:test`
+- `git diff --check`
+
+## Anti-Regression Notes
+
+- Do not recreate `EventResultContainer` handling in Fabric wrappers or mixins.
+- Do not hand-write Forge/NeoForge event result switch mapping in event handlers.
+- Do not make `MinecraftSpawnEventRuntime` directly import platform services or runtime logger facades.
+- Do not re-add unregistered template mixins under loader roots.

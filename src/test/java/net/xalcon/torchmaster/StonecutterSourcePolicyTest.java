@@ -53,6 +53,10 @@ class StonecutterSourcePolicyTest
     private static final Pattern SPAWN_BRIDGE_DIRECT_RUNTIME_GLUE = Pattern.compile("Services\\.PLATFORM\\.getConfig\\s*\\(|TorchmasterRuntime\\.LOG|new\\s+MinecraftConfigView\\s*\\(");
     private static final Pattern RANGE_TARGET_DIRECT_BACKEND_DECISION = Pattern.compile("new\\s+(CameraOffset|LegacySessionState)\\s*\\(|TorchmasterLineBoxRenderer\\.LINE_WIDTH");
     private static final Pattern STORAGE_OVERRIDE_DIRECT_NBT_BRIDGE = Pattern.compile("SavedLightStore(NbtBridge|Serializer)\\.");
+    private static final Pattern FABRIC_WRAPPER_DIRECT_EVENT_CONTAINER = Pattern.compile("EventResultContainer|new\\s+EventResultContainer\\s*\\(|\\.getResult\\s*\\(");
+    private static final Pattern LOADER_HANDLER_DIRECT_RESULT_MAPPING = Pattern.compile("EventResult\\.|switch\\s*\\(");
+    private static final Pattern SPAWN_RUNTIME_DIRECT_PLATFORM_GLUE = Pattern.compile(
+            "^import\\s+net\\.xalcon\\.torchmaster\\.(TorchmasterRuntime|platform\\.Services)|new\\s+MinecraftConfigView\\s*\\(");
 
     @Test
     void loaderSourceRootsDoNotContainMinecraftVersionConditions() throws IOException
@@ -379,6 +383,53 @@ class StonecutterSourcePolicyTest
     }
 
     @Test
+    void fabricWrappersDelegateEventContainers() throws IOException
+    {
+        List<Path> violations = Arrays.asList(
+                        sourcePath("src/main/java/net/xalcon/torchmaster/utils/MobWrapper.java"),
+                        sourcePath("src/main/java/net/xalcon/torchmaster/utils/NaturalSpawnerWrapper.java"),
+                        sourcePath("src/fabric/java/net/xalcon/torchmaster/mixin/VillageSiegeMixin.java"))
+                .stream()
+                .filter(Files::exists)
+                .filter(StonecutterSourcePolicyTest::hasFabricWrapperDirectEventContainer)
+                .collect(Collectors.toList());
+
+        assertTrue(violations.isEmpty(), () -> "Use MinecraftSpawnEventContainers from Fabric wrappers/mixins instead of direct EventResultContainer handling: " + violations);
+    }
+
+    @Test
+    void loaderSpawnHandlersDelegateResultMapping() throws IOException
+    {
+        List<Path> violations = Arrays.asList(
+                        sourcePath("src/neoforge/java/net/xalcon/torchmaster/NeoforgeEventHandler.java"),
+                        sourcePath("src/main/java/net/xalcon/torchmaster/ForgeEventHandler.java"),
+                        sourcePath("src/main/java/net/xalcon/torchmaster/ForgeVillageEventHandler.java"))
+                .stream()
+                .filter(Files::exists)
+                .filter(StonecutterSourcePolicyTest::hasLoaderHandlerDirectResultMapping)
+                .collect(Collectors.toList());
+
+        assertTrue(violations.isEmpty(), () -> "Keep loader handlers thin; put event result conversion in loader-local adapter helpers: " + violations);
+    }
+
+    @Test
+    void spawnRuntimeDelegatesPlatformGlue() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/adapter/MinecraftSpawnEventRuntime.java");
+
+        assertTrue(!hasSpawnRuntimeDirectPlatformGlue(path), () -> "Use MinecraftRuntimeServices for config view and logging glue: " + path);
+    }
+
+    @Test
+    void neoforgeExampleTitleScreenMixinStaysRemoved()
+    {
+        Path direct = Paths.get("src/neoforge/java/net/xalcon/torchmaster/mixin/MixinTitleScreen.java");
+        Path fallback = Paths.get("../..").resolve(direct).normalize();
+
+        assertTrue(!Files.exists(direct) && !Files.exists(fallback), () -> "Remove unregistered NeoForge template title screen mixin: " + direct);
+    }
+
+    @Test
     void sharedHelpersDoNotGateWholeClassesByLoader() throws IOException
     {
         List<Path> violations = javaFilesIn(
@@ -689,6 +740,33 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> STORAGE_OVERRIDE_DIRECT_NBT_BRIDGE.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasFabricWrapperDirectEventContainer(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> FABRIC_WRAPPER_DIRECT_EVENT_CONTAINER.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasLoaderHandlerDirectResultMapping(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> LOADER_HANDLER_DIRECT_RESULT_MAPPING.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasSpawnRuntimeDirectPlatformGlue(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> SPAWN_RUNTIME_DIRECT_PLATFORM_GLUE.matcher(line).find());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }

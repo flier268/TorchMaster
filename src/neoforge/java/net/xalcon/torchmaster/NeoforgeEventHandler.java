@@ -7,9 +7,9 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerSpawnPhantomsEvent;
 import net.neoforged.neoforge.event.village.VillageSiegeEvent;
-import net.xalcon.torchmaster.events.EventResult;
 import net.xalcon.torchmaster.events.EventResultContainer;
 import net.xalcon.torchmaster.events.SpawnEventBridge;
+import net.xalcon.torchmaster.minecraft.adapter.MinecraftSpawnEventContainers;
 
 @EventBusSubscriber(modid = Constants.MOD_ID)
 public class NeoforgeEventHandler
@@ -17,79 +17,49 @@ public class NeoforgeEventHandler
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onCheckSpawn(MobSpawnEvent.PositionCheck event)
     {
-        var container = new EventResultContainer(switch(event.getResult())
-        {
-            case DEFAULT -> EventResult.DEFAULT;
-            case SUCCEED -> EventResult.ALLOW;
-            case FAIL -> EventResult.DENY;
-        });
+        EventResultContainer container = NeoforgeSpawnEventResults.positionCheckContainer(event.getResult());
 
         var spawnType = event.getSpawnType();
         var entity = event.getEntity();
         var pos = new Vec3d(event.getX(), event.getY(), event.getZ());
         SpawnEventBridge.onCheckSpawn(spawnType, entity, pos, container);
 
-        event.setResult(switch(container.getResult())
-        {
-            case DEFAULT -> MobSpawnEvent.PositionCheck.Result.DEFAULT;
-            case ALLOW -> MobSpawnEvent.PositionCheck.Result.SUCCEED;
-            case DENY -> MobSpawnEvent.PositionCheck.Result.FAIL;
-        });
+        event.setResult(NeoforgeSpawnEventResults.toPositionCheck(container));
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onDoSpecialSpawn(MobSpawnEvent.PositionCheck event)
     {
-        var container = new EventResultContainer(switch(event.getResult())
-        {
-            case DEFAULT -> EventResult.DEFAULT;
-            case SUCCEED -> EventResult.ALLOW;
-            case FAIL -> EventResult.DENY;
-        });
+        EventResultContainer container = NeoforgeSpawnEventResults.positionCheckContainer(event.getResult());
 
         var spawnType = event.getSpawnType();
         var entity = event.getEntity();
         var pos = new Vec3d(event.getX(), event.getY(), event.getZ());
         SpawnEventBridge.onCheckSpawn(spawnType, entity, pos, container);
 
-        event.setResult(switch(container.getResult())
-        {
-            case DEFAULT -> MobSpawnEvent.PositionCheck.Result.DEFAULT;
-            case ALLOW -> MobSpawnEvent.PositionCheck.Result.SUCCEED;
-            case DENY -> MobSpawnEvent.PositionCheck.Result.FAIL;
-        });
+        event.setResult(NeoforgeSpawnEventResults.toPositionCheck(container));
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onPlayerSpawnPhantomsEvent(PlayerSpawnPhantomsEvent event)
     {
-        var container = new EventResultContainer(switch(event.getResult())
-        {
-            case DEFAULT -> EventResult.DEFAULT;
-            case ALLOW -> EventResult.ALLOW;
-            case DENY -> EventResult.DENY;
-        });
+        EventResultContainer container = NeoforgeSpawnEventResults.phantomContainer(event.getResult());
 
         var player = event.getEntity();
         var pos = new Vec3d(player.getX(), player.getY(), player.getZ());
         SpawnEventBridge.onPlayerSpawnPhantoms(player, pos, container);
 
-        event.setResult(switch(container.getResult())
-        {
-            case DEFAULT -> PlayerSpawnPhantomsEvent.Result.DEFAULT;
-            case ALLOW -> PlayerSpawnPhantomsEvent.Result.ALLOW;
-            case DENY -> PlayerSpawnPhantomsEvent.Result.DENY;
-        });
+        event.setResult(NeoforgeSpawnEventResults.toPhantom(container));
     }
 
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onVillageSiegeEvent(VillageSiegeEvent event)
     {
-        var container = new EventResultContainer(EventResult.DEFAULT);
+        EventResultContainer container = MinecraftSpawnEventContainers.defaultContainer();
 
         SpawnEventBridge.onVillageSiege(event.getLevel(), event.getAttemptedSpawnPos(), container);
 
-        if(container.getResult() == EventResult.DENY)
+        if(MinecraftSpawnEventContainers.denies(container))
             event.setCanceled(true);
     }
 }
