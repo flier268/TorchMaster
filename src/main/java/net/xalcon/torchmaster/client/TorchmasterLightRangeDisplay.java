@@ -8,6 +8,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.xalcon.torchmaster.blocks.LightType;
+import net.xalcon.torchmaster.config.ITorchmasterConfig;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,6 +62,27 @@ public final class TorchmasterLightRangeDisplay
     //public static void remove(Object dimension, BlockPos pos)
     {
         DISPLAYS.remove(new LightKey(dimensionKey(dimension), pos));
+    }
+
+    public static void refreshRadii(ITorchmasterConfig config)
+    {
+        if (DISPLAYS.isEmpty()) {
+            return;
+        }
+
+        MinecraftClient minecraft = MinecraftClient.getInstance();
+        World currentWorld = minecraft.world;
+        String currentDimension = currentWorld == null ? null : dimensionKey(currentWorld);
+        for (Map.Entry<LightKey, Display> entry : DISPLAYS.entrySet()) {
+            Display display = entry.getValue();
+            display.radius = Math.max(0, TorchmasterLightScreenModel.radius(display.lightType, config));
+            if (currentWorld != null && entry.getKey().dimension.equals(currentDimension)) {
+                refreshRandomAirBlocks(currentWorld, display);
+            } else {
+                display.randomAirBlocks.clear();
+                display.ticks = RANDOM_REFRESH_INTERVAL_TICKS;
+            }
+        }
     }
 
     public static void tick()
@@ -227,7 +249,7 @@ public final class TorchmasterLightRangeDisplay
     {
         private final BlockPos pos;
         private final LightType lightType;
-        private final int radius;
+        private int radius;
         private final List<BlockPos> randomAirBlocks = new ArrayList<>();
         private int ticks;
 

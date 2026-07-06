@@ -31,6 +31,7 @@ class TorchmasterConfigScreenControllerTest
 
         assertSame(TorchmasterConfigScreenController.ActionOutcome.NONE, outcome);
         assertTrue(runtime.reloaded);
+        assertSame(config, runtime.refreshedRangeConfig);
         assertEquals(5, config.getFeralFlareTickRate());
         assertEquals(65, config.getMegaTorchRadius());
         assertTrue(config.getAggressiveSpawnChecks());
@@ -50,6 +51,7 @@ class TorchmasterConfigScreenControllerTest
 
         assertSame(TorchmasterConfigScreenController.ActionOutcome.NONE, outcome);
         assertFalse(runtime.reloaded);
+        assertSame(null, runtime.refreshedRangeConfig);
         assertEquals("screen.torchmaster.config.unsupported", controller.status().translationKey());
         assertEquals(0xFFFF5555, controller.statusColor());
     }
@@ -142,6 +144,7 @@ class TorchmasterConfigScreenControllerTest
     {
         private final ITorchmasterConfig config;
         private boolean reloaded;
+        private ITorchmasterConfig refreshedRangeConfig;
 
         private Runtime(ITorchmasterConfig config)
         {
@@ -158,6 +161,12 @@ class TorchmasterConfigScreenControllerTest
         public void reload()
         {
             reloaded = true;
+        }
+
+        @Override
+        public void refreshRangeDisplay(ITorchmasterConfig config)
+        {
+            refreshedRangeConfig = config;
         }
     }
 

@@ -121,6 +121,7 @@ final class TorchmasterConfigScreenController
 
         collector.toDraft().saveTo((TorchmasterTomlConfig)loadedConfig);
         runtime.reload();
+        runtime.refreshRangeDisplay(runtime.config());
         setStatus("screen.torchmaster.config.saved", SAVED_COLOR);
     }
 
@@ -146,6 +147,8 @@ final class TorchmasterConfigScreenController
         ITorchmasterConfig config();
 
         void reload();
+
+        void refreshRangeDisplay(ITorchmasterConfig config);
     }
 
     enum ActionOutcome

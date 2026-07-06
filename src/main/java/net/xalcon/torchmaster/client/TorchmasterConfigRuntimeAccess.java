@@ -28,6 +28,12 @@ final class TorchmasterConfigRuntimeAccess
             {
                 reload.run();
             }
+
+            @Override
+            public void refreshRangeDisplay(ITorchmasterConfig config)
+            {
+                TorchmasterLightRangeDisplay.refreshRadii(config);
+            }
         };
     }
 }

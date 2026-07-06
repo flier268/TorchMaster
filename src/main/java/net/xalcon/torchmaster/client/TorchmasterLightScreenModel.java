@@ -39,7 +39,7 @@ final class TorchmasterLightScreenModel
         return visible ? HIDE_RANGE_KEY : SHOW_RANGE_KEY;
     }
 
-    private static int radius(LightType lightType, ITorchmasterConfig config)
+    static int radius(LightType lightType, ITorchmasterConfig config)
     {
         switch (lightType.kind()) {
             case MEGA_TORCH:
