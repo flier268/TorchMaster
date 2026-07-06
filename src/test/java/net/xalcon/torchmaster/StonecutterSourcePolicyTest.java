@@ -75,6 +75,7 @@ class StonecutterSourcePolicyTest
     private static final Pattern LIGHT_STORE_BRIDGE_DIRECT_GLOBAL_TICK = Pattern.compile("onGlobalTick\\s*\\(");
     private static final Pattern SPAWN_BRIDGE_DIRECT_STORE_TICK = Pattern.compile("tickStores\\s*\\(");
     private static final Pattern SAVED_LIGHT_STORE_DIRECT_CLEANUP_PLACEHOLDER = Pattern.compile("Rate limit cleanup|cleanup has a Minecraft-free world port|onGlobalTick\\s*\\(");
+    private static final Pattern FERAL_FLARE_LIFECYCLE_DIRECT_TICK_DECISION = Pattern.compile("static\\s+(?:TickDecision|int)\\s+(beginTick|nextCheckIndex)\\s*\\(");
 
     @Test
     void loaderSourceRootsDoNotContainMinecraftVersionConditions() throws IOException
@@ -109,6 +110,14 @@ class StonecutterSourcePolicyTest
                 .collect(Collectors.toList());
 
         assertTrue(violations.isEmpty(), () -> "Keep domain and port version/loader branch-free: " + violations);
+    }
+
+    @Test
+    void legacyDistanceLogicPackageStaysRemoved()
+    {
+        Path path = Paths.get("src/main/java/net/xalcon/torchmaster/logic");
+
+        assertTrue(!Files.exists(path), () -> "Use domain.DistanceLogic with port views instead of restoring Minecraft BlockPos distance logic: " + path);
     }
 
     @Test
@@ -626,6 +635,14 @@ class StonecutterSourcePolicyTest
         assertTrue(branch.contains(".replaceable()"), "MC >=1.20 invisible light settings must remain replaceable");
     }
 
+    @Test
+    void feralFlareLifecycleDoesNotOwnTickDecisionRules() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/light/feralflare/FeralFlareLanternLifecycle.java");
+
+        assertTrue(!hasFeralFlareLifecycleDirectTickDecision(path), () -> "Keep Feral Flare tick/check-index rules in domain.FeralFlareLightPlanner: " + path);
+    }
+
     private static Stream<Path> javaFilesIn(String... roots) throws IOException
     {
         Stream.Builder<Path> files = Stream.builder();
@@ -1086,6 +1103,15 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> SPAWN_RUNTIME_DIRECT_PLATFORM_GLUE.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasFeralFlareLifecycleDirectTickDecision(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> FERAL_FLARE_LIFECYCLE_DIRECT_TICK_DECISION.matcher(line).find());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }

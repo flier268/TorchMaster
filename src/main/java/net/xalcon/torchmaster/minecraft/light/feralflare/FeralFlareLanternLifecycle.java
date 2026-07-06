@@ -35,7 +35,7 @@ public final class FeralFlareLanternLifecycle {
             boolean useLineOfSight,
             ITorchmasterConfig config
     ) {
-        TickDecision decision = beginTick(
+        FeralFlareLightPlanner.TickDecision decision = FeralFlareLightPlanner.beginTick(
                 isClientSide(level),
                 ticks,
                 checkIndex,
@@ -43,7 +43,7 @@ public final class FeralFlareLanternLifecycle {
                 childLights.size(),
                 config.getFeralFlareLanternLightCountHardcap());
         if (!decision.runCycle()) {
-            return decision.outcome();
+            return new TickOutcome(decision.ticks(), decision.checkIndex(), false);
         }
 
         boolean dirty = false;
@@ -63,7 +63,7 @@ public final class FeralFlareLanternLifecycle {
         }
 
         if (!childLights.isEmpty()) {
-            checkIndex = nextCheckIndex(checkIndex, childLights.size());
+            checkIndex = FeralFlareLightPlanner.nextCheckIndex(checkIndex, childLights.size());
             BlockPos childLight = childLights.get(checkIndex);
             BlockState block = level.getBlockState(childLight);
             if (shouldRemoveTrackedChild(childLight, block.getBlock() instanceof InvisibleLightBlock)) {
@@ -81,28 +81,6 @@ public final class FeralFlareLanternLifecycle {
             }
         }
         childLights.clear();
-    }
-
-    static TickDecision beginTick(
-            boolean clientSide,
-            int ticks,
-            int checkIndex,
-            int tickRate,
-            int childLightCount,
-            int hardcap
-    ) {
-        int nextTicks = ticks + 1;
-        if (!FeralFlareLightPlanner.shouldTick(clientSide, nextTicks, tickRate)) {
-            return TickDecision.skip(new TickOutcome(nextTicks, checkIndex, false));
-        }
-        if (childLightCount > hardcap) {
-            return TickDecision.skip(new TickOutcome(nextTicks, checkIndex, false));
-        }
-        return TickDecision.run(new TickOutcome(0, checkIndex, false));
-    }
-
-    static int nextCheckIndex(int checkIndex, int childLightCount) {
-        return (checkIndex + 1) % childLightCount;
     }
 
     static boolean shouldRemoveTrackedChild(BlockPos childLight, boolean blockStillExists) {
@@ -207,32 +185,6 @@ public final class FeralFlareLanternLifecycle {
         return level.isClient
         ;
         //?}
-    }
-
-    static final class TickDecision {
-        private final boolean runCycle;
-        private final TickOutcome outcome;
-
-        private TickDecision(boolean runCycle, TickOutcome outcome) {
-            this.runCycle = runCycle;
-            this.outcome = outcome;
-        }
-
-        static TickDecision run(TickOutcome outcome) {
-            return new TickDecision(true, outcome);
-        }
-
-        static TickDecision skip(TickOutcome outcome) {
-            return new TickDecision(false, outcome);
-        }
-
-        boolean runCycle() {
-            return runCycle;
-        }
-
-        TickOutcome outcome() {
-            return outcome;
-        }
     }
 
     public static final class TickOutcome {

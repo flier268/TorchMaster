@@ -21,6 +21,36 @@ class FeralFlareLightPlannerTest {
     }
 
     @Test
+    void clientSideTickOnlyAdvancesCounter() {
+        FeralFlareLightPlanner.TickDecision decision = FeralFlareLightPlanner.beginTick(
+                true, 19, 2, 20, 0, 10);
+
+        assertFalse(decision.runCycle());
+        assertEquals(20, decision.ticks());
+        assertEquals(2, decision.checkIndex());
+    }
+
+    @Test
+    void serverTickAtRateStartsCycleAndResetsTicks() {
+        FeralFlareLightPlanner.TickDecision decision = FeralFlareLightPlanner.beginTick(
+                false, 19, 2, 20, 0, 10);
+
+        assertTrue(decision.runCycle());
+        assertEquals(0, decision.ticks());
+        assertEquals(2, decision.checkIndex());
+    }
+
+    @Test
+    void hardcapOverflowDoesNotResetTicks() {
+        FeralFlareLightPlanner.TickDecision decision = FeralFlareLightPlanner.beginTick(
+                false, 19, 2, 20, 11, 10);
+
+        assertFalse(decision.runCycle());
+        assertEquals(20, decision.ticks());
+        assertEquals(2, decision.checkIndex());
+    }
+
+    @Test
     void placementRequiresCapacityAndLowLight() {
         assertTrue(FeralFlareLightPlanner.shouldPlaceLight(2, 10, 4, 8));
         assertFalse(FeralFlareLightPlanner.shouldPlaceLight(10, 10, 4, 8));
@@ -32,6 +62,12 @@ class FeralFlareLightPlannerTest {
         assertTrue(FeralFlareLightPlanner.shouldRemoveChildLight(new BlockPosView(1, 2, 3), false));
         assertFalse(FeralFlareLightPlanner.shouldRemoveChildLight(new BlockPosView(1, 2, 3), true));
         assertFalse(FeralFlareLightPlanner.shouldRemoveChildLight(null, false));
+    }
+
+    @Test
+    void checkIndexWrapsThroughChildLights() {
+        assertEquals(0, FeralFlareLightPlanner.nextCheckIndex(2, 3));
+        assertEquals(2, FeralFlareLightPlanner.nextCheckIndex(1, 3));
     }
 
     @Test

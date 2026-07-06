@@ -18,6 +18,28 @@ public final class FeralFlareLightPlanner {
         return childLight != null && !blockStillExists;
     }
 
+    public static TickDecision beginTick(
+            boolean clientSide,
+            int ticks,
+            int checkIndex,
+            int tickRate,
+            int childLightCount,
+            int hardcap
+    ) {
+        int nextTicks = ticks + 1;
+        if (!shouldTick(clientSide, nextTicks, tickRate)) {
+            return TickDecision.skip(nextTicks, checkIndex);
+        }
+        if (childLightCount > hardcap) {
+            return TickDecision.skip(nextTicks, checkIndex);
+        }
+        return TickDecision.run(0, checkIndex);
+    }
+
+    public static int nextCheckIndex(int checkIndex, int childLightCount) {
+        return (checkIndex + 1) % childLightCount;
+    }
+
     public static int encodeRelativePosition(BlockPosView origin, BlockPosView target) {
         int x = target.x() - origin.x();
         int y = target.y() - origin.y();
@@ -30,5 +52,37 @@ public final class FeralFlareLightPlanner {
         int y = (byte)((encoded >> 8) & 0xFF);
         int z = (byte)(encoded & 0xFF);
         return new BlockPosView(origin.x() + x, origin.y() + y, origin.z() + z);
+    }
+
+    public static final class TickDecision {
+        private final boolean runCycle;
+        private final int ticks;
+        private final int checkIndex;
+
+        private TickDecision(boolean runCycle, int ticks, int checkIndex) {
+            this.runCycle = runCycle;
+            this.ticks = ticks;
+            this.checkIndex = checkIndex;
+        }
+
+        private static TickDecision run(int ticks, int checkIndex) {
+            return new TickDecision(true, ticks, checkIndex);
+        }
+
+        private static TickDecision skip(int ticks, int checkIndex) {
+            return new TickDecision(false, ticks, checkIndex);
+        }
+
+        public boolean runCycle() {
+            return runCycle;
+        }
+
+        public int ticks() {
+            return ticks;
+        }
+
+        public int checkIndex() {
+            return checkIndex;
+        }
     }
 }
