@@ -145,6 +145,8 @@ final class TorchmasterConfigWidgetRows
 
         abstract void setVisible(boolean visible);
 
+        abstract void setEditable(boolean editable);
+
         abstract TorchmasterConfigEntries.ReadResult read(TorchmasterConfigEntries.Collector collector);
     }
 
@@ -170,6 +172,12 @@ final class TorchmasterConfigWidgetRows
         {
             this.visible = visible;
             TorchmasterConfigWidgetAdapter.visible(editBox, visible);
+        }
+
+        @Override
+        void setEditable(boolean editable)
+        {
+            TorchmasterConfigWidgetAdapter.active(editBox, editable);
         }
 
         @Override
@@ -201,6 +209,12 @@ final class TorchmasterConfigWidgetRows
         {
             this.visible = visible;
             TorchmasterConfigWidgetAdapter.visible(editBox, visible);
+        }
+
+        @Override
+        void setEditable(boolean editable)
+        {
+            TorchmasterConfigWidgetAdapter.active(editBox, editable);
         }
 
         @Override
@@ -244,6 +258,12 @@ final class TorchmasterConfigWidgetRows
         {
             this.visible = visible;
             TorchmasterConfigWidgetAdapter.visible(button, visible);
+        }
+
+        @Override
+        void setEditable(boolean editable)
+        {
+            TorchmasterConfigWidgetAdapter.active(button, editable);
         }
 
         @Override

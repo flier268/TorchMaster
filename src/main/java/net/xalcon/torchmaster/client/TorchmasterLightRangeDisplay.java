@@ -11,6 +11,7 @@ import net.minecraft.world.World;
 import net.xalcon.torchmaster.blocks.LightType;
 import net.xalcon.torchmaster.blocks.MegaTorchBlock;
 import net.xalcon.torchmaster.config.ITorchmasterConfig;
+import net.xalcon.torchmaster.port.LightSettingsView;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,7 +38,7 @@ public final class TorchmasterLightRangeDisplay
     //? if <1.16.5
     //public static boolean isVisible(Object dimension, BlockPos pos)
     {
-        return DISPLAYS.containsKey(new LightKey(dimensionKey(dimension), pos));
+        return isVisible(dimensionKey(dimension), pos);
     }
 
     //? if >=1.16.5
@@ -45,17 +46,72 @@ public final class TorchmasterLightRangeDisplay
     //? if <1.16.5
     //public static boolean toggle(Object dimension, BlockPos pos, LightType lightType, int radius)
     {
-        LightKey key = new LightKey(dimensionKey(dimension), pos);
-        if (DISPLAYS.remove(key) != null) {
+        return toggle(dimension, pos, lightType, radius, radius, radius);
+    }
+
+    //? if >=1.16.5
+    public static boolean toggle(RegistryKey<World> dimension, BlockPos pos, LightType lightType, int radiusX, int radiusY, int radiusZ)
+    //? if <1.16.5
+    //public static boolean toggle(Object dimension, BlockPos pos, LightType lightType, int radiusX, int radiusY, int radiusZ)
+    {
+        String dimensionKey = dimensionKey(dimension);
+        if (!toggle(dimensionKey, pos, lightType, radiusX, radiusY, radiusZ)) {
             return false;
         }
-        Display display = new Display(pos, lightType, Math.max(0, radius));
-        DISPLAYS.put(key, display);
+        Display display = DISPLAYS.get(new LightKey(dimensionKey, pos));
         MinecraftClient minecraft = MinecraftClient.getInstance();
-        if (minecraft.world != null) {
+        if (minecraft.world != null && display != null) {
             refreshRandomAirBlocks(minecraft.world, display);
         }
         return true;
+    }
+
+    //? if >=1.16.5
+    public static void setVisible(RegistryKey<World> dimension, BlockPos pos, LightType lightType, boolean visible, int radiusX, int radiusY, int radiusZ)
+    //? if <1.16.5
+    //public static void setVisible(Object dimension, BlockPos pos, LightType lightType, boolean visible, int radiusX, int radiusY, int radiusZ)
+    {
+        String dimensionKey = dimensionKey(dimension);
+        setVisible(dimensionKey, pos, lightType, visible, radiusX, radiusY, radiusZ, true);
+        Display display = DISPLAYS.get(new LightKey(dimensionKey, pos));
+        MinecraftClient minecraft = MinecraftClient.getInstance();
+        if (display != null && minecraft.world != null && dimensionKey.equals(dimensionKey(minecraft.world))) {
+            refreshRandomAirBlocks(minecraft.world, display);
+        }
+    }
+
+    public static void applyCurrentWorld(BlockPos pos, LightType lightType, LightSettingsView snapshot)
+    {
+        MinecraftClient minecraft = MinecraftClient.getInstance();
+        if (minecraft.world == null) {
+            return;
+        }
+        if (snapshot.previewSyncStart()) {
+            beginServerSync(dimensionKey(minecraft.world));
+            return;
+        }
+        if (snapshot.previewSyncEnd()) {
+            endServerSync(dimensionKey(minecraft.world));
+            return;
+        }
+        if (!snapshot.found()) {
+            //? if >=1.16.5 {
+            removeServerSynced(minecraft.world.getRegistryKey(), pos);
+            //?} else if <1.16.5 {
+            /*removeServerSynced(minecraft.world.getDimension().getType(), pos);
+            *///?}
+            return;
+        }
+        //? if >=1.16.5 {
+        setVisible(minecraft.world.getRegistryKey(), pos, lightType, snapshot.rangeVisible(), snapshot.radiusX(), snapshot.radiusY(), snapshot.radiusZ());
+        //?} else if <1.16.5 {
+        /*setVisible(minecraft.world.getDimension().getType(), pos, lightType, snapshot.rangeVisible(), snapshot.radiusX(), snapshot.radiusY(), snapshot.radiusZ());
+        *///?}
+    }
+
+    public static void clear()
+    {
+        DISPLAYS.clear();
     }
 
     //? if >=1.16.5
@@ -63,7 +119,122 @@ public final class TorchmasterLightRangeDisplay
     //? if <1.16.5
     //public static void remove(Object dimension, BlockPos pos)
     {
-        DISPLAYS.remove(new LightKey(dimensionKey(dimension), pos));
+        remove(dimensionKey(dimension), pos);
+    }
+
+    //? if >=1.16.5
+    public static void removeServerSynced(RegistryKey<World> dimension, BlockPos pos)
+    //? if <1.16.5
+    //public static void removeServerSynced(Object dimension, BlockPos pos)
+    {
+        removeServerSynced(dimensionKey(dimension), pos);
+    }
+
+    //? if >=1.16.5
+    public static void refresh(RegistryKey<World> dimension, BlockPos pos, LightType lightType, int radiusX, int radiusY, int radiusZ)
+    //? if <1.16.5
+    //public static void refresh(Object dimension, BlockPos pos, LightType lightType, int radiusX, int radiusY, int radiusZ)
+    {
+        LightKey key = new LightKey(dimensionKey(dimension), pos);
+        Display display = DISPLAYS.get(key);
+        if (display == null) {
+            return;
+        }
+        display.lightType = lightType;
+        display.radiusX = Math.max(0, radiusX);
+        display.radiusY = Math.max(0, radiusY);
+        display.radiusZ = Math.max(0, radiusZ);
+        MinecraftClient minecraft = MinecraftClient.getInstance();
+        if (minecraft.world != null && key.dimension.equals(dimensionKey(minecraft.world))) {
+            refreshRandomAirBlocks(minecraft.world, display);
+        } else {
+            display.randomAirBlocks.clear();
+            display.ticks = RANDOM_REFRESH_INTERVAL_TICKS;
+        }
+    }
+
+    static boolean isVisible(String dimension, BlockPos pos)
+    {
+        return DISPLAYS.containsKey(new LightKey(dimension, pos));
+    }
+
+    static boolean isServerSynced(String dimension, BlockPos pos)
+    {
+        Display display = DISPLAYS.get(new LightKey(dimension, pos));
+        return display != null && display.serverSynced;
+    }
+
+    static boolean toggle(String dimension, BlockPos pos, LightType lightType, int radiusX, int radiusY, int radiusZ)
+    {
+        LightKey key = new LightKey(dimension, pos);
+        if (DISPLAYS.remove(key) != null) {
+            return false;
+        }
+        Display display = new Display(pos, lightType, Math.max(0, radiusX), Math.max(0, radiusY), Math.max(0, radiusZ), false);
+        DISPLAYS.put(key, display);
+        return true;
+    }
+
+    static void setVisible(String dimension, BlockPos pos, LightType lightType, boolean visible, int radiusX, int radiusY, int radiusZ,
+            boolean serverSynced)
+    {
+        if (!visible) {
+            if (serverSynced) {
+                removeServerSynced(dimension, pos);
+            } else {
+                remove(dimension, pos);
+            }
+            return;
+        }
+        LightKey key = new LightKey(dimension, pos);
+        Display display = DISPLAYS.get(key);
+        if (display == null) {
+            display = new Display(pos, lightType, Math.max(0, radiusX), Math.max(0, radiusY), Math.max(0, radiusZ), serverSynced);
+            DISPLAYS.put(key, display);
+        } else {
+            display.lightType = lightType;
+            display.radiusX = Math.max(0, radiusX);
+            display.radiusY = Math.max(0, radiusY);
+            display.radiusZ = Math.max(0, radiusZ);
+            display.serverSynced = serverSynced;
+        }
+        if (serverSynced) {
+            display.serverSyncSeen = true;
+        }
+    }
+
+    static void remove(String dimension, BlockPos pos)
+    {
+        DISPLAYS.remove(new LightKey(dimension, pos));
+    }
+
+    static void removeServerSynced(String dimension, BlockPos pos)
+    {
+        LightKey key = new LightKey(dimension, pos);
+        Display display = DISPLAYS.get(key);
+        if (display != null && display.serverSynced) {
+            DISPLAYS.remove(key);
+        }
+    }
+
+    static void beginServerSync(String dimension)
+    {
+        for (Map.Entry<LightKey, Display> entry : DISPLAYS.entrySet()) {
+            if (entry.getKey().dimension.equals(dimension) && entry.getValue().serverSynced) {
+                entry.getValue().serverSyncSeen = false;
+            }
+        }
+    }
+
+    static void endServerSync(String dimension)
+    {
+        Iterator<Map.Entry<LightKey, Display>> iterator = DISPLAYS.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<LightKey, Display> entry = iterator.next();
+            if (entry.getKey().dimension.equals(dimension) && entry.getValue().serverSynced && !entry.getValue().serverSyncSeen) {
+                iterator.remove();
+            }
+        }
     }
 
     public static void refreshRadii(ITorchmasterConfig config)
@@ -77,7 +248,10 @@ public final class TorchmasterLightRangeDisplay
         String currentDimension = currentWorld == null ? null : dimensionKey(currentWorld);
         for (Map.Entry<LightKey, Display> entry : DISPLAYS.entrySet()) {
             Display display = entry.getValue();
-            display.radius = Math.max(0, TorchmasterLightScreenModel.radius(display.lightType, config));
+            int radius = Math.max(0, TorchmasterLightScreenModel.radius(display.lightType, config));
+            display.radiusX = radius;
+            display.radiusY = radius;
+            display.radiusZ = radius;
             if (currentWorld != null && entry.getKey().dimension.equals(currentDimension)) {
                 refreshRandomAirBlocks(currentWorld, display);
             } else {
@@ -106,12 +280,13 @@ public final class TorchmasterLightRangeDisplay
             }
 
             Display display = entry.getValue();
-            if (!isExpectedLight(minecraft.world, display.pos, display.lightType)) {
+            LightPresence presence = lightPresence(minecraft.world, display.pos, display.lightType);
+            if (presence == LightPresence.MISSING) {
                 iterator.remove();
                 continue;
             }
 
-            if (display.tick()) {
+            if (presence == LightPresence.PRESENT && display.tick()) {
                 refreshRandomAirBlocks(minecraft.world, display);
             }
         }
@@ -133,13 +308,40 @@ public final class TorchmasterLightRangeDisplay
                 continue;
             }
             Display display = entry.getValue();
-            if (!isExpectedLight(level, display.pos, display.lightType)) {
+            LightPresence presence = lightPresence(level, display.pos, display.lightType);
+            if (presence == LightPresence.MISSING) {
                 iterator.remove();
+                continue;
+            }
+            if (presence == LightPresence.UNLOADED) {
                 continue;
             }
             snapshots.add(new RangeSnapshot(display.pos, rangeBox(level, display), new ArrayList<>(display.randomAirBlocks)));
         }
         return snapshots;
+    }
+
+    static LightPresence lightPresence(boolean chunkLoaded, boolean expectedLight)
+    {
+        if (!chunkLoaded) {
+            return LightPresence.UNLOADED;
+        }
+        return expectedLight ? LightPresence.PRESENT : LightPresence.MISSING;
+    }
+
+    private static LightPresence lightPresence(World level, BlockPos pos, LightType lightType)
+    {
+        boolean chunkLoaded = isLightChunkLoaded(level, pos);
+        return lightPresence(chunkLoaded, chunkLoaded && isExpectedLight(level, pos, lightType));
+    }
+
+    private static boolean isLightChunkLoaded(World level, BlockPos pos)
+    {
+        //? if >=1.16.5 {
+        return level.isChunkLoaded(pos);
+        //?} else if <1.16.5 {
+        /*return level.isChunkLoaded(pos.getX() >> 4, pos.getZ() >> 4);
+        *///?}
     }
 
     private static boolean isExpectedLight(World level, BlockPos pos, LightType lightType)
@@ -172,9 +374,15 @@ public final class TorchmasterLightRangeDisplay
     private static TorchmasterRangeBoxes.Box rangeBox(World level, Display display)
     {
         if (display.lightType == LightType.MegaTorch && hasDiamondBase(level, display.pos)) {
-            return diamondBaseRangeBox(level, display.pos, display.radius);
+            return diamondBaseRangeBox(level, display.pos, display.radiusX, display.radiusZ);
         }
-        return TorchmasterRangeBoxes.rangeBox(display.pos, display.radius);
+        return TorchmasterRangeBoxes.box(
+                display.pos.getX() - display.radiusX,
+                display.pos.getY() - display.radiusY,
+                display.pos.getZ() - display.radiusZ,
+                display.pos.getX() + display.radiusX + 1,
+                display.pos.getY() + display.radiusY + 1,
+                display.pos.getZ() + display.radiusZ + 1);
     }
 
     private static boolean hasDiamondBase(World level, BlockPos pos)
@@ -183,27 +391,37 @@ public final class TorchmasterLightRangeDisplay
         return state.getBlock() instanceof MegaTorchBlock && state.get(MegaTorchBlock.DIAMOND_BASE);
     }
 
-    private static TorchmasterRangeBoxes.Box diamondBaseRangeBox(World level, BlockPos pos, int radius)
+    private static TorchmasterRangeBoxes.Box diamondBaseRangeBox(World level, BlockPos pos, int radiusX, int radiusZ)
     {
-        int chunkRadius = (radius + 15) >> 4;
+        int chunkRadiusX = chunkRadius(radiusX);
+        int chunkRadiusZ = chunkRadius(radiusZ);
         int chunkX = pos.getX() >> 4;
         int chunkZ = pos.getZ() >> 4;
+        int minChunkX = chunkX - chunkRadiusX;
+        int maxChunkX = chunkX + chunkRadiusX;
+        int minChunkZ = chunkZ - chunkRadiusZ;
+        int maxChunkZ = chunkZ + chunkRadiusZ;
         int minY = worldBottomY(level);
         int maxY = worldTopYExclusive(level);
         return TorchmasterRangeBoxes.box(
-                (chunkX - chunkRadius) << 4,
+                minChunkX << 4,
                 minY,
-                (chunkZ - chunkRadius) << 4,
-                (chunkX + chunkRadius + 1) << 4,
+                minChunkZ << 4,
+                (maxChunkX + 1) << 4,
                 maxY,
-                (chunkZ + chunkRadius + 1) << 4);
+                (maxChunkZ + 1) << 4);
+    }
+
+    private static int chunkRadius(int radius)
+    {
+        return (Math.max(0, radius) + 15) >> 4;
     }
 
     private static int worldBottomY(World level)
     {
         //? if >=1.17 {
         return level.getBottomY();
-        //?} else {
+        //?} else if <1.17 {
         /*return 0;
         *///?}
     }
@@ -212,7 +430,7 @@ public final class TorchmasterLightRangeDisplay
     {
         //? if >=1.17 {
         return addClamped(level.getBottomY(), level.getHeight());
-        //?} else {
+        //?} else if <1.17 {
         /*return 256;
         *///?}
     }
@@ -252,7 +470,7 @@ public final class TorchmasterLightRangeDisplay
     {
         //? if >=1.16.5 {
         return level.isAir(pos);
-        //?} else {
+        //?} else if <1.16.5 {
         /*return level.getBlockState(pos).isAir();
         *///?}
     }
@@ -261,7 +479,7 @@ public final class TorchmasterLightRangeDisplay
     {
         //? if >=1.16.5 {
         return dimensionKey(level.getRegistryKey());
-        //?} else {
+        //?} else if <1.16.5 {
         /*return dimensionKey(level.getDimension().getType());
         *///?}
     }
@@ -306,19 +524,39 @@ public final class TorchmasterLightRangeDisplay
         }
     }
 
+    enum LightPresence
+    {
+        PRESENT,
+        UNLOADED,
+        MISSING
+    }
+
     private static final class Display
     {
         private final BlockPos pos;
-        private final LightType lightType;
-        private int radius;
+        private LightType lightType;
+        private int radiusX;
+        private int radiusY;
+        private int radiusZ;
         private final List<BlockPos> randomAirBlocks = new ArrayList<>();
         private int ticks;
+        private boolean serverSynced;
+        private boolean serverSyncSeen;
 
         private Display(BlockPos pos, LightType lightType, int radius)
         {
+            this(pos, lightType, radius, radius, radius, false);
+        }
+
+        private Display(BlockPos pos, LightType lightType, int radiusX, int radiusY, int radiusZ, boolean serverSynced)
+        {
             this.pos = pos.toImmutable();
             this.lightType = lightType;
-            this.radius = radius;
+            this.radiusX = radiusX;
+            this.radiusY = radiusY;
+            this.radiusZ = radiusZ;
+            this.serverSynced = serverSynced;
+            this.serverSyncSeen = serverSynced;
         }
 
         private boolean tick()

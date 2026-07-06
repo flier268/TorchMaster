@@ -30,6 +30,11 @@ public final class TorchmasterConfigSchema
             true,
             "If this setting is enabled, the mega torch will block village sieges from zombies",
             "torchmaster.config.villagesiege.description");
+    public static final BooleanValue RESTRICT_LIGHT_SETTINGS_TO_OWNER = new BooleanValue(
+            "restrictLightSettingsToOwner",
+            true,
+            "If this setting is enabled, per-light settings can only be changed by the player who placed the light or by operators",
+            "torchmaster.config.restrictLightSettingsToOwner.description");
     public static final IntValue MEGA_TORCH_RADIUS = new IntValue(
             "megaTorchRadius",
             64,
@@ -107,6 +112,7 @@ public final class TorchmasterConfigSchema
             BLOCK_ONLY_NATURAL_SPAWNS,
             LYCANITES_MOBS_BLOCK_ALL,
             BLOCK_VILLAGE_SIEGES,
+            RESTRICT_LIGHT_SETTINGS_TO_OWNER,
             AGGRESSIVE_SPAWN_CHECKS);
     public static final List<IntValue> INT_VALUES = Arrays.asList(
             MEGA_TORCH_RADIUS,

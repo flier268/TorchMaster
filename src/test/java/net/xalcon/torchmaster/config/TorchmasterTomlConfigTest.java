@@ -35,12 +35,14 @@ class TorchmasterTomlConfigTest
         assertEquals(255, config.getFeralFlareLanternLightCountHardcap());
         assertTrue(config.getBlockOnlyNaturalSpawns());
         assertTrue(config.getBlockVillageSieges());
+        assertTrue(config.getRestrictLightSettingsToOwner());
         assertEquals(Collections.emptyList(), config.getMegaTorchEntityBlockListOverrides());
 
         String content = readString(configFile);
         assertTrue(content.contains("[General]"));
         assertTrue(content.contains("megaTorchRadius = 64"));
         assertTrue(content.contains("feralFlareLanternLightCountHardcap = 255"));
+        assertTrue(content.contains("restrictLightSettingsToOwner = true"));
         assertFalse(content.contains("frozenPearlDurability"));
     }
 
@@ -59,6 +61,7 @@ class TorchmasterTomlConfigTest
                         + "feralFlareMinLightLevel = 9\n"
                         + "feralFlareLanternLightCountHardcap = 16\n"
                         + "aggressiveSpawnChecks = true\n"
+                        + "restrictLightSettingsToOwner = false\n"
                         + "megaTorchEntityBlockListOverrides = [\"+minecraft:zombie\"]\n"
                         + "dreadLampEntityBlockListOverrides = [\"-minecraft:squid\"]\n");
 
@@ -71,6 +74,7 @@ class TorchmasterTomlConfigTest
         assertEquals(9, config.getFeralFlareMinLightLevel());
         assertEquals(16, config.getFeralFlareLanternLightCountHardcap());
         assertTrue(config.getAggressiveSpawnChecks());
+        assertFalse(config.getRestrictLightSettingsToOwner());
         assertEquals(Collections.singletonList("+minecraft:zombie"), config.getMegaTorchEntityBlockListOverrides());
         assertEquals(Collections.singletonList("-minecraft:squid"), config.getDreadLampEntityBlockListOverrides());
     }

@@ -24,6 +24,7 @@ class TorchmasterConfigDraftTest
         collector.addBoolean(true);
         collector.addBoolean(false);
         collector.addBoolean(true);
+        collector.addBoolean(false);
         collector.addList("+minecraft:zombie");
         collector.addList("-minecraft:squid");
 
@@ -31,6 +32,7 @@ class TorchmasterConfigDraftTest
 
         assertEquals(5, draft.feralFlareTickRate());
         assertTrue(draft.aggressiveSpawnChecks());
+        assertEquals(false, draft.restrictLightSettingsToOwner());
         assertEquals(Collections.singletonList("-minecraft:squid"), draft.dreadLampEntityBlockListOverrides());
     }
 

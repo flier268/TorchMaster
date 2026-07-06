@@ -81,6 +81,40 @@ class LightStoreRuntimeTest
     }
 
     @Test
+    void perLightSettingsCanDisableLight()
+    {
+        LightStoreRuntime runtime = new LightStoreRuntime();
+        runtime.registerLight("mega", light(LightKind.MEGA_TORCH, 0, 64, 0, false,
+                LightSettings.configured(false, 4, 4, 4)));
+
+        assertFalse(runtime.shouldBlockEntity(context(filter(ZOMBIE), filter(SKELETON)), ZOMBIE, new Vec3View(3.5, 64, 3.5)));
+    }
+
+    @Test
+    void perLightSettingsAreClampedToGlobalRadius()
+    {
+        LightStoreRuntime runtime = new LightStoreRuntime();
+        runtime.registerLight("mega", light(LightKind.MEGA_TORCH, 0, 64, 0, false,
+                LightSettings.configured(true, 99, 99, 99)));
+
+        LightStoreRuntimeContext context = context(filter(ZOMBIE), filter(SKELETON));
+        assertTrue(runtime.shouldBlockEntity(context, ZOMBIE, new Vec3View(4.5, 64, 0.5)));
+        assertFalse(runtime.shouldBlockEntity(context, ZOMBIE, new Vec3View(5.01, 64, 0.5)));
+    }
+
+    @Test
+    void perLightSettingsCanLowerOneAxis()
+    {
+        LightStoreRuntime runtime = new LightStoreRuntime();
+        runtime.registerLight("mega", light(LightKind.MEGA_TORCH, 0, 64, 0, false,
+                LightSettings.configured(true, 4, 0, 4)));
+
+        LightStoreRuntimeContext context = context(filter(ZOMBIE), filter(SKELETON));
+        assertTrue(runtime.shouldBlockEntity(context, ZOMBIE, new Vec3View(3.5, 64.5, 3.5)));
+        assertFalse(runtime.shouldBlockEntity(context, ZOMBIE, new Vec3View(3.5, 65.01, 3.5)));
+    }
+
+    @Test
     void villageSiegeUsesMegaTorchOnly()
     {
         LightStoreRuntime runtime = new LightStoreRuntime();
@@ -164,6 +198,11 @@ class LightStoreRuntimeTest
 
     private static LightEntry light(LightKind kind, int x, int y, int z, boolean naturalSpawnOnly)
     {
+        return light(kind, x, y, z, naturalSpawnOnly, LightSettings.unconfigured());
+    }
+
+    private static LightEntry light(LightKind kind, int x, int y, int z, boolean naturalSpawnOnly, LightSettings settings)
+    {
         return new LightEntry()
         {
             @Override
@@ -195,6 +234,12 @@ class LightStoreRuntimeTest
             public boolean blocksNaturalSpawnsOnly()
             {
                 return naturalSpawnOnly;
+            }
+
+            @Override
+            public LightSettings settings()
+            {
+                return settings;
             }
         };
     }

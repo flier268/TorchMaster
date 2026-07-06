@@ -1,12 +1,15 @@
 package net.xalcon.torchmaster.minecraft.adapter;
 
 import net.xalcon.torchmaster.domain.LightEntry;
+import net.xalcon.torchmaster.domain.LightSettings;
 import net.xalcon.torchmaster.minecraft.storage.LightStoreBridge;
 import net.xalcon.torchmaster.port.EntityTypeKey;
 import net.xalcon.torchmaster.port.LightInfo;
 import net.xalcon.torchmaster.port.SpawnReason;
 import net.xalcon.torchmaster.port.Vec3View;
 import org.junit.jupiter.api.Test;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -113,6 +116,11 @@ class MinecraftSpawnBlockerTest {
 
         @Override
         public void registerLight(String lightKey, LightEntry light) {
+        }
+
+        @Override
+        public Optional<LightEntry> getLight(String lightKey) {
+            return Optional.empty();
         }
 
         @Override

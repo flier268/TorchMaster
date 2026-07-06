@@ -13,4 +13,24 @@ public interface LightEntry {
     {
         return false;
     }
+
+    default LightSettings settings()
+    {
+        return LightSettings.unconfigured();
+    }
+
+    default LightEntry withSettings(LightSettings settings)
+    {
+        throw new UnsupportedOperationException("Light entry does not support per-light settings");
+    }
+
+    default LightControlState controlState()
+    {
+        return LightControlState.empty();
+    }
+
+    default LightEntry withControlState(LightControlState controlState)
+    {
+        throw new UnsupportedOperationException("Light entry does not support per-light control state");
+    }
 }

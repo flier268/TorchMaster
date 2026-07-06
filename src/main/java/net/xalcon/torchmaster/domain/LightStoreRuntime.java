@@ -29,16 +29,19 @@ public final class LightStoreRuntime
     public boolean shouldBlockEntity(LightStoreRuntimeContext context, EntityTypeKey entityType, Vec3View position, SpawnReason spawnReason)
     {
         for (LightEntry light : lights.entries()) {
+            LightSettings settings = settingsFor(light, context);
+            if (!settings.enabled()) {
+                continue;
+            }
             if (spawnReason.isNatural() && LightRules.blocksNaturalSpawnPosition(
-                    light.kind(), light.blocksNaturalSpawnsOnly(), position, light.position(), radiusFor(light.kind(), context))) {
+                    light.kind(), light.blocksNaturalSpawnsOnly(), position, light.position(), settings)) {
                 return true;
             }
             if (light.blocksNaturalSpawnsOnly()) {
                 continue;
             }
             EntityFilter filter = filterFor(light.kind(), context);
-            int radius = radiusFor(light.kind(), context);
-            if (LightRules.blocksEntity(light.kind(), filter, entityType, position, light.position(), radius)) {
+            if (LightRules.blocksEntity(light.kind(), filter, entityType, position, light.position(), settings)) {
                 return true;
             }
         }
@@ -48,8 +51,9 @@ public final class LightStoreRuntime
     public boolean shouldBlockNaturalSpawnPosition(LightStoreRuntimeContext context, Vec3View position)
     {
         for (LightEntry light : lights.entries()) {
+            LightSettings settings = settingsFor(light, context);
             if (LightRules.blocksNaturalSpawnPosition(
-                    light.kind(), light.blocksNaturalSpawnsOnly(), position, light.position(), radiusFor(light.kind(), context))) {
+                    light.kind(), light.blocksNaturalSpawnsOnly(), position, light.position(), settings)) {
                 return true;
             }
         }
@@ -59,8 +63,9 @@ public final class LightStoreRuntime
     public boolean shouldBlockNaturalSpawnChunk(LightStoreRuntimeContext context, int chunkX, int chunkZ)
     {
         for (LightEntry light : lights.entries()) {
+            LightSettings settings = settingsFor(light, context);
             if (LightRules.blocksNaturalSpawnChunk(
-                    light.kind(), light.blocksNaturalSpawnsOnly(), chunkX, chunkZ, light.position(), radiusFor(light.kind(), context))) {
+                    light.kind(), light.blocksNaturalSpawnsOnly(), chunkX, chunkZ, light.position(), settings)) {
                 return true;
             }
         }
@@ -70,7 +75,8 @@ public final class LightStoreRuntime
     public boolean shouldBlockVillageSiege(LightStoreRuntimeContext context, Vec3View position)
     {
         for (LightEntry light : lights.entries()) {
-            if (LightRules.blocksVillageSiege(light.kind(), position, light.position(), radiusFor(light.kind(), context))) {
+            LightSettings settings = settingsFor(light, context);
+            if (LightRules.blocksVillageSiege(light.kind(), position, light.position(), settings)) {
                 return true;
             }
         }
@@ -97,6 +103,11 @@ public final class LightStoreRuntime
         return lights.entries().stream()
                 .map(light -> new LightInfo(light.displayName(), light.position()))
                 .toArray(LightInfo[]::new);
+    }
+
+    public LightEntry[] lightEntries()
+    {
+        return lights.entries().toArray(new LightEntry[0]);
     }
 
     public LightRegistry registry()
@@ -126,5 +137,10 @@ public final class LightStoreRuntime
             default:
                 return 0;
         }
+    }
+
+    private static LightSettings settingsFor(LightEntry light, LightStoreRuntimeContext context)
+    {
+        return light.settings().effective(radiusFor(light.kind(), context));
     }
 }

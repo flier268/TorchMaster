@@ -10,6 +10,7 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.xalcon.torchmaster.commands.CommandTorchmaster;
+import net.xalcon.torchmaster.network.ForgeLightSettingsNetworking;
 
 public abstract class AbstractTorchmasterForge
 {
@@ -20,10 +21,12 @@ public abstract class AbstractTorchmasterForge
         MinecraftForge.EVENT_BUS.addListener(AbstractTorchmasterForge::onRegisterCommands);
 
         TorchmasterRuntime.init();
+        ForgeLightSettingsNetworking.register();
     }
 
     private void doClientStuff(final FMLClientSetupEvent event) {
         // In forge, rendertype is configured via the model.json.
+        ForgeLightSettingsNetworking.registerClient();
     }
 
     //? if >=1.16 {

@@ -15,6 +15,8 @@ import net.xalcon.torchmaster.port.LightInfo;
 import net.xalcon.torchmaster.port.SpawnReason;
 import net.xalcon.torchmaster.port.Vec3View;
 
+import java.util.Optional;
+
 public class SavedLightStore extends PersistentState implements LightStoreBridge
 {
     private final LightStoreRuntime runtime;
@@ -64,6 +66,12 @@ public class SavedLightStore extends PersistentState implements LightStoreBridge
     }
 
     @Override
+    public Optional<LightEntry> getLight(String lightKey)
+    {
+        return runtime.getLight(lightKey);
+    }
+
+    @Override
     public void unregisterLight(String lightKey)
     {
         runtime.unregisterLight(lightKey);
@@ -74,6 +82,12 @@ public class SavedLightStore extends PersistentState implements LightStoreBridge
     public LightInfo[] getEntries()
     {
         return runtime.entries();
+    }
+
+    @Override
+    public LightEntry[] lightEntries()
+    {
+        return runtime.lightEntries();
     }
 
     LightStoreRuntime runtime()

@@ -8,6 +8,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.xalcon.torchmaster.commands.CommandTorchmaster;
+import net.xalcon.torchmaster.network.NeoForgeLightSettingsNetworking;
 
 @Mod(Constants.MOD_ID)
 public class TorchmasterNeoforge
@@ -19,6 +20,7 @@ public class TorchmasterNeoforge
         // to load your mod. You can access NeoForge and Common code in this
         // project.
         eventBus.addListener(this::doClientStuff);
+        eventBus.addListener(NeoForgeLightSettingsNetworking::register);
         NeoForge.EVENT_BUS.addListener(TorchmasterNeoforge::loadComplete);
         NeoForge.EVENT_BUS.addListener(TorchmasterNeoforge::onRegisterCommands);
 
@@ -34,6 +36,7 @@ public class TorchmasterNeoforge
     private void doClientStuff(final FMLClientSetupEvent event) {
         // In neoforge, rendertype is configured via the model.json
         // ItemBlockRenderTypes.setRenderLayer(TorchmasterContent.blockDreadLamp.get(), RenderType.cutout());
+        NeoForgeLightSettingsNetworking.registerClient();
     }
 
     private static void onRegisterCommands(RegisterCommandsEvent event)

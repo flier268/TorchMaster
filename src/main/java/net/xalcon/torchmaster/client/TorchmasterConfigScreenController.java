@@ -17,6 +17,7 @@ final class TorchmasterConfigScreenController
 
     private final List<TorchmasterConfigWidgetRows.Row> rows;
     private int scrollOffset;
+    private boolean readOnly;
     private CompatText status = CompatText.empty();
     private int statusColor = DEFAULT_STATUS_COLOR;
 
@@ -44,9 +45,22 @@ final class TorchmasterConfigScreenController
     void initialize(ITorchmasterConfig config, TorchmasterConfigScreenLayout layout, int screenHeight, int buttonHeight,
             TorchmasterConfigWidgetRows.WidgetFactory widgetFactory)
     {
+        initialize(config, layout, screenHeight, buttonHeight, widgetFactory, false);
+    }
+
+    void initialize(ITorchmasterConfig config, TorchmasterConfigScreenLayout layout, int screenHeight, int buttonHeight,
+            TorchmasterConfigWidgetRows.WidgetFactory widgetFactory, boolean readOnly)
+    {
         rows.clear();
+        this.readOnly = readOnly;
         rows.addAll(TorchmasterConfigWidgetRows.create(TorchmasterConfigEntries.fromConfig(config), layout, buttonHeight, widgetFactory));
+        for (TorchmasterConfigWidgetRows.Row row : rows) {
+            row.setEditable(!readOnly);
+        }
         updateRowPositions(layout, screenHeight, buttonHeight);
+        if (readOnly) {
+            setStatus("screen.torchmaster.config.readOnly", DEFAULT_STATUS_COLOR);
+        }
     }
 
     TorchmasterConfigScreenActions.ButtonDescriptor[] bottomButtons(TorchmasterConfigScreenLayout layout, int screenHeight, int buttonHeight)
@@ -58,9 +72,17 @@ final class TorchmasterConfigScreenController
     {
         switch (action) {
             case SAVE:
+                if (readOnly) {
+                    setStatus("screen.torchmaster.config.readOnly", ERROR_COLOR);
+                    return ActionOutcome.NONE;
+                }
                 save(runtime);
                 return ActionOutcome.NONE;
             case RESET:
+                if (readOnly) {
+                    setStatus("screen.torchmaster.config.readOnly", ERROR_COLOR);
+                    return ActionOutcome.NONE;
+                }
                 reset();
                 return ActionOutcome.REBUILD_WIDGETS;
             case DONE:
@@ -100,6 +122,11 @@ final class TorchmasterConfigScreenController
     int statusColor()
     {
         return statusColor;
+    }
+
+    void setReadOnly(boolean readOnly)
+    {
+        this.readOnly = readOnly;
     }
 
     private void save(ConfigRuntime runtime)

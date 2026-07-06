@@ -6,6 +6,8 @@ import net.xalcon.torchmaster.port.LightInfo;
 import net.xalcon.torchmaster.port.SpawnReason;
 import net.xalcon.torchmaster.port.Vec3View;
 
+import java.util.Optional;
+
 public interface LightStoreBridge
 {
     boolean shouldBlockEntityType(EntityTypeKey entityType, Vec3View pos, SpawnReason spawnType);
@@ -26,7 +28,13 @@ public interface LightStoreBridge
      * @param light the light instance
      */
     void registerLight(String lightKey, LightEntry light);
+    Optional<LightEntry> getLight(String lightKey);
     void unregisterLight(String lightKey);
 
     LightInfo[] getEntries();
+
+    default LightEntry[] lightEntries()
+    {
+        return new LightEntry[0];
+    }
 }

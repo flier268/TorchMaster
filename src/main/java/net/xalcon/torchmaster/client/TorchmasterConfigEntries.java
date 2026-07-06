@@ -32,6 +32,7 @@ final class TorchmasterConfigEntries
         entries.add(EntryDefinition.bool("screen.torchmaster.config.aggressiveSpawnChecks", config.getAggressiveSpawnChecks()));
         entries.add(EntryDefinition.bool("screen.torchmaster.config.blockOnlyNaturalSpawns", config.getBlockOnlyNaturalSpawns()));
         entries.add(EntryDefinition.bool("screen.torchmaster.config.blockVillageSieges", config.getBlockVillageSieges()));
+        entries.add(EntryDefinition.bool("screen.torchmaster.config.restrictLightSettingsToOwner", config.getRestrictLightSettingsToOwner()));
         entries.add(EntryDefinition.list("screen.torchmaster.config.megaTorchEntityBlockListOverrides", config.getMegaTorchEntityBlockListOverrides()));
         entries.add(EntryDefinition.list("screen.torchmaster.config.dreadLampEntityBlockListOverrides", config.getDreadLampEntityBlockListOverrides()));
         return Collections.unmodifiableList(entries);

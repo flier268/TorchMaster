@@ -58,6 +58,54 @@ class LightRulesTest {
     }
 
     @Test
+    void cuboidRangeUsesSeparateAxisLimits() {
+        EntityFilter filter = new EntityFilter();
+        EntityTypeKey zombie = EntityTypeKey.parse("minecraft:zombie");
+        filter.register(zombie);
+        LightSettings settings = LightSettings.configured(true, 4, 1, 8);
+
+        assertTrue(LightRules.blocksEntity(
+                LightKind.MEGA_TORCH,
+                filter,
+                zombie,
+                new Vec3View(4.5, 65.0, 8.5),
+                new BlockPosView(0, 64, 0),
+                settings
+        ));
+        assertFalse(LightRules.blocksEntity(
+                LightKind.MEGA_TORCH,
+                filter,
+                zombie,
+                new Vec3View(4.5, 66.01, 8.5),
+                new BlockPosView(0, 64, 0),
+                settings
+        ));
+    }
+
+    @Test
+    void disabledLightSettingsNeverBlock() {
+        EntityFilter filter = new EntityFilter();
+        EntityTypeKey zombie = EntityTypeKey.parse("minecraft:zombie");
+        filter.register(zombie);
+        LightSettings settings = LightSettings.configured(false, 64, 64, 64);
+
+        assertFalse(LightRules.blocksEntity(
+                LightKind.MEGA_TORCH,
+                filter,
+                zombie,
+                new Vec3View(0.5, 64.0, 0.5),
+                new BlockPosView(0, 64, 0),
+                settings
+        ));
+        assertFalse(LightRules.blocksVillageSiege(
+                LightKind.MEGA_TORCH,
+                new Vec3View(0.5, 64.0, 0.5),
+                new BlockPosView(0, 64, 0),
+                settings
+        ));
+    }
+
+    @Test
     void dreadLampDoesNotBlockUnfilteredEntity() {
         EntityFilter filter = new EntityFilter();
 
@@ -96,7 +144,7 @@ class LightRulesTest {
         assertTrue(LightRules.blocksNaturalSpawnPosition(
                 LightKind.MEGA_TORCH,
                 true,
-                new Vec3View(1.0, 64.0, 1.0),
+                new Vec3View(1.0, 300.0, 1.0),
                 new BlockPosView(0, 64, 0),
                 8
         ));
@@ -110,7 +158,7 @@ class LightRulesTest {
     }
 
     @Test
-    void naturalSpawnChunkUsesRadiusRoundedToChunks() {
+    void naturalSpawnChunkUsesChunkRadiusRoundedFromBlocks() {
         assertTrue(LightRules.blocksNaturalSpawnChunk(
                 LightKind.MEGA_TORCH,
                 true,
@@ -126,6 +174,50 @@ class LightRulesTest {
                 0,
                 new BlockPosView(0, 64, 0),
                 64
+        ));
+    }
+
+    @Test
+    void naturalSpawnChunkZeroRadiusIsCurrentChunkOnly() {
+        LightSettings settings = LightSettings.configured(true, 0, 1, 0);
+
+        assertTrue(LightRules.blocksNaturalSpawnChunk(
+                LightKind.MEGA_TORCH,
+                true,
+                0,
+                0,
+                new BlockPosView(0, 64, 0),
+                settings
+        ));
+        assertFalse(LightRules.blocksNaturalSpawnChunk(
+                LightKind.MEGA_TORCH,
+                true,
+                1,
+                0,
+                new BlockPosView(0, 64, 0),
+                settings
+        ));
+    }
+
+    @Test
+    void naturalSpawnChunkUsesSeparateHorizontalAxisLimits() {
+        LightSettings settings = LightSettings.configured(true, 48, 1, 32);
+
+        assertTrue(LightRules.blocksNaturalSpawnChunk(
+                LightKind.MEGA_TORCH,
+                true,
+                3,
+                2,
+                new BlockPosView(0, 64, 0),
+                settings
+        ));
+        assertFalse(LightRules.blocksNaturalSpawnChunk(
+                LightKind.MEGA_TORCH,
+                true,
+                4,
+                2,
+                new BlockPosView(0, 64, 0),
+                settings
         ));
     }
 }

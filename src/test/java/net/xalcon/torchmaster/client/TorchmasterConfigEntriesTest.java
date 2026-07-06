@@ -22,8 +22,10 @@ class TorchmasterConfigEntriesTest
         assertEquals(TorchmasterConfigEntries.EntryType.INTEGER, entries.get(0).type());
         assertEquals("screen.torchmaster.config.aggressiveSpawnChecks", entries.get(6).translationKey());
         assertEquals(TorchmasterConfigEntries.EntryType.BOOLEAN, entries.get(6).type());
-        assertEquals("screen.torchmaster.config.dreadLampEntityBlockListOverrides", entries.get(10).translationKey());
-        assertEquals(TorchmasterConfigEntries.EntryType.LIST, entries.get(10).type());
+        assertEquals("screen.torchmaster.config.restrictLightSettingsToOwner", entries.get(9).translationKey());
+        assertEquals(TorchmasterConfigEntries.EntryType.BOOLEAN, entries.get(9).type());
+        assertEquals("screen.torchmaster.config.dreadLampEntityBlockListOverrides", entries.get(11).translationKey());
+        assertEquals(TorchmasterConfigEntries.EntryType.LIST, entries.get(11).type());
     }
 
     @Test
@@ -40,6 +42,7 @@ class TorchmasterConfigEntriesTest
         collector.addBoolean(true);
         collector.addBoolean(false);
         collector.addBoolean(true);
+        collector.addBoolean(false);
         collector.addList("+minecraft:zombie");
         collector.addList("-minecraft:squid");
 
@@ -47,6 +50,7 @@ class TorchmasterConfigEntriesTest
 
         assertEquals(5, draft.feralFlareTickRate());
         assertTrue(draft.aggressiveSpawnChecks());
+        assertFalse(draft.restrictLightSettingsToOwner());
         assertEquals(Collections.singletonList("-minecraft:squid"), draft.dreadLampEntityBlockListOverrides());
     }
 
@@ -78,6 +82,7 @@ class TorchmasterConfigEntriesTest
             public boolean getAggressiveSpawnChecks() { return true; }
             public boolean getBlockOnlyNaturalSpawns() { return false; }
             public boolean getBlockVillageSieges() { return true; }
+            public boolean getRestrictLightSettingsToOwner() { return true; }
             public List<String> getMegaTorchEntityBlockListOverrides() { return Collections.singletonList("+minecraft:zombie"); }
             public List<String> getDreadLampEntityBlockListOverrides() { return Collections.singletonList("-minecraft:squid"); }
         };

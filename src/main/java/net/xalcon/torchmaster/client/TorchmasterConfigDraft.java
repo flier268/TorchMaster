@@ -7,7 +7,7 @@ import java.util.List;
 final class TorchmasterConfigDraft
 {
     private static final int EXPECTED_INTS = 6;
-    private static final int EXPECTED_BOOLEANS = 3;
+    private static final int EXPECTED_BOOLEANS = 4;
     private static final int EXPECTED_LISTS = 2;
 
     private final int feralFlareTickRate;
@@ -19,6 +19,7 @@ final class TorchmasterConfigDraft
     private final boolean aggressiveSpawnChecks;
     private final boolean blockOnlyNaturalSpawns;
     private final boolean blockVillageSieges;
+    private final boolean restrictLightSettingsToOwner;
     private final List<String> megaTorchEntityBlockListOverrides;
     private final List<String> dreadLampEntityBlockListOverrides;
 
@@ -32,6 +33,7 @@ final class TorchmasterConfigDraft
             boolean aggressiveSpawnChecks,
             boolean blockOnlyNaturalSpawns,
             boolean blockVillageSieges,
+            boolean restrictLightSettingsToOwner,
             List<String> megaTorchEntityBlockListOverrides,
             List<String> dreadLampEntityBlockListOverrides)
     {
@@ -44,6 +46,7 @@ final class TorchmasterConfigDraft
         this.aggressiveSpawnChecks = aggressiveSpawnChecks;
         this.blockOnlyNaturalSpawns = blockOnlyNaturalSpawns;
         this.blockVillageSieges = blockVillageSieges;
+        this.restrictLightSettingsToOwner = restrictLightSettingsToOwner;
         this.megaTorchEntityBlockListOverrides = megaTorchEntityBlockListOverrides;
         this.dreadLampEntityBlockListOverrides = dreadLampEntityBlockListOverrides;
     }
@@ -63,6 +66,7 @@ final class TorchmasterConfigDraft
                 booleans.get(0),
                 booleans.get(1),
                 booleans.get(2),
+                booleans.get(3),
                 lists.get(0),
                 lists.get(1));
     }
@@ -79,6 +83,7 @@ final class TorchmasterConfigDraft
                 aggressiveSpawnChecks,
                 blockOnlyNaturalSpawns,
                 blockVillageSieges,
+                restrictLightSettingsToOwner,
                 megaTorchEntityBlockListOverrides,
                 dreadLampEntityBlockListOverrides);
     }
@@ -91,6 +96,11 @@ final class TorchmasterConfigDraft
     boolean aggressiveSpawnChecks()
     {
         return aggressiveSpawnChecks;
+    }
+
+    boolean restrictLightSettingsToOwner()
+    {
+        return restrictLightSettingsToOwner;
     }
 
     List<String> dreadLampEntityBlockListOverrides()

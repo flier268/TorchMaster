@@ -28,6 +28,7 @@ public final class TorchmasterTomlConfig implements ITorchmasterConfig
     private boolean aggressiveSpawnChecks;
     private boolean blockOnlyNaturalSpawns;
     private boolean blockVillageSieges;
+    private boolean restrictLightSettingsToOwner;
     private List<String> megaTorchEntityBlockListOverrides;
     private List<String> dreadLampEntityBlockListOverrides;
 
@@ -42,6 +43,7 @@ public final class TorchmasterTomlConfig implements ITorchmasterConfig
             boolean aggressiveSpawnChecks,
             boolean blockOnlyNaturalSpawns,
             boolean blockVillageSieges,
+            boolean restrictLightSettingsToOwner,
             List<String> megaTorchEntityBlockListOverrides,
             List<String> dreadLampEntityBlockListOverrides)
     {
@@ -55,6 +57,7 @@ public final class TorchmasterTomlConfig implements ITorchmasterConfig
         this.aggressiveSpawnChecks = aggressiveSpawnChecks;
         this.blockOnlyNaturalSpawns = blockOnlyNaturalSpawns;
         this.blockVillageSieges = blockVillageSieges;
+        this.restrictLightSettingsToOwner = restrictLightSettingsToOwner;
         this.megaTorchEntityBlockListOverrides = immutableCopy(megaTorchEntityBlockListOverrides);
         this.dreadLampEntityBlockListOverrides = immutableCopy(dreadLampEntityBlockListOverrides);
     }
@@ -83,6 +86,7 @@ public final class TorchmasterTomlConfig implements ITorchmasterConfig
                     readBoolean(config, TorchmasterConfigSchema.AGGRESSIVE_SPAWN_CHECKS),
                     readBoolean(config, TorchmasterConfigSchema.BLOCK_ONLY_NATURAL_SPAWNS),
                     readBoolean(config, TorchmasterConfigSchema.BLOCK_VILLAGE_SIEGES),
+                    readBoolean(config, TorchmasterConfigSchema.RESTRICT_LIGHT_SETTINGS_TO_OWNER),
                     readList(config, TorchmasterConfigSchema.MEGA_TORCH_ENTITY_BLOCK_LIST_OVERRIDES),
                     readList(config, TorchmasterConfigSchema.DREAD_LAMP_ENTITY_BLOCK_LIST_OVERRIDES));
         }
@@ -98,6 +102,7 @@ public final class TorchmasterTomlConfig implements ITorchmasterConfig
             boolean aggressiveSpawnChecks,
             boolean blockOnlyNaturalSpawns,
             boolean blockVillageSieges,
+            boolean restrictLightSettingsToOwner,
             List<String> megaTorchEntityBlockListOverrides,
             List<String> dreadLampEntityBlockListOverrides)
     {
@@ -114,6 +119,7 @@ public final class TorchmasterTomlConfig implements ITorchmasterConfig
             setBoolean(config, TorchmasterConfigSchema.AGGRESSIVE_SPAWN_CHECKS, aggressiveSpawnChecks);
             setBoolean(config, TorchmasterConfigSchema.BLOCK_ONLY_NATURAL_SPAWNS, blockOnlyNaturalSpawns);
             setBoolean(config, TorchmasterConfigSchema.BLOCK_VILLAGE_SIEGES, blockVillageSieges);
+            setBoolean(config, TorchmasterConfigSchema.RESTRICT_LIGHT_SETTINGS_TO_OWNER, restrictLightSettingsToOwner);
             setList(config, TorchmasterConfigSchema.MEGA_TORCH_ENTITY_BLOCK_LIST_OVERRIDES, megaTorchEntityBlockListOverrides);
             setList(config, TorchmasterConfigSchema.DREAD_LAMP_ENTITY_BLOCK_LIST_OVERRIDES, dreadLampEntityBlockListOverrides);
 
@@ -293,6 +299,7 @@ public final class TorchmasterTomlConfig implements ITorchmasterConfig
         aggressiveSpawnChecks = readBoolean(config, TorchmasterConfigSchema.AGGRESSIVE_SPAWN_CHECKS);
         blockOnlyNaturalSpawns = readBoolean(config, TorchmasterConfigSchema.BLOCK_ONLY_NATURAL_SPAWNS);
         blockVillageSieges = readBoolean(config, TorchmasterConfigSchema.BLOCK_VILLAGE_SIEGES);
+        restrictLightSettingsToOwner = readBoolean(config, TorchmasterConfigSchema.RESTRICT_LIGHT_SETTINGS_TO_OWNER);
         megaTorchEntityBlockListOverrides = immutableCopy(readList(config, TorchmasterConfigSchema.MEGA_TORCH_ENTITY_BLOCK_LIST_OVERRIDES));
         dreadLampEntityBlockListOverrides = immutableCopy(readList(config, TorchmasterConfigSchema.DREAD_LAMP_ENTITY_BLOCK_LIST_OVERRIDES));
     }
@@ -349,6 +356,12 @@ public final class TorchmasterTomlConfig implements ITorchmasterConfig
     public boolean getBlockVillageSieges()
     {
         return blockVillageSieges;
+    }
+
+    @Override
+    public boolean getRestrictLightSettingsToOwner()
+    {
+        return restrictLightSettingsToOwner;
     }
 
     @Override

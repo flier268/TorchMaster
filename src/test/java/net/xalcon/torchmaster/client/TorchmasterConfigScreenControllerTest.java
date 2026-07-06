@@ -36,6 +36,7 @@ class TorchmasterConfigScreenControllerTest
         assertEquals(65, config.getMegaTorchRadius());
         assertTrue(config.getAggressiveSpawnChecks());
         assertFalse(config.getBlockOnlyNaturalSpawns());
+        assertFalse(config.getRestrictLightSettingsToOwner());
         assertEquals(Collections.singletonList("-minecraft:squid"), config.getDreadLampEntityBlockListOverrides());
         assertEquals("screen.torchmaster.config.saved", controller.status().translationKey());
         assertEquals(0xFF55FF55, controller.statusColor());
@@ -71,6 +72,21 @@ class TorchmasterConfigScreenControllerTest
                 controller.runAction(TorchmasterConfigScreenActions.Action.DONE, new Runtime(new UnsupportedConfig())));
     }
 
+    @Test
+    void readOnlyActionRejectsSaveAndReset()
+    {
+        TorchmasterConfigScreenController controller = new TorchmasterConfigScreenController();
+        controller.setReadOnly(true);
+
+        assertSame(TorchmasterConfigScreenController.ActionOutcome.NONE,
+                controller.runAction(TorchmasterConfigScreenActions.Action.SAVE, new Runtime(new UnsupportedConfig())));
+        assertEquals("screen.torchmaster.config.readOnly", controller.status().translationKey());
+        assertEquals(0xFFFF5555, controller.statusColor());
+
+        assertSame(TorchmasterConfigScreenController.ActionOutcome.NONE,
+                controller.runAction(TorchmasterConfigScreenActions.Action.RESET, new Runtime(new UnsupportedConfig())));
+    }
+
     private static void addValidRows(java.util.List<TorchmasterConfigWidgetRows.Row> rows)
     {
         rows.add(Row.integer("5"));
@@ -82,6 +98,7 @@ class TorchmasterConfigScreenControllerTest
         rows.add(Row.bool(true));
         rows.add(Row.bool(false));
         rows.add(Row.bool(true));
+        rows.add(Row.bool(false));
         rows.add(Row.list("+minecraft:zombie"));
         rows.add(Row.list("-minecraft:squid"));
     }
@@ -125,6 +142,11 @@ class TorchmasterConfigScreenControllerTest
         void setVisible(boolean visible)
         {
             this.visible = visible;
+        }
+
+        @Override
+        void setEditable(boolean editable)
+        {
         }
 
         @Override
@@ -181,6 +203,7 @@ class TorchmasterConfigScreenControllerTest
         public boolean getAggressiveSpawnChecks() { return true; }
         public boolean getBlockOnlyNaturalSpawns() { return false; }
         public boolean getBlockVillageSieges() { return true; }
+        public boolean getRestrictLightSettingsToOwner() { return true; }
         public java.util.List<String> getMegaTorchEntityBlockListOverrides() { return Collections.emptyList(); }
         public java.util.List<String> getDreadLampEntityBlockListOverrides() { return Collections.emptyList(); }
     }

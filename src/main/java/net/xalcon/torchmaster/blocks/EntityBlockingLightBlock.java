@@ -6,9 +6,9 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
 //? if <1.16.5
 //import net.minecraft.entity.EntityContext;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-//? if <1.20.6
-//import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemStack;
 import net.minecraft.particle.ParticleTypes;
 //? if >=1.21.5
 //import net.minecraft.server.world.ServerWorld;
@@ -116,6 +116,19 @@ public class EntityBlockingLightBlock extends Block
     public void onBlockAdded(BlockState state, World level, BlockPos pos, BlockState oldState, boolean moving) {
         super.onBlockAdded(state, level, pos, oldState, moving);
         BlockingLightLifecycle.register(level, lightType.key(pos), createLight(state, pos));
+    }
+
+    @Override
+    public void onPlaced(World level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack)
+    {
+        super.onPlaced(level, pos, state, placer, itemStack);
+        //? if >=1.16.5 {
+        if (!level.isClient() && placer instanceof PlayerEntity) {
+        //?} else {
+        /*if (!level.isClient && placer instanceof PlayerEntity) {
+        *///?}
+            BlockingLightLifecycle.register(level, lightType.key(pos), createLight(state, pos), placer.getUuid());
+        }
     }
 
     protected MinecraftBlockingLight createLight(BlockState state, BlockPos pos)

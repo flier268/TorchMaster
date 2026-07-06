@@ -2,7 +2,9 @@ package net.xalcon.torchmaster.client;
 
 //? if >=1.20
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.ButtonWidget;
 //? if >=1.21.11
 //import net.minecraft.client.input.KeyInput;
 //? if >=1.16 && <1.20
@@ -17,7 +19,7 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
 
     public TorchmasterConfigScreen(Screen parent)
     {
-        super(text("screen.torchmaster.config.title"));
+        super(text("screen.torchmaster.config.globalTitle"));
         this.parent = parent;
     }
 
@@ -30,10 +32,15 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
     protected void init()
     {
         TorchmasterConfigScreenLayout layout = layout();
-        controller.initialize(layout, height, BUTTON_HEIGHT, widgetFactory());
+        boolean readOnly = remoteServer();
+        controller.initialize(TorchmasterConfigScreenController.runtime().config(), layout, height, BUTTON_HEIGHT, widgetFactory(), readOnly);
 
         for (TorchmasterConfigScreenActions.ButtonDescriptor action : controller.bottomButtons(layout, height, BUTTON_HEIGHT)) {
-            addCompatWidget(button(action.x, action.y, action.width, action.height, text(action.translationKey), button -> handleAction(action.action)));
+            ButtonWidget button = button(action.x, action.y, action.width, action.height, text(action.translationKey), ignored -> handleAction(action.action));
+            if (readOnly && action.action != TorchmasterConfigScreenActions.Action.DONE) {
+                TorchmasterConfigWidgetAdapter.active(button, false);
+            }
+            addCompatWidget(button);
         }
     }
 
@@ -143,6 +150,12 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
     private TorchmasterConfigScreenLayout layout()
     {
         return new TorchmasterConfigScreenLayout(width, height);
+    }
+
+    private boolean remoteServer()
+    {
+        MinecraftClient minecraft = MinecraftClient.getInstance();
+        return minecraft.world != null && minecraft.getServer() == null;
     }
 
     //? if >=1.20 {

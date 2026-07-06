@@ -22,6 +22,11 @@ public interface ITorchmasterConfig
 
     boolean getBlockVillageSieges();
 
+    default boolean getRestrictLightSettingsToOwner()
+    {
+        return true;
+    }
+
     List<String> getMegaTorchEntityBlockListOverrides();
     List<String> getDreadLampEntityBlockListOverrides();
 }

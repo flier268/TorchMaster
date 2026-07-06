@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TorchmasterRangeRenderPlanTest
@@ -73,6 +74,72 @@ class TorchmasterRangeRenderPlanTest
         assertEquals(range.green, sample.green, 0.000001F);
         assertEquals(range.blue, sample.blue, 0.000001F);
         assertEquals(TorchmasterLineBoxRenderer.SAMPLE_STYLE.alpha, sample.alpha, 0.000001F);
+    }
+
+    @Test
+    void unloadedLightChunkPausesInsteadOfRemovingDisplay()
+    {
+        assertEquals(TorchmasterLightRangeDisplay.LightPresence.UNLOADED, TorchmasterLightRangeDisplay.lightPresence(false, false));
+        assertEquals(TorchmasterLightRangeDisplay.LightPresence.UNLOADED, TorchmasterLightRangeDisplay.lightPresence(false, true));
+    }
+
+    @Test
+    void loadedLightChunkDistinguishesPresentFromMissingLight()
+    {
+        assertEquals(TorchmasterLightRangeDisplay.LightPresence.PRESENT, TorchmasterLightRangeDisplay.lightPresence(true, true));
+        assertEquals(TorchmasterLightRangeDisplay.LightPresence.MISSING, TorchmasterLightRangeDisplay.lightPresence(true, false));
+    }
+
+    @Test
+    void serverSyncReconcilesWithoutClearingConfirmedOrManualDisplays()
+    {
+        String dimension = "minecraft:overworld";
+        BlockPos stale = new BlockPos(1, 64, 1);
+        BlockPos confirmed = new BlockPos(2, 64, 2);
+        BlockPos manual = new BlockPos(3, 64, 3);
+        TorchmasterLightRangeDisplay.clear();
+        try {
+            TorchmasterLightRangeDisplay.setVisible(dimension, stale, null, true, 8, 8, 8, true);
+            TorchmasterLightRangeDisplay.setVisible(dimension, confirmed, null, true, 8, 8, 8, true);
+            assertTrue(TorchmasterLightRangeDisplay.toggle(dimension, manual, null, 4, 4, 4));
+
+            TorchmasterLightRangeDisplay.beginServerSync(dimension);
+            assertTrue(TorchmasterLightRangeDisplay.isVisible(dimension, stale));
+            assertTrue(TorchmasterLightRangeDisplay.isVisible(dimension, confirmed));
+
+            TorchmasterLightRangeDisplay.setVisible(dimension, confirmed, null, true, 12, 12, 12, true);
+            TorchmasterLightRangeDisplay.endServerSync(dimension);
+
+            assertFalse(TorchmasterLightRangeDisplay.isVisible(dimension, stale));
+            assertTrue(TorchmasterLightRangeDisplay.isVisible(dimension, confirmed));
+            assertTrue(TorchmasterLightRangeDisplay.isServerSynced(dimension, confirmed));
+            assertTrue(TorchmasterLightRangeDisplay.isVisible(dimension, manual));
+            assertFalse(TorchmasterLightRangeDisplay.isServerSynced(dimension, manual));
+        } finally {
+            TorchmasterLightRangeDisplay.clear();
+        }
+    }
+
+    @Test
+    void serverRemovalOnlyRemovesServerOwnedDisplays()
+    {
+        String dimension = "minecraft:overworld";
+        BlockPos serverOwned = new BlockPos(4, 64, 4);
+        BlockPos manual = new BlockPos(5, 64, 5);
+        TorchmasterLightRangeDisplay.clear();
+        try {
+            TorchmasterLightRangeDisplay.setVisible(dimension, serverOwned, null, true, 8, 8, 8, true);
+            assertTrue(TorchmasterLightRangeDisplay.toggle(dimension, manual, null, 4, 4, 4));
+
+            TorchmasterLightRangeDisplay.removeServerSynced(dimension, serverOwned);
+            TorchmasterLightRangeDisplay.removeServerSynced(dimension, manual);
+
+            assertFalse(TorchmasterLightRangeDisplay.isVisible(dimension, serverOwned));
+            assertTrue(TorchmasterLightRangeDisplay.isVisible(dimension, manual));
+            assertFalse(TorchmasterLightRangeDisplay.isServerSynced(dimension, manual));
+        } finally {
+            TorchmasterLightRangeDisplay.clear();
+        }
     }
 
     private static void assertBox(TorchmasterRangeBoxes.Box box, double minX, double minY, double minZ, double maxX, double maxY, double maxZ)

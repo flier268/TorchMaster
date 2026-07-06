@@ -1,6 +1,7 @@
 package net.xalcon.torchmaster;
 
 import net.fabricmc.api.ModInitializer;
+import net.xalcon.torchmaster.network.FabricLightSettingsNetworking;
 
 public class TorchmasterFabric implements ModInitializer {
 
@@ -13,6 +14,7 @@ public class TorchmasterFabric implements ModInitializer {
 
         // Use Fabric to bootstrap the Common mod.
         TorchmasterRuntime.init();
+        FabricLightSettingsNetworking.registerServer();
         TorchmasterRuntime.onWorldLoaded();
     }
 

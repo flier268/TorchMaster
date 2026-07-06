@@ -5,7 +5,7 @@ import java.util.List;
 
 final class TorchmasterConfigScreenPresenter
 {
-    private static final String TITLE_KEY = "screen.torchmaster.config.title";
+    private static final String TITLE_KEY = "screen.torchmaster.config.globalTitle";
     private static final String LABEL_WITH_UNIT_KEY = "screen.torchmaster.config.labelWithUnit";
 
     private TorchmasterConfigScreenPresenter()

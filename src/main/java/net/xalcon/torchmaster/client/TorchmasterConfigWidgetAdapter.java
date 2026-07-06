@@ -54,6 +54,16 @@ final class TorchmasterConfigWidgetAdapter
         TorchmasterScreenCompat.setWidgetVisible(widget, visible);
     }
 
+    static void active(TextFieldWidget widget, boolean active)
+    {
+        widget.active = active;
+    }
+
+    static void active(ButtonWidget widget, boolean active)
+    {
+        widget.active = active;
+    }
+
     static void updateBooleanLabel(ButtonWidget widget, CompatText label)
     {
         widget.setMessage(label.asWidget());
