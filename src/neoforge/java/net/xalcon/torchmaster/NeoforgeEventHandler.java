@@ -8,8 +8,8 @@ import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerSpawnPhantomsEvent;
 import net.neoforged.neoforge.event.village.VillageSiegeEvent;
 import net.xalcon.torchmaster.events.EventResultContainer;
-import net.xalcon.torchmaster.events.SpawnEventBridge;
 import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventContainers;
+import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventHooks;
 
 @EventBusSubscriber(modid = Constants.MOD_ID)
 public class NeoforgeEventHandler
@@ -22,7 +22,7 @@ public class NeoforgeEventHandler
         var spawnType = event.getSpawnType();
         var entity = event.getEntity();
         var pos = new Vec3d(event.getX(), event.getY(), event.getZ());
-        SpawnEventBridge.onCheckSpawn(spawnType, entity, pos, container);
+        MinecraftSpawnEventHooks.onCheckSpawn(spawnType, entity, pos, container);
 
         event.setResult(NeoforgeSpawnEventResults.toPositionCheck(container));
     }
@@ -35,7 +35,7 @@ public class NeoforgeEventHandler
         var spawnType = event.getSpawnType();
         var entity = event.getEntity();
         var pos = new Vec3d(event.getX(), event.getY(), event.getZ());
-        SpawnEventBridge.onCheckSpawn(spawnType, entity, pos, container);
+        MinecraftSpawnEventHooks.onCheckSpawn(spawnType, entity, pos, container);
 
         event.setResult(NeoforgeSpawnEventResults.toPositionCheck(container));
     }
@@ -47,7 +47,7 @@ public class NeoforgeEventHandler
 
         var player = event.getEntity();
         var pos = new Vec3d(player.getX(), player.getY(), player.getZ());
-        SpawnEventBridge.onPlayerSpawnPhantoms(player, pos, container);
+        MinecraftSpawnEventHooks.onPlayerSpawnPhantoms(player, pos, container);
 
         event.setResult(NeoforgeSpawnEventResults.toPhantom(container));
     }
@@ -57,7 +57,7 @@ public class NeoforgeEventHandler
     {
         EventResultContainer container = MinecraftSpawnEventContainers.defaultContainer();
 
-        SpawnEventBridge.onVillageSiege(event.getLevel(), event.getAttemptedSpawnPos(), container);
+        MinecraftSpawnEventHooks.onVillageSiege(event.getLevel(), event.getAttemptedSpawnPos(), container);
 
         if(MinecraftSpawnEventContainers.denies(container))
             event.setCanceled(true);

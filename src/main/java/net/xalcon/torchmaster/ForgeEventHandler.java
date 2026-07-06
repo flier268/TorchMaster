@@ -7,8 +7,8 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.xalcon.torchmaster.events.EventResultContainer;
-import net.xalcon.torchmaster.events.SpawnEventBridge;
 import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventContainers;
+import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventHooks;
 
 @Mod.EventBusSubscriber(modid = Constants.MOD_ID)
 public class ForgeEventHandler
@@ -18,7 +18,7 @@ public class ForgeEventHandler
     {
         EventResultContainer container = MinecraftSpawnEventContainers.defaultContainer();
 
-        SpawnEventBridge.onCheckSpawn(
+        MinecraftSpawnEventHooks.onCheckSpawn(
                 event.getSpawnType(),
                 event.getEntity(),
                 new Vec3d(event.getX(), event.getY(), event.getZ()),
@@ -34,7 +34,7 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.xalcon.torchmaster.events.EventResultContainer;
-import net.xalcon.torchmaster.events.SpawnEventBridge;
+import net.xalcon.torchmaster.minecraft.spawn.MinecraftSpawnEventHooks;
 
 @Mod.EventBusSubscriber(modid = Constants.MOD_ID)
 public class ForgeEventHandler
@@ -44,7 +44,7 @@ public class ForgeEventHandler
     {
         EventResultContainer container = ForgeSpawnEventResults.container(event.getResult());
 
-        SpawnEventBridge.onCheckSpawn(
+        MinecraftSpawnEventHooks.onCheckSpawn(
                 event.getSpawnReason(),
                 event.getEntity(),
                 new Vec3d(event.getX(), event.getY(), event.getZ()),

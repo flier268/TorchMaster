@@ -23,7 +23,7 @@ class StonecutterSourcePolicyTest
     private static final Pattern MIXIN_FORBIDDEN_SPAWN_IMPORT = Pattern.compile(
             "^import\\s+net\\.xalcon\\.torchmaster\\.(domain\\.SpawnBlockingRules|minecraft\\.storage\\.|minecraft\\.adapter\\.MinecraftSpawnBlocker)");
     private static final Pattern CLIENT_RUNTIME_DETAIL = Pattern.compile(
-            "Torchmaster(LightRangeDisplay|LightRangeRenderer|LightScreen|LightScreenPresenter|ClientLifecycle|ClientEventAdapter|ScreenCompat|ScreenRenderAdapter|ScreenRenderPlan|RangeBoxes|PanelRenderer|LineBoxRenderer|RangeRenderPlan|RangeLineSubmitter|LatestLineSubmitter|WorldRendererLineSubmitter|LegacyLineSubmitter|RangeRenderSession|RangeRenderTarget|LegacyRangeRenderTarget|ConfigScreenLayout|ConfigEntries|ConfigWidgetRows|ConfigScreenActions|ConfigScreenPresenter|ConfigRuntimeAccess)");
+            "Torchmaster(LightRangeDisplay|LightRangeRenderer|LightScreen|LightScreenPresenter|ClientLifecycle|ClientEventAdapter|ScreenCompat|ScreenRenderAdapter|ScreenRenderPlan|RangeBoxes|PanelRenderer|LineBoxRenderer|RangeRenderPlan|RangeLineSubmitter|LatestLineSubmitter|WorldRendererLineSubmitter|LegacyLineSubmitter|RangeRenderSession|RangeRenderTarget|LatestRangeRenderTarget|VanillaRangeRenderTarget|LegacyRangeRenderTarget|ConfigScreenLayout|ConfigEntries|ConfigWidgetRows|ConfigWidgetAdapter|ConfigScreenActions|ConfigScreenPresenter|ConfigRuntimeAccess)");
     private static final Pattern STORAGE_RUNTIME_DETAIL = Pattern.compile(
             "(SavedLightStore|SavedLightStoreStateFactory|SavedLightStoreStateBridge|SavedLightStoreNbtBridge|MinecraftLightStoreAccess|LightStoreBridge|LightStoreConfigView)");
     private static final Pattern RUNTIME_REGISTRY_FACADE = Pattern.compile("getRegistryForLevel\\s*\\(");
@@ -62,6 +62,10 @@ class StonecutterSourcePolicyTest
     private static final Pattern SPAWN_BRIDGE_DIRECT_CONTEXT_BUILD = Pattern.compile("MinecraftSpawnEventContext\\.(entity|phantom|villageSiege)\\s*\\(|MinecraftAdapterViews\\.(entityTypeKey|vec3)\\s*\\(");
     private static final Pattern RANGE_TARGET_DIRECT_LEGACY_API = Pattern.compile("GlStateManager\\.|Tessellator\\.getInstance\\s*\\(|VertexFormats\\.POSITION_COLOR|buffer\\.begin\\s*\\(");
     private static final Pattern CONFIG_CONTROLLER_DIRECT_RUNTIME = Pattern.compile("^import\\s+net\\.xalcon\\.torchmaster\\.TorchmasterRuntime|TorchmasterRuntime\\.");
+    private static final Pattern SPAWN_BRIDGE_DIRECT_HOOK_BODY = Pattern.compile("MinecraftSpawnEvent(ContextFactory|Runtime)|shouldBlock(Entity|VillageSiege)\\s*\\(");
+    private static final Pattern FABRIC_SPAWN_HOOK_DIRECT_BRIDGE = Pattern.compile("SpawnEventBridge");
+    private static final Pattern RANGE_TARGET_DIRECT_LINE_LAYER_API = Pattern.compile("RenderLayer\\.getLines\\s*\\(|LINE_LAYER|RenderPipelines|RenderSetup|bufferSource\\.draw\\s*\\(");
+    private static final Pattern CONFIG_ROWS_DIRECT_WIDGET_STATE = Pattern.compile("TorchmasterScreenCompat\\.setWidget|\\.setMessage\\s*\\(");
 
     @Test
     void loaderSourceRootsDoNotContainMinecraftVersionConditions() throws IOException
@@ -430,6 +434,38 @@ class StonecutterSourcePolicyTest
         Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterConfigScreenController.java");
 
         assertTrue(!hasConfigControllerDirectRuntime(path), () -> "Use TorchmasterConfigRuntimeAccess instead of TorchmasterRuntime from config screen controller: " + path);
+    }
+
+    @Test
+    void spawnEventBridgeStaysCompatibilityFacade() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/events/SpawnEventBridge.java");
+
+        assertTrue(!hasSpawnBridgeDirectHookBody(path), () -> "Keep SpawnEventBridge as a compatibility facade over MinecraftSpawnEventHooks: " + path);
+    }
+
+    @Test
+    void fabricSpawnHooksDoNotRouteThroughBroadBridge() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/minecraft/spawn/FabricSpawnEventHooks.java");
+
+        assertTrue(!hasFabricSpawnHookDirectBridge(path), () -> "Fabric spawn hooks should call MinecraftSpawnEventHooks directly, not broad SpawnEventBridge: " + path);
+    }
+
+    @Test
+    void rangeRenderTargetDelegatesLineLayerApi() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterRangeRenderTarget.java");
+
+        assertTrue(!hasRangeTargetDirectLineLayerApi(path), () -> "Use latest/vanilla range render targets for line layer and flush API details: " + path);
+    }
+
+    @Test
+    void configWidgetRowsDelegateMinecraftWidgetState() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterConfigWidgetRows.java");
+
+        assertTrue(!hasConfigRowsDirectWidgetState(path), () -> "Use TorchmasterConfigWidgetAdapter for Minecraft widget position, visibility, and message state: " + path);
     }
 
     @Test
@@ -847,6 +883,42 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> CONFIG_CONTROLLER_DIRECT_RUNTIME.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasSpawnBridgeDirectHookBody(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> SPAWN_BRIDGE_DIRECT_HOOK_BODY.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasFabricSpawnHookDirectBridge(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> FABRIC_SPAWN_HOOK_DIRECT_BRIDGE.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasRangeTargetDirectLineLayerApi(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> RANGE_TARGET_DIRECT_LINE_LAYER_API.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasConfigRowsDirectWidgetState(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> CONFIG_ROWS_DIRECT_WIDGET_STATE.matcher(line).find());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }

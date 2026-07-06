@@ -70,9 +70,7 @@ final class TorchmasterConfigWidgetRows
             TorchmasterConfigScreenLayout layout, WidgetFactory factory)
     {
         TextFieldWidget editBox = factory.textField(x, layout.widgetY(y), width, buttonHeight, definition.translationKey());
-        editBox.setTextPredicate(text -> text.isEmpty() || text.matches("-?\\d*"));
-        editBox.setMaxLength(10);
-        editBox.setText(Integer.toString(definition.intValue()));
+        TorchmasterConfigWidgetAdapter.configureInteger(editBox, definition.intValue());
         factory.add(editBox);
         return new IntRow(definition, y, editBox);
     }
@@ -81,8 +79,7 @@ final class TorchmasterConfigWidgetRows
             TorchmasterConfigScreenLayout layout, WidgetFactory factory)
     {
         TextFieldWidget editBox = factory.textField(x, layout.widgetY(y), width, buttonHeight, definition.translationKey());
-        editBox.setMaxLength(1024);
-        editBox.setText(String.join(", ", definition.listValue()));
+        TorchmasterConfigWidgetAdapter.configureList(editBox, definition.listValue());
         factory.add(editBox);
         return new ListRow(definition, y, editBox);
     }
@@ -160,15 +157,14 @@ final class TorchmasterConfigWidgetRows
         void setPosition(TorchmasterConfigScreenLayout layout, int fieldX, int y)
         {
             this.y = y;
-            TorchmasterScreenCompat.setWidgetX(editBox, fieldX);
-            TorchmasterScreenCompat.setWidgetY(editBox, layout.widgetY(y));
+            TorchmasterConfigWidgetAdapter.position(editBox, fieldX, layout.widgetY(y));
         }
 
         @Override
         void setVisible(boolean visible)
         {
             this.visible = visible;
-            TorchmasterScreenCompat.setWidgetVisible(editBox, visible);
+            TorchmasterConfigWidgetAdapter.visible(editBox, visible);
         }
 
         @Override
@@ -192,15 +188,14 @@ final class TorchmasterConfigWidgetRows
         void setPosition(TorchmasterConfigScreenLayout layout, int fieldX, int y)
         {
             this.y = y;
-            TorchmasterScreenCompat.setWidgetX(editBox, layout.listFieldX());
-            TorchmasterScreenCompat.setWidgetY(editBox, layout.widgetY(y));
+            TorchmasterConfigWidgetAdapter.position(editBox, layout.listFieldX(), layout.widgetY(y));
         }
 
         @Override
         void setVisible(boolean visible)
         {
             this.visible = visible;
-            TorchmasterScreenCompat.setWidgetVisible(editBox, visible);
+            TorchmasterConfigWidgetAdapter.visible(editBox, visible);
         }
 
         @Override
@@ -229,22 +224,21 @@ final class TorchmasterConfigWidgetRows
         private void toggle(ButtonWidget widget, WidgetFactory factory)
         {
             value = !value;
-            widget.setMessage(factory.booleanLabel(value).asWidget());
+            TorchmasterConfigWidgetAdapter.updateBooleanLabel(widget, factory.booleanLabel(value));
         }
 
         @Override
         void setPosition(TorchmasterConfigScreenLayout layout, int fieldX, int y)
         {
             this.y = y;
-            TorchmasterScreenCompat.setWidgetX(button, layout.booleanButtonX(fieldX));
-            TorchmasterScreenCompat.setWidgetY(button, layout.widgetY(y));
+            TorchmasterConfigWidgetAdapter.position(button, layout.booleanButtonX(fieldX), layout.widgetY(y));
         }
 
         @Override
         void setVisible(boolean visible)
         {
             this.visible = visible;
-            TorchmasterScreenCompat.setWidgetVisible(button, visible);
+            TorchmasterConfigWidgetAdapter.visible(button, visible);
         }
 
         @Override
