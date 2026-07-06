@@ -17,6 +17,7 @@ import net.minecraft.server.world.ServerWorld;
 //? if >=1.19
 import net.minecraft.text.Text;
 import net.xalcon.torchmaster.Constants;
+import net.xalcon.torchmaster.TorchmasterEntityFilters;
 import net.xalcon.torchmaster.TorchmasterRuntime;
 import net.xalcon.torchmaster.minecraft.storage.MinecraftLightStoreAccess;
 import net.xalcon.torchmaster.port.LightInfo;
@@ -89,11 +90,11 @@ public class CommandTorchmaster
                             TorchmasterRuntime.LOG.info("  {}", loc));
 
                     TorchmasterRuntime.LOG.info("Dread Lamp Registry Content:");
-                    for(EntityTypeKey loc: TorchmasterRuntime.DreadLampFilterRegistry.getEntities())
+                    for(EntityTypeKey loc: TorchmasterEntityFilters.dreadLamp().getEntities())
                         TorchmasterRuntime.LOG.info("  {}", loc);
 
                     TorchmasterRuntime.LOG.info("Mega Torch Registry Content:");
-                    for(EntityTypeKey loc: TorchmasterRuntime.MegaTorchFilterRegistry.getEntities())
+                    for(EntityTypeKey loc: TorchmasterEntityFilters.megaTorch().getEntities())
                         TorchmasterRuntime.LOG.info("  {}", loc);
                     TorchmasterRuntime.LOG.info("#################################");
                     TorchmasterRuntime.LOG.info("# Torchmaster Entity Dump End   #");

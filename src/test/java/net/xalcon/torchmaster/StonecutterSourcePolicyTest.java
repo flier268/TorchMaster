@@ -23,12 +23,14 @@ class StonecutterSourcePolicyTest
     private static final Pattern MIXIN_FORBIDDEN_SPAWN_IMPORT = Pattern.compile(
             "^import\\s+net\\.xalcon\\.torchmaster\\.(domain\\.SpawnBlockingRules|minecraft\\.storage\\.|minecraft\\.adapter\\.MinecraftSpawnBlocker)");
     private static final Pattern CLIENT_RUNTIME_DETAIL = Pattern.compile(
-            "Torchmaster(LightRangeDisplay|LightRangeRenderer|LightScreen|ClientLifecycle|ScreenCompat|RangeBoxes)");
+            "Torchmaster(LightRangeDisplay|LightRangeRenderer|LightScreen|ClientLifecycle|ScreenCompat|RangeBoxes|PanelRenderer|LineBoxRenderer|ConfigScreenLayout)");
     private static final Pattern STORAGE_RUNTIME_DETAIL = Pattern.compile(
-            "(SavedLightStore|MinecraftLightStoreAccess|LightStoreBridge|LightStoreConfigView)");
+            "(SavedLightStore|SavedLightStoreStateFactory|MinecraftLightStoreAccess|LightStoreBridge|LightStoreConfigView)");
     private static final Pattern RUNTIME_REGISTRY_FACADE = Pattern.compile("getRegistryForLevel\\s*\\(");
+    private static final Pattern RUNTIME_FILTER_GLOBAL = Pattern.compile("TorchmasterRuntime\\.(MegaTorchFilterRegistry|DreadLampFilterRegistry)");
     private static final Pattern RUNTIME_FILTER_VALIDATION = Pattern.compile("EntityFilterList::IsValidFilterString|EntityFilterList\\.IsValidFilterString");
-    private static final Pattern FILTER_RUNTIME_DETAIL = Pattern.compile("TorchmasterEntityFilterRuntime|EntityFilterOverrideRules");
+    private static final Pattern FILTER_RUNTIME_DETAIL = Pattern.compile("TorchmasterEntityFilters|TorchmasterEntityFilterRuntime|EntityFilterOverrideRules");
+    private static final Pattern SCREEN_PANEL_RAW_FILL_COLOR = Pattern.compile("0xAA101010|0xFF404040|0xFF202020");
     private static final Pattern LOADER_GATED_FILE_START = Pattern.compile("//\\?\\s*(if|elif|else if)\\b.*\\b(fabric|forge|neoforge)\\b.*\\{");
 
     @Test
@@ -120,6 +122,28 @@ class StonecutterSourcePolicyTest
                 .collect(Collectors.toList());
 
         assertTrue(violations.isEmpty(), () -> "Use MinecraftLightStoreAccess directly instead of TorchmasterRuntime.getRegistryForLevel: " + violations);
+    }
+
+    @Test
+    void runtimeFilterGlobalsHaveNoNewCallSites() throws IOException
+    {
+        List<Path> violations = javaFilesIn("src/main/java")
+                .filter(path -> !path.endsWith(Paths.get("src/main/java/net/xalcon/torchmaster/TorchmasterRuntime.java")))
+                .filter(StonecutterSourcePolicyTest::hasRuntimeFilterGlobalCall)
+                .collect(Collectors.toList());
+
+        assertTrue(violations.isEmpty(), () -> "Use TorchmasterEntityFilters instead of TorchmasterRuntime filter globals: " + violations);
+    }
+
+    @Test
+    void screensDoNotHandRollPanelFillColors() throws IOException
+    {
+        List<Path> violations = javaFilesIn("src/main/java/net/xalcon/torchmaster/client")
+                .filter(path -> path.endsWith(Paths.get("TorchmasterLightScreen.java")) || path.endsWith(Paths.get("TorchmasterConfigScreen.java")))
+                .filter(StonecutterSourcePolicyTest::hasRawPanelFillColor)
+                .collect(Collectors.toList());
+
+        assertTrue(violations.isEmpty(), () -> "Use TorchmasterPanelRenderer for panel background/frame fills: " + violations);
     }
 
     @Test
@@ -217,6 +241,24 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> RUNTIME_FILTER_VALIDATION.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasRuntimeFilterGlobalCall(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> RUNTIME_FILTER_GLOBAL.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasRawPanelFillColor(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> SCREEN_PANEL_RAW_FILL_COLOR.matcher(line).find());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }

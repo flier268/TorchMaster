@@ -21,14 +21,6 @@ import java.util.List;
 
 public class TorchmasterConfigScreen extends TorchmasterScreenCompat
 {
-    private static final int MAX_PANEL_WIDTH = 470;
-    private static final int SIDE_MARGIN = 12;
-    private static final int WIDE_ROW_HEIGHT = 32;
-    private static final int COMPACT_ROW_HEIGHT = 44;
-    private static final int COMPACT_BREAKPOINT = 420;
-    private static final int WIDE_FIELD_WIDTH = 150;
-    private static final int WIDE_LIST_FIELD_WIDTH = 240;
-    private static final int BUTTON_WIDTH = 96;
     private static final int BUTTON_HEIGHT = 20;
     private final Screen parent;
     private final List<Entry> entries = new ArrayList<>();
@@ -53,12 +45,13 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
         entries.clear();
         ITorchmasterConfig config = TorchmasterRuntime.getConfig();
 
-        int fieldX = fieldX();
-        int fieldWidth = fieldWidth();
-        int listFieldX = listFieldX();
-        int listFieldWidth = listFieldWidth();
+        TorchmasterConfigScreenLayout layout = layout();
+        int fieldX = layout.fieldX();
+        int fieldWidth = layout.fieldWidth();
+        int listFieldX = layout.listFieldX();
+        int listFieldWidth = layout.listFieldWidth();
         int rowY = 48;
-        int rowHeight = rowHeight();
+        int rowHeight = layout.rowHeight();
 
         addIntEntry("screen.torchmaster.config.feralFlareTickRate", config.getFeralFlareTickRate(), fieldX, fieldWidth, rowY);
         addIntEntry("screen.torchmaster.config.feralFlareLanternLightHardcap", config.getFeralFlareLanternLightCountHardcap(), fieldX, fieldWidth, rowY += rowHeight);
@@ -72,10 +65,10 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
         addListEntry("screen.torchmaster.config.megaTorchEntityBlockListOverrides", config.getMegaTorchEntityBlockListOverrides(), listFieldX, listFieldWidth, rowY += rowHeight);
         addListEntry("screen.torchmaster.config.dreadLampEntityBlockListOverrides", config.getDreadLampEntityBlockListOverrides(), listFieldX, listFieldWidth, rowY += rowHeight);
 
-        int bottomButtonWidth = bottomButtonWidth();
+        int bottomButtonWidth = layout.bottomButtonWidth();
         int buttonGap = 4;
         int totalButtonWidth = bottomButtonWidth * 3 + buttonGap * 2;
-        int buttonX = panelLeft() + (panelWidth() - totalButtonWidth) / 2;
+        int buttonX = layout.panelLeft() + (layout.panelWidth() - totalButtonWidth) / 2;
         addCompatWidget(button(buttonX, height - 28, bottomButtonWidth, BUTTON_HEIGHT, text("screen.torchmaster.config.save"), button -> save()));
         addCompatWidget(button(buttonX + bottomButtonWidth + buttonGap, height - 28, bottomButtonWidth, BUTTON_HEIGHT, text("screen.torchmaster.config.reset"), button -> reset()));
         addCompatWidget(button(buttonX + (bottomButtonWidth + buttonGap) * 2, height - 28, bottomButtonWidth, BUTTON_HEIGHT, text("gui.done"), button -> closeScreen()));
@@ -85,7 +78,7 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
 
     private void addIntEntry(String translationKey, int value, int x, int width, int y)
     {
-        TextFieldWidget editBox = textField(x, widgetY(y), width, BUTTON_HEIGHT, translationKey);
+        TextFieldWidget editBox = textField(x, layout().widgetY(y), width, BUTTON_HEIGHT, translationKey);
         editBox.setTextPredicate(text -> text.isEmpty() || text.matches("-?\\d*"));
         editBox.setMaxLength(10);
         editBox.setText(Integer.toString(value));
@@ -95,7 +88,7 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
 
     private void addListEntry(String translationKey, List<String> values, int x, int width, int y)
     {
-        TextFieldWidget editBox = textField(x, widgetY(y), width, BUTTON_HEIGHT, translationKey);
+        TextFieldWidget editBox = textField(x, layout().widgetY(y), width, BUTTON_HEIGHT, translationKey);
         editBox.setMaxLength(1024);
         editBox.setText(String.join(", ", values));
         addCompatWidget(editBox);
@@ -105,7 +98,8 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
     private void addBooleanEntry(String translationKey, boolean value, int x, int y)
     {
         BooleanEntry entry = new BooleanEntry(translationKey, y, value);
-        ButtonWidget button = button(booleanButtonX(x), widgetY(y), booleanButtonWidth(), BUTTON_HEIGHT, booleanLabel(value), ignored -> {
+        TorchmasterConfigScreenLayout layout = layout();
+        ButtonWidget button = button(layout.booleanButtonX(x), layout.widgetY(y), layout.booleanButtonWidth(), BUTTON_HEIGHT, booleanLabel(value), ignored -> {
             entry.toggle();
             ignored.setMessage(booleanLabel(entry.value).asWidget());
         });
@@ -239,113 +233,49 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
 
     private boolean scroll(double delta)
     {
-        int maxScroll = Math.max(0, entries.size() * rowHeight() - (height - 94));
-        scrollOffset = Math.max(0, Math.min(maxScroll, scrollOffset - (int)(delta * rowHeight())));
+        TorchmasterConfigScreenLayout layout = layout();
+        int maxScroll = Math.max(0, entries.size() * layout.rowHeight() - (height - 94));
+        scrollOffset = Math.max(0, Math.min(maxScroll, scrollOffset - (int)(delta * layout.rowHeight())));
         updateEntryPositions();
         return true;
     }
 
     private void updateEntryPositions()
     {
-        int fieldX = fieldX();
+        TorchmasterConfigScreenLayout layout = layout();
+        int fieldX = layout.fieldX();
         int top = 44;
         int bottom = height - 38;
         for (Entry entry : entries) {
             int y = entry.baseY - scrollOffset;
             entry.setPosition(fieldX, y);
-            entry.setVisible(y >= top - rowHeight() && y <= bottom - BUTTON_HEIGHT);
+            entry.setVisible(y >= top - layout.rowHeight() && y <= bottom - BUTTON_HEIGHT);
         }
     }
 
-    private int panelWidth()
+    private TorchmasterConfigScreenLayout layout()
     {
-        return Math.max(180, Math.min(MAX_PANEL_WIDTH, width - SIDE_MARGIN * 2));
-    }
-
-    private int panelLeft()
-    {
-        return Math.max(SIDE_MARGIN, (width - panelWidth()) / 2);
-    }
-
-    private boolean compactLayout()
-    {
-        return panelWidth() < COMPACT_BREAKPOINT;
-    }
-
-    private int rowHeight()
-    {
-        return compactLayout() ? COMPACT_ROW_HEIGHT : WIDE_ROW_HEIGHT;
-    }
-
-    private int fieldWidth()
-    {
-        if (compactLayout()) {
-            return Math.max(80, panelWidth() - 24);
-        }
-        return Math.min(WIDE_FIELD_WIDTH, Math.max(110, panelWidth() / 3));
-    }
-
-    private int listFieldWidth()
-    {
-        if (compactLayout()) {
-            return Math.max(80, panelWidth() - 24);
-        }
-        return Math.min(WIDE_LIST_FIELD_WIDTH, Math.max(160, panelWidth() / 2));
-    }
-
-    private int fieldX()
-    {
-        if (compactLayout()) {
-            return panelLeft() + 12;
-        }
-        return panelLeft() + panelWidth() - fieldWidth() - 12;
-    }
-
-    private int listFieldX()
-    {
-        if (compactLayout()) {
-            return panelLeft() + 12;
-        }
-        return panelLeft() + panelWidth() - listFieldWidth() - 12;
-    }
-
-    private int widgetY(int rowY)
-    {
-        return compactLayout() ? rowY + 16 : rowY;
-    }
-
-    private int booleanButtonWidth()
-    {
-        return compactLayout() ? fieldWidth() : BUTTON_WIDTH;
-    }
-
-    private int booleanButtonX(int fieldX)
-    {
-        return compactLayout() ? fieldX : fieldX + fieldWidth() - booleanButtonWidth();
-    }
-
-    private int bottomButtonWidth()
-    {
-        return Math.min(100, Math.max(52, (panelWidth() - 32) / 3));
+        return new TorchmasterConfigScreenLayout(width, height);
     }
 
     //? if >=1.20 {
     @Override
     public void render(DrawContext graphics, int mouseX, int mouseY, float partialTick)
     {
-        int left = panelLeft();
-        int right = left + panelWidth();
-        int top = 32;
-        int bottom = height - 34;
+        TorchmasterConfigScreenLayout layout = layout();
+        int left = layout.panelLeft();
+        int right = layout.panelRight();
+        int top = layout.panelTop();
+        int bottom = layout.panelBottom();
 
         super.render(graphics, mouseX, mouseY, partialTick);
 
         drawPanelFrame(graphics, left, top, right, bottom);
-        graphics.drawCenteredTextWithShadow(textRenderer, title, width / 2, 14, 0xFFFFFFFF);
+        graphics.drawCenteredTextWithShadow(textRenderer, title, width / 2, 14, TorchmasterPanelRenderer.TITLE_COLOR);
 
         for (Entry entry : entries) {
             if (entry.visible) {
-                graphics.drawText(textRenderer, text(entry.translationKey).asWidget(), left + 12, compactLayout() ? entry.y : entry.y + 6, 0xFFE0E0E0, false);
+                graphics.drawText(textRenderer, text(entry.translationKey).asWidget(), left + 12, layout.compact() ? entry.y : entry.y + 6, TorchmasterPanelRenderer.LABEL_COLOR, false);
             }
         }
         graphics.drawCenteredTextWithShadow(textRenderer, status.asWidget(), width / 2, height - 48, statusColor);
@@ -354,19 +284,20 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
     /*@Override
     public void render(MatrixStack poseStack, int mouseX, int mouseY, float partialTick)
     {
-        int left = panelLeft();
-        int right = left + panelWidth();
-        int top = 32;
-        int bottom = height - 34;
+        TorchmasterConfigScreenLayout layout = layout();
+        int left = layout.panelLeft();
+        int right = layout.panelRight();
+        int top = layout.panelTop();
+        int bottom = layout.panelBottom();
 
         super.render(poseStack, mouseX, mouseY, partialTick);
 
         drawPanelFrame(poseStack, left, top, right, bottom);
-        drawCenteredTextWithShadow(poseStack, textRenderer, title, width / 2, 14, 0xFFFFFFFF);
+        drawCenteredTextWithShadow(poseStack, textRenderer, title, width / 2, 14, TorchmasterPanelRenderer.TITLE_COLOR);
 
         for (Entry entry : entries) {
             if (entry.visible) {
-                drawTextWithShadow(poseStack, textRenderer, text(entry.translationKey).asWidget(), left + 12, compactLayout() ? entry.y : entry.y + 6, 0xFFE0E0E0);
+                drawTextWithShadow(poseStack, textRenderer, text(entry.translationKey).asWidget(), left + 12, layout.compact() ? entry.y : entry.y + 6, TorchmasterPanelRenderer.LABEL_COLOR);
             }
         }
         drawCenteredTextWithShadow(poseStack, textRenderer, status.asWidget(), width / 2, height - 48, statusColor);
@@ -375,19 +306,20 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
     /*@Override
     public void render(MatrixStack poseStack, int mouseX, int mouseY, float partialTick)
     {
-        int left = panelLeft();
-        int right = left + panelWidth();
-        int top = 32;
-        int bottom = height - 34;
+        TorchmasterConfigScreenLayout layout = layout();
+        int left = layout.panelLeft();
+        int right = layout.panelRight();
+        int top = layout.panelTop();
+        int bottom = layout.panelBottom();
 
         super.render(poseStack, mouseX, mouseY, partialTick);
 
         drawPanelFrame(poseStack, left, top, right, bottom);
-        drawCenteredText(poseStack, textRenderer, title, width / 2, 14, 0xFFFFFFFF);
+        drawCenteredText(poseStack, textRenderer, title, width / 2, 14, TorchmasterPanelRenderer.TITLE_COLOR);
 
         for (Entry entry : entries) {
             if (entry.visible) {
-                drawTextWithShadow(poseStack, textRenderer, text(entry.translationKey).asWidget(), left + 12, compactLayout() ? entry.y : entry.y + 6, 0xFFE0E0E0);
+                drawTextWithShadow(poseStack, textRenderer, text(entry.translationKey).asWidget(), left + 12, layout.compact() ? entry.y : entry.y + 6, TorchmasterPanelRenderer.LABEL_COLOR);
             }
         }
         drawCenteredText(poseStack, textRenderer, status.asWidget(), width / 2, height - 48, statusColor);
@@ -396,21 +328,22 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
     /*@Override
     public void render(int mouseX, int mouseY, float partialTick)
     {
-        int left = panelLeft();
-        int right = left + panelWidth();
-        int top = 32;
-        int bottom = height - 34;
+        TorchmasterConfigScreenLayout layout = layout();
+        int left = layout.panelLeft();
+        int right = layout.panelRight();
+        int top = layout.panelTop();
+        int bottom = layout.panelBottom();
 
         renderBackground();
-        fill(left, top, right, bottom, 0xAA101010);
+        fillPanel(TorchmasterPanelRenderer.background(left, top, right, bottom));
         super.render(mouseX, mouseY, partialTick);
 
         drawPanelFrame(left, top, right, bottom);
-        drawCenteredString(font, text("screen.torchmaster.config.title").asWidget(), width / 2, 14, 0xFFFFFFFF);
+        drawCenteredString(font, text("screen.torchmaster.config.title").asWidget(), width / 2, 14, TorchmasterPanelRenderer.TITLE_COLOR);
 
         for (Entry entry : entries) {
             if (entry.visible) {
-                drawString(font, text(entry.translationKey).asWidget(), left + 12, compactLayout() ? entry.y : entry.y + 6, 0xFFE0E0E0);
+                drawString(font, text(entry.translationKey).asWidget(), left + 12, layout.compact() ? entry.y : entry.y + 6, TorchmasterPanelRenderer.LABEL_COLOR);
             }
         }
         drawCenteredString(font, status.asWidget(), width / 2, height - 48, statusColor);
@@ -422,68 +355,92 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
     public void renderBackground(DrawContext graphics, int mouseX, int mouseY, float partialTick)
     {
         super.renderBackground(graphics, mouseX, mouseY, partialTick);
-        graphics.fill(panelLeft(), 32, panelLeft() + panelWidth(), height - 34, 0xAA101010);
+        TorchmasterConfigScreenLayout layout = layout();
+        fillPanel(graphics, TorchmasterPanelRenderer.background(layout.panelLeft(), layout.panelTop(), layout.panelRight(), layout.panelBottom()));
     }
 
     private void drawPanelFrame(DrawContext graphics, int left, int top, int right, int bottom)
     {
-        graphics.fill(left, top, right, top + 1, 0xFF404040);
-        graphics.fill(left, top, left + 1, bottom, 0xFF404040);
-        graphics.fill(left, bottom - 1, right, bottom, 0xFF202020);
-        graphics.fill(right - 1, top, right, bottom, 0xFF202020);
+        for (TorchmasterPanelRenderer.Fill fill : TorchmasterPanelRenderer.frame(left, top, right, bottom)) {
+            fillPanel(graphics, fill);
+        }
+    }
+
+    private static void fillPanel(DrawContext graphics, TorchmasterPanelRenderer.Fill fill)
+    {
+        graphics.fill(fill.left, fill.top, fill.right, fill.bottom, fill.color);
     }
     //?} else if >=1.20.6 {
     /*@Override
     public void renderBackground(DrawContext graphics, int mouseX, int mouseY, float partialTick)
     {
         super.renderBackground(graphics, mouseX, mouseY, partialTick);
-        graphics.fill(panelLeft(), 32, panelLeft() + panelWidth(), height - 34, 0xAA101010);
+        TorchmasterConfigScreenLayout layout = layout();
+        fillPanel(graphics, TorchmasterPanelRenderer.background(layout.panelLeft(), layout.panelTop(), layout.panelRight(), layout.panelBottom()));
     }
 
     private void drawPanelFrame(DrawContext graphics, int left, int top, int right, int bottom)
     {
-        graphics.fill(left, top, right, top + 1, 0xFF404040);
-        graphics.fill(left, top, left + 1, bottom, 0xFF404040);
-        graphics.fill(left, bottom - 1, right, bottom, 0xFF202020);
-        graphics.fill(right - 1, top, right, bottom, 0xFF202020);
+        for (TorchmasterPanelRenderer.Fill fill : TorchmasterPanelRenderer.frame(left, top, right, bottom)) {
+            fillPanel(graphics, fill);
+        }
+    }
+
+    private static void fillPanel(DrawContext graphics, TorchmasterPanelRenderer.Fill fill)
+    {
+        graphics.fill(fill.left, fill.top, fill.right, fill.bottom, fill.color);
     }
     *///?} else if >=1.20 {
     /*@Override
     public void renderBackground(DrawContext graphics)
     {
         super.renderBackground(graphics);
-        graphics.fill(panelLeft(), 32, panelLeft() + panelWidth(), height - 34, 0xAA101010);
+        TorchmasterConfigScreenLayout layout = layout();
+        fillPanel(graphics, TorchmasterPanelRenderer.background(layout.panelLeft(), layout.panelTop(), layout.panelRight(), layout.panelBottom()));
     }
 
     private void drawPanelFrame(DrawContext graphics, int left, int top, int right, int bottom)
     {
-        graphics.fill(left, top, right, top + 1, 0xFF404040);
-        graphics.fill(left, top, left + 1, bottom, 0xFF404040);
-        graphics.fill(left, bottom - 1, right, bottom, 0xFF202020);
-        graphics.fill(right - 1, top, right, bottom, 0xFF202020);
+        for (TorchmasterPanelRenderer.Fill fill : TorchmasterPanelRenderer.frame(left, top, right, bottom)) {
+            fillPanel(graphics, fill);
+        }
+    }
+
+    private static void fillPanel(DrawContext graphics, TorchmasterPanelRenderer.Fill fill)
+    {
+        graphics.fill(fill.left, fill.top, fill.right, fill.bottom, fill.color);
     }
     *///?} else if >=1.16 {
     /*@Override
     public void renderBackground(MatrixStack poseStack)
     {
         super.renderBackground(poseStack);
-        fill(poseStack, panelLeft(), 32, panelLeft() + panelWidth(), height - 34, 0xAA101010);
+        TorchmasterConfigScreenLayout layout = layout();
+        fillPanel(poseStack, TorchmasterPanelRenderer.background(layout.panelLeft(), layout.panelTop(), layout.panelRight(), layout.panelBottom()));
     }
 
     private void drawPanelFrame(MatrixStack poseStack, int left, int top, int right, int bottom)
     {
-        fill(poseStack, left, top, right, top + 1, 0xFF404040);
-        fill(poseStack, left, top, left + 1, bottom, 0xFF404040);
-        fill(poseStack, left, bottom - 1, right, bottom, 0xFF202020);
-        fill(poseStack, right - 1, top, right, bottom, 0xFF202020);
+        for (TorchmasterPanelRenderer.Fill fill : TorchmasterPanelRenderer.frame(left, top, right, bottom)) {
+            fillPanel(poseStack, fill);
+        }
+    }
+
+    private static void fillPanel(MatrixStack poseStack, TorchmasterPanelRenderer.Fill fill)
+    {
+        fill(poseStack, fill.left, fill.top, fill.right, fill.bottom, fill.color);
     }
     *///?} else {
     /*private void drawPanelFrame(int left, int top, int right, int bottom)
     {
-        fill(left, top, right, top + 1, 0xFF404040);
-        fill(left, top, left + 1, bottom, 0xFF404040);
-        fill(left, bottom - 1, right, bottom, 0xFF202020);
-        fill(right - 1, top, right, bottom, 0xFF202020);
+        for (TorchmasterPanelRenderer.Fill fill : TorchmasterPanelRenderer.frame(left, top, right, bottom)) {
+            fillPanel(fill);
+        }
+    }
+
+    private static void fillPanel(TorchmasterPanelRenderer.Fill fill)
+    {
+        fill(fill.left, fill.top, fill.right, fill.bottom, fill.color);
     }
     *///?}
 
@@ -522,7 +479,7 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
         {
             this.y = y;
             setWidgetX(editBox, fieldX);
-            setWidgetY(editBox, widgetY(y));
+            setWidgetY(editBox, layout().widgetY(y));
         }
 
         @Override
@@ -565,9 +522,10 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
         @Override
         void setPosition(int fieldX, int y)
         {
+            TorchmasterConfigScreenLayout layout = layout();
             this.y = y;
-            setWidgetX(button, booleanButtonX(fieldX));
-            setWidgetY(button, widgetY(y));
+            setWidgetX(button, layout.booleanButtonX(fieldX));
+            setWidgetY(button, layout.widgetY(y));
         }
 
         @Override
@@ -599,9 +557,10 @@ public class TorchmasterConfigScreen extends TorchmasterScreenCompat
         @Override
         void setPosition(int fieldX, int y)
         {
+            TorchmasterConfigScreenLayout layout = layout();
             this.y = y;
-            setWidgetX(editBox, listFieldX());
-            setWidgetY(editBox, widgetY(y));
+            setWidgetX(editBox, layout.listFieldX());
+            setWidgetY(editBox, layout.widgetY(y));
         }
 
         @Override

@@ -1,7 +1,7 @@
 package net.xalcon.torchmaster.minecraft.storage;
 
 import net.xalcon.torchmaster.EntityFilterList;
-import net.xalcon.torchmaster.TorchmasterRuntime;
+import net.xalcon.torchmaster.TorchmasterEntityFilters;
 import net.xalcon.torchmaster.domain.EntityFilter;
 import net.xalcon.torchmaster.minecraft.adapter.MinecraftAdapterViews;
 import net.xalcon.torchmaster.minecraft.adapter.MinecraftConfigView;
@@ -21,12 +21,12 @@ final class LightStoreConfigView
 
     static EntityFilter megaTorchFilter()
     {
-        return entityFilter(TorchmasterRuntime.MegaTorchFilterRegistry);
+        return entityFilter(TorchmasterEntityFilters.megaTorch());
     }
 
     static EntityFilter dreadLampFilter()
     {
-        return entityFilter(TorchmasterRuntime.DreadLampFilterRegistry);
+        return entityFilter(TorchmasterEntityFilters.dreadLamp());
     }
 
     private static EntityFilter entityFilter(EntityFilterList filterList)

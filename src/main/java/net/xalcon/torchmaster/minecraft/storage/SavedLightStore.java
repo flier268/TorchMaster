@@ -1,9 +1,5 @@
 package net.xalcon.torchmaster.minecraft.storage;
 
-//? if >=1.21.11
-//import com.mojang.serialization.Codec;
-//? if >=1.21.11
-//import net.minecraft.datafixer.DataFixTypes;
 //? if >=1.16.5 {
 import net.minecraft.nbt.NbtCompound;
 //?} else {
@@ -12,8 +8,6 @@ import net.minecraft.nbt.NbtCompound;
 //? if >=1.20.6
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.world.PersistentState;
-//? if >=1.21.11
-//import net.minecraft.world.PersistentStateType;
 import net.xalcon.torchmaster.port.EntityTypeKey;
 import net.xalcon.torchmaster.port.LightInfo;
 import net.xalcon.torchmaster.port.SpawnReason;
@@ -88,42 +82,19 @@ public class SavedLightStore extends PersistentState implements LightStoreBridge
                 .toArray(LightInfo[]::new);
     }
 
-    //? if >=1.21.11 {
-    /*private static final Codec<SavedLightStore> CODEC = NbtCompound.CODEC.xmap(
-            SavedLightStore::load,
-            manager -> {
-                NbtCompound tag = new NbtCompound();
-                SavedLightStoreSerializer.saveInto(tag, manager.lights);
-                return tag;
-            });
-
-    public static PersistentStateType<SavedLightStore> type(String id)
-    {
-        return new PersistentStateType<>(id, SavedLightStore::new, CODEC, DataFixTypes.SAVED_DATA_MAP_DATA);
-    }
-*///?} elif >=1.20.6 {
+    //? if >=1.20.6 <1.21.11 {
     @Override
     public NbtCompound writeNbt(NbtCompound compoundTag, RegistryWrapper.WrapperLookup provider)
     {
-        NbtCompound tag = new NbtCompound();
-        SavedLightStoreSerializer.saveInto(tag, lights);
-        return tag;
+        return saveInto(new NbtCompound());
     }
-
-    private static SavedLightStore load(NbtCompound tag, RegistryWrapper.WrapperLookup provider)
-    {
-        return load(tag);
-    }
-
-    public static final PersistentState.Type<SavedLightStore> Factory = new Type<>(SavedLightStore::new, SavedLightStore::load, null);
-//?} elif >=1.16.5 {
+//?} elif >=1.16.5 <1.20.6 {
     /*@Override
     public NbtCompound writeNbt(NbtCompound compoundTag)
     {
-        SavedLightStoreSerializer.saveInto(compoundTag, lights);
-        return compoundTag;
+        return saveInto(compoundTag);
     }
-    *///?} else {
+    *///?} elif <1.16.5 {
     /*@Override
     public CompoundTag toTag(CompoundTag compoundTag)
     {
@@ -136,7 +107,7 @@ public class SavedLightStore extends PersistentState implements LightStoreBridge
     /*@Override
     public void fromTag(NbtCompound tag)
     {
-        SavedLightStoreSerializer.loadInto(this.lights, tag);
+        loadFrom(tag);
     }
     *///?} else if <1.16.5 {
     /*@Override
@@ -147,11 +118,15 @@ public class SavedLightStore extends PersistentState implements LightStoreBridge
     *///?}
 
     //? if >=1.16.5 {
-    public static SavedLightStore load(NbtCompound tag)
+    NbtCompound saveInto(NbtCompound tag)
     {
-        SavedLightStore mgr = new SavedLightStore();
-        SavedLightStoreSerializer.loadInto(mgr.lights, tag);
-        return mgr;
+        SavedLightStoreSerializer.saveInto(tag, lights);
+        return tag;
+    }
+
+    void loadFrom(NbtCompound tag)
+    {
+        SavedLightStoreSerializer.loadInto(this.lights, tag);
     }
 //?}
 }

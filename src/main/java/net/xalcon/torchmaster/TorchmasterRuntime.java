@@ -12,8 +12,16 @@ import org.apache.logging.log4j.core.config.Configurator;
 // however it will be compatible with all supported mod loaders.
 public class TorchmasterRuntime
 {
-    public static final EntityFilterList MegaTorchFilterRegistry = new EntityFilterList(Constants.MOD_ID + ":entity_filter/mega_torch");
-    public static final EntityFilterList DreadLampFilterRegistry = new EntityFilterList(Constants.MOD_ID + ":entity_filter/dread_lamp");
+    /**
+     * @deprecated Use {@link TorchmasterEntityFilters#megaTorch()}.
+     */
+    @Deprecated
+    public static final EntityFilterList MegaTorchFilterRegistry = TorchmasterEntityFilters.megaTorch();
+    /**
+     * @deprecated Use {@link TorchmasterEntityFilters#dreadLamp()}.
+     */
+    @Deprecated
+    public static final EntityFilterList DreadLampFilterRegistry = TorchmasterEntityFilters.dreadLamp();
 
     public static final Logger LOG = LogManager.getLogger(Constants.MOD_NAME);
 
@@ -43,6 +51,6 @@ public class TorchmasterRuntime
 
     public static void onWorldLoaded()
     {
-        TorchmasterEntityFilterRuntime.reload(MegaTorchFilterRegistry, DreadLampFilterRegistry, TorchmasterRuntime.getConfig());
+        TorchmasterEntityFilters.reload(TorchmasterRuntime.getConfig());
     }
 }
