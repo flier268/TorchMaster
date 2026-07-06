@@ -15,28 +15,28 @@ class StonecutterRenderHookTest
         //? if forge && >=1.19 {
         /*assertStaticMethod(
                 "net.xalcon.torchmaster.TorchmasterForgeClient",
-                "onRenderLevelStage",
-                "net.minecraftforge.client.event.RenderLevelStageEvent");
+                "onClientEvent",
+                "net.minecraftforge.eventbus.api.Event");
         *///?} elif forge && >=1.18 {
         /*assertStaticMethod(
                 "net.xalcon.torchmaster.TorchmasterForgeClient",
-                "onRenderLevelLast",
-                "net.minecraftforge.client.event.RenderLevelLastEvent");
+                "onClientEvent",
+                "net.minecraftforge.eventbus.api.Event");
         *///?} elif forge {
         /*assertStaticMethod(
                 "net.xalcon.torchmaster.TorchmasterForgeClient",
-                "onRenderWorldLast",
-                "net.minecraftforge.client.event.RenderWorldLastEvent");
+                "onClientEvent",
+                "net.minecraftforge.eventbus.api.Event");
         *///?} elif neoforge && >=1.21.8 {
         /*assertStaticMethod(
                 "net.xalcon.torchmaster.TorchmasterNeoforgeClient",
-                "onRenderLevelStage",
-                "net.neoforged.neoforge.client.event.RenderLevelStageEvent$AfterTranslucentBlocks");
+                "onClientEvent",
+                "net.neoforged.bus.api.Event");
         *///?} elif neoforge {
         /*assertStaticMethod(
                 "net.xalcon.torchmaster.TorchmasterNeoforgeClient",
-                "onRenderLevelStage",
-                "net.neoforged.neoforge.client.event.RenderLevelStageEvent");
+                "onClientEvent",
+                "net.neoforged.bus.api.Event");
         *///?} elif fabric && 1.21.9 {
         /*assertStaticMethod(
                 "net.xalcon.torchmaster.mixin.LevelRendererMixin",

@@ -88,7 +88,6 @@ class StonecutterSourcePolicyTest
     {
         List<Path> violations = Arrays.asList(
                         Paths.get("src/main/java/net/xalcon/torchmaster/TorchmasterFabricClient.java"),
-                        Paths.get("src/main/java/net/xalcon/torchmaster/TorchmasterForgeClient.java"),
                         Paths.get("src/main/java/net/xalcon/torchmaster/TorchmasterNeoforgeClient.java"))
                 .stream()
                 .filter(Files::exists)
@@ -96,6 +95,21 @@ class StonecutterSourcePolicyTest
                 .collect(Collectors.toList());
 
         assertTrue(violations.isEmpty(), () -> "Move branch-free client entrypoints to loader roots; src/main client entrypoints must need Stonecutter processing: " + violations);
+    }
+
+    @Test
+    void movedLoaderEntrypointsDoNotReturnToMainSource()
+    {
+        List<Path> violations = Arrays.asList(
+                        Paths.get("src/main/java/net/xalcon/torchmaster/TorchmasterFabricClient.java"),
+                        Paths.get("src/main/java/net/xalcon/torchmaster/TorchmasterForge.java"),
+                        Paths.get("src/main/java/net/xalcon/torchmaster/TorchmasterForgeClient.java"),
+                        Paths.get("src/main/java/net/xalcon/torchmaster/TorchmasterNeoforgeClient.java"))
+                .stream()
+                .filter(Files::exists)
+                .collect(Collectors.toList());
+
+        assertTrue(violations.isEmpty(), () -> "Keep moved loader entrypoints in src/[loader]/java and keep version APIs in shared adapters: " + violations);
     }
 
     @Test
@@ -112,6 +126,7 @@ class StonecutterSourcePolicyTest
     void loaderRootsDoNotDuplicateClientRuntimeDetails() throws IOException
     {
         List<Path> violations = javaFilesIn("src/fabric", "src/forge", "src/neoforge")
+                .filter(path -> !isAllowedLoaderEntrypointAdapter(path))
                 .filter(path -> hasClientRuntimeDetail(path) || hasStorageRuntimeDetail(path) || hasFilterRuntimeDetail(path))
                 .collect(Collectors.toList());
 
@@ -271,9 +286,9 @@ class StonecutterSourcePolicyTest
     void clientEntrypointsDelegateEventDecisions() throws IOException
     {
         List<Path> violations = Arrays.asList(
-                        sourcePath("src/main/java/net/xalcon/torchmaster/TorchmasterFabricClient.java"),
-                        sourcePath("src/main/java/net/xalcon/torchmaster/TorchmasterForgeClient.java"),
-                        sourcePath("src/main/java/net/xalcon/torchmaster/TorchmasterNeoforgeClient.java"))
+                        sourcePath("src/fabric/java/net/xalcon/torchmaster/TorchmasterFabricClient.java"),
+                        sourcePath("src/forge/java/net/xalcon/torchmaster/TorchmasterForgeClient.java"),
+                        sourcePath("src/neoforge/java/net/xalcon/torchmaster/TorchmasterNeoforgeClient.java"))
                 .stream()
                 .filter(Files::exists)
                 .filter(StonecutterSourcePolicyTest::hasClientEntrypointDirectEventDecision)
@@ -593,7 +608,16 @@ class StonecutterSourcePolicyTest
     {
         String normalized = path.toString().replace('\\', '/');
         return normalized.endsWith("src/forge/net/xalcon/torchmaster/AbstractTorchmasterForge.java")
-                || normalized.endsWith("src/forge/net/xalcon/torchmaster/TorchmasterForge.java");
+                || normalized.endsWith("src/forge/net/xalcon/torchmaster/TorchmasterForge.java")
+                || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/TorchmasterForgeClient.java");
+    }
+
+    private static boolean isAllowedLoaderEntrypointAdapter(Path path)
+    {
+        String normalized = path.toString().replace('\\', '/');
+        return normalized.endsWith("src/fabric/java/net/xalcon/torchmaster/TorchmasterFabricClient.java")
+                || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/TorchmasterForgeClient.java")
+                || normalized.endsWith("src/neoforge/java/net/xalcon/torchmaster/TorchmasterNeoforgeClient.java");
     }
 
 }
