@@ -1,45 +1,113 @@
-# This workflow will build a Java project with Gradle
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
-
-name: Gradle Build
-run-name: Gradle Build ${{ github.ref_name }}
+name: Publish CurseForge
+run-name: Publish CurseForge ${{ github.event.inputs.release_tag }}
 
 on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Release Tag to deploy'
+        description: 'GitHub Release tag to publish, or latest'
         type: string
-        default: "latest"
+        default: latest
 
-env:
-  JAVA_VERSION: 21
+permissions:
+  contents: read
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     steps:
-      - id: download-release-asset
-        name: Download release assets
-        uses: dsaltares/fetch-gh-release-asset@master
-        with:
-          version: tags/${{ github.event.inputs.release_tag }}
-          file: torchmaster-fabric-${{ github.event.inputs.release_tag }}.jar
-          target: release.tar.gz
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
 
-      - name: Publish to Curseforge
-        id: publish_curseforge
-        if: ${{ !cancelled() && steps.gradle_build.outcome == 'success' && github.event.inputs.deploy_curseforge == 'true' }}
+      - name: Resolve release tag
+        id: release_ref
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG_INPUT: ${{ github.event.inputs.release_tag }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$RELEASE_TAG_INPUT" || "$RELEASE_TAG_INPUT" == "latest" ]]; then
+            RELEASE_TAG=$(gh release view --json tagName --jq .tagName)
+          else
+            RELEASE_TAG="$RELEASE_TAG_INPUT"
+          fi
+
+          ASSET_FINGERPRINT=$(
+            gh release view "$RELEASE_TAG" --json assets \
+              --jq '.assets | map(select(.name | endswith(".jar")) | "\(.name):\(.size):\(.updatedAt)") | sort | join("|")' \
+              | sha256sum \
+              | awk '{ print $1 }'
+          )
+          CACHE_KEY=$(printf '%s' "$RELEASE_TAG" | sed -E 's/[^A-Za-z0-9_.-]+/-/g')
+          echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          echo "cache_key=$CACHE_KEY-$ASSET_FINGERPRINT" >> "$GITHUB_OUTPUT"
+
+      - name: Restore release artifact cache
+        id: restore_release_artifacts
+        uses: actions/cache/restore@v5
+        with:
+          path: release-artifacts
+          key: ${{ runner.os }}-release-artifacts-${{ steps.release_ref.outputs.cache_key }}
+
+      - name: Download release artifacts
+        if: steps.restore_release_artifacts.outputs.cache-hit != 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ steps.release_ref.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+
+          rm -rf release-artifacts
+          mkdir -p release-artifacts
+          gh release download "$RELEASE_TAG" --pattern '*.jar' --dir release-artifacts --clobber
+
+      - name: Read release metadata
+        id: release_metadata
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ steps.release_ref.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+
+          shopt -s nullglob
+          artifacts=(release-artifacts/*.jar)
+          if [[ ${#artifacts[@]} -eq 0 ]]; then
+            echo "No jar artifacts found in GitHub Release $RELEASE_TAG" >&2
+            exit 1
+          fi
+
+          VERSION="${RELEASE_TAG#v}"
+          if [[ "$VERSION" == *-alpha ]]; then
+            VERSION_TYPE=alpha
+          elif [[ "$VERSION" == *-beta ]]; then
+            VERSION_TYPE=beta
+          else
+            VERSION_TYPE=release
+          fi
+
+          echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "version_type=$VERSION_TYPE" >> "$GITHUB_OUTPUT"
+          echo "artifact_count=${#artifacts[@]}" >> "$GITHUB_OUTPUT"
+
+      - name: Save release artifact cache
+        if: steps.restore_release_artifacts.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        continue-on-error: true
+        with:
+          path: release-artifacts
+          key: ${{ steps.restore_release_artifacts.outputs.cache-primary-key }}
+
+      - name: Publish to CurseForge
         uses: Kir-Antipov/mc-publish@v3.3
         with:
-          curseforge-id: "254268"
+          curseforge-id: '254268'
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
-          files: ${{ steps.gradle_build.outputs.artifactfullname }}
-          name: torchmaster-${{ steps.gradle_build.outputs.artifactversion }}
-          version: ${{ steps.gradle_build.outputs.artifactversion }}
-          version-type: ${{ steps.gradle_build.outputs.releasetype }}
-          changelog-file: changelog.md
-          loaders: forge
-          game-versions: ${{ steps.gradle_build.outputs.mcversion }}
-          java: ${{ env.JAVA_VERSION }}
+          files: release-artifacts/*.jar
+          name: Torchmaster ${{ steps.release_metadata.outputs.version }}
+          version: ${{ steps.release_metadata.outputs.version }}
+          version-type: ${{ steps.release_metadata.outputs.version_type }}
+          changelog-file: CHANGELOG.md
+          game-version-filter: none
