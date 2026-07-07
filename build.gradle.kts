@@ -142,7 +142,7 @@ stonecutter {
 }
 
 group = prop("group")
-version = prop("mod_version", prop("version"))
+version = prop("version")
 description = prop("description")
 
 base {
