@@ -6,9 +6,6 @@ import net.xalcon.torchmaster.config.ITorchmasterConfig;
 final class TorchmasterLightScreenModel
 {
     static final String TITLE_KEY = "screen.torchmaster.light.title";
-    static final String RANGE_KEY = "screen.torchmaster.light.range";
-    private static final String SHOW_RANGE_KEY = "screen.torchmaster.light.showRange";
-    private static final String HIDE_RANGE_KEY = "screen.torchmaster.light.hideRange";
 
     private final LightType lightType;
     private final int radius;
@@ -32,11 +29,6 @@ final class TorchmasterLightScreenModel
     String blockKey()
     {
         return lightType.blockTranslationKey();
-    }
-
-    String visibilityButtonKey(boolean visible)
-    {
-        return visible ? HIDE_RANGE_KEY : SHOW_RANGE_KEY;
     }
 
     static int radius(LightType lightType, ITorchmasterConfig config)

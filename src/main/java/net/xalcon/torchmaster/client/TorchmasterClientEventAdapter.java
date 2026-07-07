@@ -61,7 +61,7 @@ public final class TorchmasterClientEventAdapter
 
     public static boolean shouldCopyForgePoseStack(boolean minecraft1206OrNewer)
     {
-        return minecraft1206OrNewer;
+        return !minecraft1206OrNewer;
     }
 
     public static void onFabricEndClientTick()
@@ -113,7 +113,7 @@ public final class TorchmasterClientEventAdapter
             TorchmasterClientLifecycle.renderCurrentRange(context.matrices(), context.consumers());
         });
         *///?} else if >=1.16 {
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
+        WorldRenderEvents.LAST.register(context -> {
             if (context.matrixStack() != null) {
                 TorchmasterClientLifecycle.renderCurrentRange(context.matrixStack());
             }
@@ -147,7 +147,6 @@ public final class TorchmasterClientEventAdapter
         }
         //? if >=1.20.6 {
         MatrixStack poseStack = new MatrixStack();
-        poseStack.multiplyPositionMatrix(event.getPoseStack());
         TorchmasterClientLifecycle.renderCurrentRange(poseStack);
         //?} else {
         /^TorchmasterClientLifecycle.renderCurrentRange(event.getPoseStack());^/

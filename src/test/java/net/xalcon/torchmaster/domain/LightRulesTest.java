@@ -58,11 +58,11 @@ class LightRulesTest {
     }
 
     @Test
-    void cuboidRangeUsesSeparateAxisLimits() {
+    void cuboidRangeUsesSeparateDirectionalLimits() {
         EntityFilter filter = new EntityFilter();
         EntityTypeKey zombie = EntityTypeKey.parse("minecraft:zombie");
         filter.register(zombie);
-        LightSettings settings = LightSettings.configured(true, 4, 1, 8);
+        LightSettings settings = LightSettings.configured(true, 2, 4, 1, 3, 5, 8);
 
         assertTrue(LightRules.blocksEntity(
                 LightKind.MEGA_TORCH,
@@ -76,7 +76,15 @@ class LightRulesTest {
                 LightKind.MEGA_TORCH,
                 filter,
                 zombie,
-                new Vec3View(4.5, 66.01, 8.5),
+                new Vec3View(-2.01, 65.0, 0.5),
+                new BlockPosView(0, 64, 0),
+                settings
+        ));
+        assertFalse(LightRules.blocksEntity(
+                LightKind.MEGA_TORCH,
+                filter,
+                zombie,
+                new Vec3View(4.5, 68.01, 8.5),
                 new BlockPosView(0, 64, 0),
                 settings
         ));
@@ -87,7 +95,7 @@ class LightRulesTest {
         EntityFilter filter = new EntityFilter();
         EntityTypeKey zombie = EntityTypeKey.parse("minecraft:zombie");
         filter.register(zombie);
-        LightSettings settings = LightSettings.configured(false, 64, 64, 64);
+        LightSettings settings = LightSettings.configured(false, 64, 64, 64, 64, 64, 64);
 
         assertFalse(LightRules.blocksEntity(
                 LightKind.MEGA_TORCH,
@@ -201,7 +209,7 @@ class LightRulesTest {
 
     @Test
     void naturalSpawnChunkZeroRadiusIsCurrentChunkOnly() {
-        LightSettings settings = LightSettings.configured(true, 0, 1, 0);
+        LightSettings settings = LightSettings.configured(true, 0, 0, 1, 1, 0, 0);
 
         assertTrue(LightRules.blocksNaturalSpawnChunk(
                 LightKind.MEGA_TORCH,
@@ -223,13 +231,21 @@ class LightRulesTest {
 
     @Test
     void naturalSpawnChunkUsesSeparateHorizontalAxisLimits() {
-        LightSettings settings = LightSettings.configured(true, 48, 1, 32);
+        LightSettings settings = LightSettings.configured(true, 16, 48, 1, 1, 16, 32);
 
         assertTrue(LightRules.blocksNaturalSpawnChunk(
                 LightKind.MEGA_TORCH,
                 true,
                 3,
                 2,
+                new BlockPosView(0, 64, 0),
+                settings
+        ));
+        assertFalse(LightRules.blocksNaturalSpawnChunk(
+                LightKind.MEGA_TORCH,
+                true,
+                -2,
+                0,
                 new BlockPosView(0, 64, 0),
                 settings
         ));

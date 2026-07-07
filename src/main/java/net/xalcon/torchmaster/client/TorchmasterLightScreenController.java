@@ -66,15 +66,16 @@ public final class TorchmasterLightScreenController
             return false;
         }
         settings = LightSettingsService.snapshot(level, pos, lightType, player);
-        TorchmasterLightRangeDisplay.setVisible(dimension, pos, lightType, settings.rangeVisible(), settings.radiusX(), settings.radiusY(), settings.radiusZ());
+        TorchmasterLightRangeDisplay.setVisible(dimension, pos, lightType, settings.rangeVisible(), settings.rangeWest(), settings.rangeEast(),
+                settings.rangeDown(), settings.rangeUp(), settings.rangeNorth(), settings.rangeSouth());
         LightPreviewSyncService.syncWorld(level);
         return true;
     }
 
-    void setDraft(boolean enabled, int radiusX, int radiusY, int radiusZ)
+    void setDraft(boolean enabled, int rangeWest, int rangeEast, int rangeDown, int rangeUp, int rangeNorth, int rangeSouth)
     {
-        settings = LightSettingsView.present(true, settings.accessManageable(), enabled, radiusX, radiusY, radiusZ, settings.globalMax(),
-                settings.chunkAligned(), settings.rangeVisible(), settings.accessEntries());
+        settings = LightSettingsView.present(true, settings.accessManageable(), enabled, rangeWest, rangeEast, rangeDown, rangeUp, rangeNorth,
+                rangeSouth, settings.globalMax(), settings.chunkAligned(), settings.rangeVisible(), settings.accessEntries());
     }
 
     boolean applySettings(LightSettings requested)
@@ -96,7 +97,8 @@ public final class TorchmasterLightScreenController
     void resetDraft()
     {
         settings = LightSettingsView.present(true, settings.accessManageable(), true, settings.globalMax(), settings.globalMax(), settings.globalMax(),
-                settings.globalMax(), settings.chunkAligned(), settings.rangeVisible(), settings.accessEntries());
+                settings.globalMax(), settings.globalMax(), settings.globalMax(), settings.globalMax(), settings.chunkAligned(),
+                settings.rangeVisible(), settings.accessEntries());
     }
 
     boolean applySnapshot(BlockPos snapshotPos, LightType snapshotType, LightSettingsView snapshot)
@@ -112,7 +114,8 @@ public final class TorchmasterLightScreenController
     void refreshVisibleRange()
     {
         if (TorchmasterLightRangeDisplay.isVisible(dimension, pos)) {
-            TorchmasterLightRangeDisplay.refresh(dimension, pos, lightType, settings.radiusX(), settings.radiusY(), settings.radiusZ());
+            TorchmasterLightRangeDisplay.refresh(dimension, pos, lightType, settings.rangeWest(), settings.rangeEast(), settings.rangeDown(),
+                    settings.rangeUp(), settings.rangeNorth(), settings.rangeSouth());
         }
     }
 
@@ -163,7 +166,8 @@ public final class TorchmasterLightScreenController
         ServerPlayerEntity player = serverPlayer();
         if (level == null || player == null) {
             LightSettingsView fallback = LightSettingsService.fallbackSnapshot(lightType);
-            return LightSettingsView.present(false, fallback.enabled(), fallback.radiusX(), fallback.radiusY(), fallback.radiusZ(), fallback.globalMax());
+            return LightSettingsView.present(false, fallback.enabled(), fallback.rangeWest(), fallback.rangeEast(), fallback.rangeDown(),
+                    fallback.rangeUp(), fallback.rangeNorth(), fallback.rangeSouth(), fallback.globalMax());
         }
         return LightSettingsService.snapshot(level, pos, lightType, player);
     }

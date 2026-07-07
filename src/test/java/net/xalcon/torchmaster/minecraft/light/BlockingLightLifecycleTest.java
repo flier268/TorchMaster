@@ -59,14 +59,14 @@ class BlockingLightLifecycleTest {
         UUID allowedUuid = UUID.fromString("8d958391-9fd6-48f0-9f3a-8e1da2781870");
         FakeLightStore store = new FakeLightStore();
         store.existingLight = new MegatorchBlockingLight(new BlockPos(1, 64, 2), false,
-                LightSettings.configured(false, 1, 2, 3), Optional.of(ownerUuid),
+                LightSettings.configured(false, 1, 2, 3, 4, 5, 6), Optional.of(ownerUuid),
                 java.util.Collections.singletonList(new LightAccessEntry(allowedUuid, "Alex")), true);
 
         BlockingLightLifecycle.register(store, "MT_1_64_2", new MegatorchBlockingLight(new BlockPos(1, 64, 2), true));
 
         assertEquals(Optional.of(ownerUuid), store.registeredLight.ownerUuid());
         assertEquals(allowedUuid, store.registeredLight.allowedPlayers().get(0).uuid());
-        assertEquals(1, store.registeredLight.settings().radiusX());
+        assertEquals(1, store.registeredLight.settings().rangeWest());
         assertTrue(store.registeredLight.blocksNaturalSpawnsOnly());
         assertTrue(store.registeredLight.rangeVisible());
     }

@@ -25,21 +25,26 @@ class DreadLampSerializerTest
     void roundTripsPerLightSettings()
     {
         DreadLampBlockingLight light = new DreadLampBlockingLight(new BlockPos(1, 64, 2),
-                LightSettings.configured(false, 3, 2, 1));
+                LightSettings.configured(false, 1, 2, 3, 4, 5, 6));
 
         //? if >=1.16.5
         NbtCompound tag = DreadLampSerializer.INSTANCE.serializeLight(light);
         //? if <1.16.5
         //CompoundTag tag = DreadLampSerializer.INSTANCE.serializeLight(light);
+        assertTrue(tag.contains("rangeWest"));
+        assertTrue(tag.contains("rangeSouth"));
         Optional<PersistedLightEntry> loaded = DreadLampSerializer.INSTANCE.deserializeLight(tag);
 
         assertTrue(loaded.isPresent());
         DreadLampBlockingLight loadedLight = assertInstanceOf(DreadLampBlockingLight.class, loaded.get());
         assertTrue(loadedLight.settings().configured());
         assertFalse(loadedLight.settings().enabled());
-        assertEquals(3, loadedLight.settings().radiusX());
-        assertEquals(2, loadedLight.settings().radiusY());
-        assertEquals(1, loadedLight.settings().radiusZ());
+        assertEquals(1, loadedLight.settings().rangeWest());
+        assertEquals(2, loadedLight.settings().rangeEast());
+        assertEquals(3, loadedLight.settings().rangeDown());
+        assertEquals(4, loadedLight.settings().rangeUp());
+        assertEquals(5, loadedLight.settings().rangeNorth());
+        assertEquals(6, loadedLight.settings().rangeSouth());
     }
 
     @Test

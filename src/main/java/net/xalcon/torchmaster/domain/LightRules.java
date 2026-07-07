@@ -60,22 +60,26 @@ public final class LightRules {
             return false;
         }
 
-        int chunkRadiusX = chunkRadius(settings.radiusX());
-        int chunkRadiusZ = chunkRadius(settings.radiusZ());
+        int chunkWest = chunkRadius(settings.rangeWest());
+        int chunkEast = chunkRadius(settings.rangeEast());
+        int chunkNorth = chunkRadius(settings.rangeNorth());
+        int chunkSouth = chunkRadius(settings.rangeSouth());
         int lightChunkX = lightPos.x() >> 4;
         int lightChunkZ = lightPos.z() >> 4;
-        return isInChunkRadius(chunkX, lightChunkX, chunkRadiusX)
-                && isInChunkRadius(chunkZ, lightChunkZ, chunkRadiusZ);
+        return chunkX >= lightChunkX - chunkWest
+                && chunkX <= lightChunkX + chunkEast
+                && chunkZ >= lightChunkZ - chunkNorth
+                && chunkZ <= lightChunkZ + chunkSouth;
     }
 
     private static boolean isInCuboidRange(Vec3View position, BlockPosView lightPos, LightSettings settings)
     {
-        return position.x() >= lightPos.x() - settings.radiusX()
-                && position.x() <= lightPos.x() + settings.radiusX() + 1
-                && position.y() >= lightPos.y() - settings.radiusY()
-                && position.y() <= lightPos.y() + settings.radiusY() + 1
-                && position.z() >= lightPos.z() - settings.radiusZ()
-                && position.z() <= lightPos.z() + settings.radiusZ() + 1;
+        return position.x() >= lightPos.x() - settings.rangeWest()
+                && position.x() <= lightPos.x() + settings.rangeEast() + 1
+                && position.y() >= lightPos.y() - settings.rangeDown()
+                && position.y() <= lightPos.y() + settings.rangeUp() + 1
+                && position.z() >= lightPos.z() - settings.rangeNorth()
+                && position.z() <= lightPos.z() + settings.rangeSouth() + 1;
     }
 
     private static int chunkCoordinate(double coordinate)
@@ -88,8 +92,4 @@ public final class LightRules {
         return (Math.max(0, radius) + 15) >> 4;
     }
 
-    private static boolean isInChunkRadius(int chunk, int centerChunk, int radius)
-    {
-        return Math.abs(chunk - centerChunk) <= radius;
-    }
 }

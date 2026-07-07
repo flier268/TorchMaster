@@ -25,8 +25,8 @@ class TorchmasterClientEventAdapterTest
     @Test
     void forgePoseStackCopyDescriptorTracksModernBranch()
     {
-        assertTrue(TorchmasterClientEventAdapter.shouldCopyForgePoseStack(true));
-        assertFalse(TorchmasterClientEventAdapter.shouldCopyForgePoseStack(false));
+        assertFalse(TorchmasterClientEventAdapter.shouldCopyForgePoseStack(true));
+        assertTrue(TorchmasterClientEventAdapter.shouldCopyForgePoseStack(false));
     }
 
     @Test

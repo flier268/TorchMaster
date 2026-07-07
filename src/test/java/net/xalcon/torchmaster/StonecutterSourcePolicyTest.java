@@ -35,6 +35,8 @@ class StonecutterSourcePolicyTest
     private static final Pattern RANGE_RENDERER_DIRECT_SNAPSHOT_LOOP = Pattern.compile("for\\s*\\([^)]*RangeSnapshot[^)]*:\\s*TorchmasterLightRangeDisplay\\.snapshots");
     private static final Pattern CONFIG_SCREEN_DIRECT_WIDGET_STATE = Pattern.compile("setWidget[XY]\\s*\\(|\\.visible\\s*=|\\.active\\s*=");
     private static final Pattern RANGE_RENDERER_DIRECT_SESSION_DETAIL = Pattern.compile("TorchmasterLightRangeDisplay\\.snapshots\\s*\\(|RenderLayer\\.getLines\\s*\\(|WorldRenderer\\.drawBox\\s*\\(|\\.lineWidth\\s*\\(");
+    private static final Pattern FABRIC_RANGE_RENDER_AFTER_TRANSLUCENT = Pattern.compile("WorldRenderEvents\\.AFTER_TRANSLUCENT\\.register");
+    private static final Pattern FORGE_RANGE_RENDER_POSITION_MATRIX_COPY = Pattern.compile("multiplyPositionMatrix\\s*\\(\\s*event\\.getPoseStack\\s*\\(\\s*\\)");
     private static final Pattern STORAGE_SERIALIZER_RUNTIME_LOGGER = Pattern.compile("TorchmasterRuntime\\.LOG");
     private static final Pattern SCREEN_DIRECT_TEXT_DRAW = Pattern.compile("drawCenteredText|drawCenteredString|drawText\\s*\\(|drawString\\s*\\(");
     private static final Pattern RANGE_SESSION_RENDER_TARGET_DETAIL = Pattern.compile("RenderLayer\\.getLines\\s*\\(|LINE_LAYER|bufferSource\\.draw\\s*\\(|RenderPipelines|RenderSetup|GlStateManager\\.");
@@ -272,6 +274,22 @@ class StonecutterSourcePolicyTest
         Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterRangeRenderSession.java");
 
         assertTrue(!hasRangeSessionRenderTargetDetail(path), () -> "Use TorchmasterRangeRenderTarget for render layer, flush, and legacy GL target details: " + path);
+    }
+
+    @Test
+    void fabricImmediateRangeRenderUsesCameraTransformedEvent() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterClientEventAdapter.java");
+
+        assertTrue(!hasFabricRangeRenderAfterTranslucent(path), () -> "Use WorldRenderEvents.LAST for immediate Fabric range rendering so the render state includes camera transformation: " + path);
+    }
+
+    @Test
+    void forgeModernRangeRenderDoesNotCopyPositionMatrixIntoPoseStack() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterClientEventAdapter.java");
+
+        assertTrue(!hasForgeRangeRenderPositionMatrixCopy(path), () -> "Use a fresh MatrixStack for Forge 1.20.6+ range rendering; the event pose matrix is already a render-layer position matrix: " + path);
     }
 
     @Test
@@ -836,6 +854,24 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> RANGE_SESSION_RENDER_TARGET_DETAIL.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasFabricRangeRenderAfterTranslucent(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> FABRIC_RANGE_RENDER_AFTER_TRANSLUCENT.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasForgeRangeRenderPositionMatrixCopy(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> FORGE_RANGE_RENDER_POSITION_MATRIX_COPY.matcher(line).find());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }

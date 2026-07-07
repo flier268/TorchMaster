@@ -46,16 +46,16 @@ public final class TorchmasterLightRangeDisplay
     //? if <1.16.5
     //public static boolean toggle(Object dimension, BlockPos pos, LightType lightType, int radius)
     {
-        return toggle(dimension, pos, lightType, radius, radius, radius);
+        return toggle(dimension, pos, lightType, radius, radius, radius, radius, radius, radius);
     }
 
     //? if >=1.16.5
-    public static boolean toggle(RegistryKey<World> dimension, BlockPos pos, LightType lightType, int radiusX, int radiusY, int radiusZ)
+    public static boolean toggle(RegistryKey<World> dimension, BlockPos pos, LightType lightType, int rangeWest, int rangeEast, int rangeDown, int rangeUp, int rangeNorth, int rangeSouth)
     //? if <1.16.5
-    //public static boolean toggle(Object dimension, BlockPos pos, LightType lightType, int radiusX, int radiusY, int radiusZ)
+    //public static boolean toggle(Object dimension, BlockPos pos, LightType lightType, int rangeWest, int rangeEast, int rangeDown, int rangeUp, int rangeNorth, int rangeSouth)
     {
         String dimensionKey = dimensionKey(dimension);
-        if (!toggle(dimensionKey, pos, lightType, radiusX, radiusY, radiusZ)) {
+        if (!toggle(dimensionKey, pos, lightType, rangeWest, rangeEast, rangeDown, rangeUp, rangeNorth, rangeSouth)) {
             return false;
         }
         Display display = DISPLAYS.get(new LightKey(dimensionKey, pos));
@@ -67,12 +67,12 @@ public final class TorchmasterLightRangeDisplay
     }
 
     //? if >=1.16.5
-    public static void setVisible(RegistryKey<World> dimension, BlockPos pos, LightType lightType, boolean visible, int radiusX, int radiusY, int radiusZ)
+    public static void setVisible(RegistryKey<World> dimension, BlockPos pos, LightType lightType, boolean visible, int rangeWest, int rangeEast, int rangeDown, int rangeUp, int rangeNorth, int rangeSouth)
     //? if <1.16.5
-    //public static void setVisible(Object dimension, BlockPos pos, LightType lightType, boolean visible, int radiusX, int radiusY, int radiusZ)
+    //public static void setVisible(Object dimension, BlockPos pos, LightType lightType, boolean visible, int rangeWest, int rangeEast, int rangeDown, int rangeUp, int rangeNorth, int rangeSouth)
     {
         String dimensionKey = dimensionKey(dimension);
-        setVisible(dimensionKey, pos, lightType, visible, radiusX, radiusY, radiusZ, true);
+        setVisible(dimensionKey, pos, lightType, visible, rangeWest, rangeEast, rangeDown, rangeUp, rangeNorth, rangeSouth, true);
         Display display = DISPLAYS.get(new LightKey(dimensionKey, pos));
         MinecraftClient minecraft = MinecraftClient.getInstance();
         if (display != null && minecraft.world != null && dimensionKey.equals(dimensionKey(minecraft.world))) {
@@ -103,9 +103,10 @@ public final class TorchmasterLightRangeDisplay
             return;
         }
         //? if >=1.16.5 {
-        setVisible(minecraft.world.getRegistryKey(), pos, lightType, snapshot.rangeVisible(), snapshot.radiusX(), snapshot.radiusY(), snapshot.radiusZ());
+        setVisible(minecraft.world.getRegistryKey(), pos, lightType, snapshot.rangeVisible(), snapshot.rangeWest(), snapshot.rangeEast(),
+                snapshot.rangeDown(), snapshot.rangeUp(), snapshot.rangeNorth(), snapshot.rangeSouth());
         //?} else if <1.16.5 {
-        /*setVisible(minecraft.world.getDimension().getType(), pos, lightType, snapshot.rangeVisible(), snapshot.radiusX(), snapshot.radiusY(), snapshot.radiusZ());
+        /*setVisible(minecraft.world.getDimension().getType(), pos, lightType, snapshot.rangeVisible(), snapshot.rangeWest(), snapshot.rangeEast(), snapshot.rangeDown(), snapshot.rangeUp(), snapshot.rangeNorth(), snapshot.rangeSouth());
         *///?}
     }
 
@@ -131,9 +132,9 @@ public final class TorchmasterLightRangeDisplay
     }
 
     //? if >=1.16.5
-    public static void refresh(RegistryKey<World> dimension, BlockPos pos, LightType lightType, int radiusX, int radiusY, int radiusZ)
+    public static void refresh(RegistryKey<World> dimension, BlockPos pos, LightType lightType, int rangeWest, int rangeEast, int rangeDown, int rangeUp, int rangeNorth, int rangeSouth)
     //? if <1.16.5
-    //public static void refresh(Object dimension, BlockPos pos, LightType lightType, int radiusX, int radiusY, int radiusZ)
+    //public static void refresh(Object dimension, BlockPos pos, LightType lightType, int rangeWest, int rangeEast, int rangeDown, int rangeUp, int rangeNorth, int rangeSouth)
     {
         LightKey key = new LightKey(dimensionKey(dimension), pos);
         Display display = DISPLAYS.get(key);
@@ -141,9 +142,12 @@ public final class TorchmasterLightRangeDisplay
             return;
         }
         display.lightType = lightType;
-        display.radiusX = Math.max(0, radiusX);
-        display.radiusY = Math.max(0, radiusY);
-        display.radiusZ = Math.max(0, radiusZ);
+        display.rangeWest = Math.max(0, rangeWest);
+        display.rangeEast = Math.max(0, rangeEast);
+        display.rangeDown = Math.max(0, rangeDown);
+        display.rangeUp = Math.max(0, rangeUp);
+        display.rangeNorth = Math.max(0, rangeNorth);
+        display.rangeSouth = Math.max(0, rangeSouth);
         MinecraftClient minecraft = MinecraftClient.getInstance();
         if (minecraft.world != null && key.dimension.equals(dimensionKey(minecraft.world))) {
             refreshRandomAirBlocks(minecraft.world, display);
@@ -164,19 +168,21 @@ public final class TorchmasterLightRangeDisplay
         return display != null && display.serverSynced;
     }
 
-    static boolean toggle(String dimension, BlockPos pos, LightType lightType, int radiusX, int radiusY, int radiusZ)
+    static boolean toggle(String dimension, BlockPos pos, LightType lightType, int rangeWest, int rangeEast, int rangeDown, int rangeUp,
+            int rangeNorth, int rangeSouth)
     {
         LightKey key = new LightKey(dimension, pos);
         if (DISPLAYS.remove(key) != null) {
             return false;
         }
-        Display display = new Display(pos, lightType, Math.max(0, radiusX), Math.max(0, radiusY), Math.max(0, radiusZ), false);
+        Display display = new Display(pos, lightType, Math.max(0, rangeWest), Math.max(0, rangeEast), Math.max(0, rangeDown),
+                Math.max(0, rangeUp), Math.max(0, rangeNorth), Math.max(0, rangeSouth), false);
         DISPLAYS.put(key, display);
         return true;
     }
 
-    static void setVisible(String dimension, BlockPos pos, LightType lightType, boolean visible, int radiusX, int radiusY, int radiusZ,
-            boolean serverSynced)
+    static void setVisible(String dimension, BlockPos pos, LightType lightType, boolean visible, int rangeWest, int rangeEast, int rangeDown,
+            int rangeUp, int rangeNorth, int rangeSouth, boolean serverSynced)
     {
         if (!visible) {
             if (serverSynced) {
@@ -189,13 +195,17 @@ public final class TorchmasterLightRangeDisplay
         LightKey key = new LightKey(dimension, pos);
         Display display = DISPLAYS.get(key);
         if (display == null) {
-            display = new Display(pos, lightType, Math.max(0, radiusX), Math.max(0, radiusY), Math.max(0, radiusZ), serverSynced);
+            display = new Display(pos, lightType, Math.max(0, rangeWest), Math.max(0, rangeEast), Math.max(0, rangeDown),
+                    Math.max(0, rangeUp), Math.max(0, rangeNorth), Math.max(0, rangeSouth), serverSynced);
             DISPLAYS.put(key, display);
         } else {
             display.lightType = lightType;
-            display.radiusX = Math.max(0, radiusX);
-            display.radiusY = Math.max(0, radiusY);
-            display.radiusZ = Math.max(0, radiusZ);
+            display.rangeWest = Math.max(0, rangeWest);
+            display.rangeEast = Math.max(0, rangeEast);
+            display.rangeDown = Math.max(0, rangeDown);
+            display.rangeUp = Math.max(0, rangeUp);
+            display.rangeNorth = Math.max(0, rangeNorth);
+            display.rangeSouth = Math.max(0, rangeSouth);
             display.serverSynced = serverSynced;
         }
         if (serverSynced) {
@@ -249,9 +259,12 @@ public final class TorchmasterLightRangeDisplay
         for (Map.Entry<LightKey, Display> entry : DISPLAYS.entrySet()) {
             Display display = entry.getValue();
             int radius = Math.max(0, TorchmasterLightScreenModel.radius(display.lightType, config));
-            display.radiusX = radius;
-            display.radiusY = radius;
-            display.radiusZ = radius;
+            display.rangeWest = radius;
+            display.rangeEast = radius;
+            display.rangeDown = radius;
+            display.rangeUp = radius;
+            display.rangeNorth = radius;
+            display.rangeSouth = radius;
             if (currentWorld != null && entry.getKey().dimension.equals(currentDimension)) {
                 refreshRandomAirBlocks(currentWorld, display);
             } else {
@@ -374,15 +387,15 @@ public final class TorchmasterLightRangeDisplay
     private static TorchmasterRangeBoxes.Box rangeBox(World level, Display display)
     {
         if (display.lightType == LightType.MegaTorch && hasDiamondBase(level, display.pos)) {
-            return diamondBaseRangeBox(level, display.pos, display.radiusX, display.radiusZ);
+            return diamondBaseRangeBox(level, display.pos, display.rangeWest, display.rangeEast, display.rangeNorth, display.rangeSouth);
         }
         return TorchmasterRangeBoxes.box(
-                display.pos.getX() - display.radiusX,
-                display.pos.getY() - display.radiusY,
-                display.pos.getZ() - display.radiusZ,
-                display.pos.getX() + display.radiusX + 1,
-                display.pos.getY() + display.radiusY + 1,
-                display.pos.getZ() + display.radiusZ + 1);
+                display.pos.getX() - display.rangeWest,
+                display.pos.getY() - display.rangeDown,
+                display.pos.getZ() - display.rangeNorth,
+                display.pos.getX() + display.rangeEast + 1,
+                display.pos.getY() + display.rangeUp + 1,
+                display.pos.getZ() + display.rangeSouth + 1);
     }
 
     private static boolean hasDiamondBase(World level, BlockPos pos)
@@ -391,16 +404,19 @@ public final class TorchmasterLightRangeDisplay
         return state.getBlock() instanceof MegaTorchBlock && state.get(MegaTorchBlock.DIAMOND_BASE);
     }
 
-    private static TorchmasterRangeBoxes.Box diamondBaseRangeBox(World level, BlockPos pos, int radiusX, int radiusZ)
+    private static TorchmasterRangeBoxes.Box diamondBaseRangeBox(World level, BlockPos pos, int rangeWest, int rangeEast, int rangeNorth,
+            int rangeSouth)
     {
-        int chunkRadiusX = chunkRadius(radiusX);
-        int chunkRadiusZ = chunkRadius(radiusZ);
+        int chunkWest = chunkRadius(rangeWest);
+        int chunkEast = chunkRadius(rangeEast);
+        int chunkNorth = chunkRadius(rangeNorth);
+        int chunkSouth = chunkRadius(rangeSouth);
         int chunkX = pos.getX() >> 4;
         int chunkZ = pos.getZ() >> 4;
-        int minChunkX = chunkX - chunkRadiusX;
-        int maxChunkX = chunkX + chunkRadiusX;
-        int minChunkZ = chunkZ - chunkRadiusZ;
-        int maxChunkZ = chunkZ + chunkRadiusZ;
+        int minChunkX = chunkX - chunkWest;
+        int maxChunkX = chunkX + chunkEast;
+        int minChunkZ = chunkZ - chunkNorth;
+        int maxChunkZ = chunkZ + chunkSouth;
         int minY = worldBottomY(level);
         int maxY = worldTopYExclusive(level);
         return TorchmasterRangeBoxes.box(
@@ -535,9 +551,12 @@ public final class TorchmasterLightRangeDisplay
     {
         private final BlockPos pos;
         private LightType lightType;
-        private int radiusX;
-        private int radiusY;
-        private int radiusZ;
+        private int rangeWest;
+        private int rangeEast;
+        private int rangeDown;
+        private int rangeUp;
+        private int rangeNorth;
+        private int rangeSouth;
         private final List<BlockPos> randomAirBlocks = new ArrayList<>();
         private int ticks;
         private boolean serverSynced;
@@ -545,16 +564,20 @@ public final class TorchmasterLightRangeDisplay
 
         private Display(BlockPos pos, LightType lightType, int radius)
         {
-            this(pos, lightType, radius, radius, radius, false);
+            this(pos, lightType, radius, radius, radius, radius, radius, radius, false);
         }
 
-        private Display(BlockPos pos, LightType lightType, int radiusX, int radiusY, int radiusZ, boolean serverSynced)
+        private Display(BlockPos pos, LightType lightType, int rangeWest, int rangeEast, int rangeDown, int rangeUp, int rangeNorth,
+                int rangeSouth, boolean serverSynced)
         {
             this.pos = pos.toImmutable();
             this.lightType = lightType;
-            this.radiusX = radiusX;
-            this.radiusY = radiusY;
-            this.radiusZ = radiusZ;
+            this.rangeWest = rangeWest;
+            this.rangeEast = rangeEast;
+            this.rangeDown = rangeDown;
+            this.rangeUp = rangeUp;
+            this.rangeNorth = rangeNorth;
+            this.rangeSouth = rangeSouth;
             this.serverSynced = serverSynced;
             this.serverSyncSeen = serverSynced;
         }

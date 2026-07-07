@@ -93,14 +93,15 @@ public final class LightSettingsUseCase
         LightSettings settings = light.settings().effective(globalMax);
         LightControlState control = light.controlState();
         return LightSettingsView.present(canEdit(actor, light), canManageAccess(actor, light), settings.enabled(),
-                settings.radiusX(), settings.radiusY(), settings.radiusZ(), Math.max(0, globalMax), light.blocksNaturalSpawnsOnly(),
-                control.rangeVisible(), control.allowedPlayers().toArray(new LightAccessEntry[0]));
+                settings.rangeWest(), settings.rangeEast(), settings.rangeDown(), settings.rangeUp(), settings.rangeNorth(), settings.rangeSouth(),
+                Math.max(0, globalMax), light.blocksNaturalSpawnsOnly(), control.rangeVisible(),
+                control.allowedPlayers().toArray(new LightAccessEntry[0]));
     }
 
     public LightSettingsView fallbackSnapshot(int globalMax)
     {
         int max = Math.max(0, globalMax);
-        return LightSettingsView.present(false, true, max, max, max, max);
+        return LightSettingsView.present(false, true, max, max, max, max, max, max, max);
     }
 
     public boolean updateSettings(String lightKey, int globalMax, Actor actor, LightSettings settings)

@@ -18,6 +18,8 @@ Phase 31 moves single-light settings decisions into Minecraft-free domain code a
 - Added `LightPreviewSyncService` as the server-side range-preview reconciliation point. Loader roots now provide only the per-player snapshot sender, while visible-range query, same-world movement resync, range/radius updates, and light removal all send the same `syncStart` -> present snapshots -> `syncEnd` transaction.
 - Client visible-range resync now triggers when the player crosses a chunk boundary as well as when the client world changes. The client marks existing server-synced previews at `syncStart`, confirms entries as present snapshots arrive, and removes only unconfirmed server-synced entries at `syncEnd`, so full refreshes do not flicker or remove manual range displays.
 - Added domain unit coverage for restricted/unrestricted permissions, radius clamping, range visibility persistence, visible-range listing, online-player access grants, duplicate access grants, empty names, invalid UUID removal, missing UUID removal, and successful removal.
+- Extended single-light range settings from symmetric X/Y/Z radii to directional west/east/down/up/north/south ranges. The global Mega Torch and Dread Lamp radius values remain the per-direction cap, and persisted light settings now use the directional range keys directly.
+- Compact single-light settings UI now uses reusable switch controls for enabled/range-preview state, two-column directional steppers (`[-] value [+]`), immediate apply on range/enabled changes, and a reduced footer for reset and done.
 
 ## Remaining Coupling
 
@@ -53,6 +55,7 @@ Phase 31 moves single-light settings decisions into Minecraft-free domain code a
 - Range preview full refreshes must go through `LightPreviewSyncService`; do not reintroduce loader-local player filtering, store scans, or world broadcast loops.
 - The 100-chunk visibility window is reconciled as a full server-owned set. `syncStart` must not clear displays immediately; `syncEnd` removes only server-synced entries not confirmed by a present snapshot in the same transaction. Manual range displays must remain client-owned.
 - Radius values from clients must always clamp through the server-side use-case path before being saved.
+- Directional range values from clients must clamp independently to `0..globalRadius`; do not re-collapse them to symmetric X/Y/Z values.
 - When `restrictLightSettingsToOwner` is enabled, server-side writes require owner, allowed player, or OP as appropriate; client widget state is only a convenience.
 - Access-list management remains owner-or-OP only, even when granted players may edit radius/enabled state.
 - Do not add single-light settings to Feral Flare Lantern in this phase.

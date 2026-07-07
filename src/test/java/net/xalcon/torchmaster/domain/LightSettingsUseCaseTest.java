@@ -52,12 +52,15 @@ class LightSettingsUseCaseTest
         repository.save("mega", light(LightControlState.of(Optional.of(OWNER), java.util.Collections.emptyList(), false)));
         LightSettingsUseCase useCase = new LightSettingsUseCase(repository, name -> Optional.empty(), true);
 
-        assertTrue(useCase.updateSettings("mega", 16, actor(OWNER, false), LightSettings.configured(true, 40, -2, 8)));
+        assertTrue(useCase.updateSettings("mega", 16, actor(OWNER, false), LightSettings.configured(true, 40, 12, -2, 18, 8, 99)));
 
         LightSettingsView snapshot = useCase.snapshot("mega", 16, actor(OWNER, false));
-        assertEquals(16, snapshot.radiusX());
-        assertEquals(0, snapshot.radiusY());
-        assertEquals(8, snapshot.radiusZ());
+        assertEquals(16, snapshot.rangeWest());
+        assertEquals(12, snapshot.rangeEast());
+        assertEquals(0, snapshot.rangeDown());
+        assertEquals(16, snapshot.rangeUp());
+        assertEquals(8, snapshot.rangeNorth());
+        assertEquals(16, snapshot.rangeSouth());
     }
 
     @Test

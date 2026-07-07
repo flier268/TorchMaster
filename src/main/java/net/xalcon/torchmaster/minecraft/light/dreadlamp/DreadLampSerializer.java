@@ -87,9 +87,12 @@ public class DreadLampSerializer implements LightNbtSerializer
             return;
         }
         nbt.putBoolean("enabled", settings.enabled());
-        nbt.putInt("radiusX", settings.radiusX());
-        nbt.putInt("radiusY", settings.radiusY());
-        nbt.putInt("radiusZ", settings.radiusZ());
+        nbt.putInt("rangeWest", settings.rangeWest());
+        nbt.putInt("rangeEast", settings.rangeEast());
+        nbt.putInt("rangeDown", settings.rangeDown());
+        nbt.putInt("rangeUp", settings.rangeUp());
+        nbt.putInt("rangeNorth", settings.rangeNorth());
+        nbt.putInt("rangeSouth", settings.rangeSouth());
     }
 
     //? if >=1.16.5
@@ -97,17 +100,25 @@ public class DreadLampSerializer implements LightNbtSerializer
     //? if <1.16.5
     //private static LightSettings readSettings(CompoundTag nbt)
     {
-        if (!nbt.contains("enabled") || !nbt.contains("radiusX") || !nbt.contains("radiusY") || !nbt.contains("radiusZ")) {
+        if (!nbt.contains("enabled")) {
+            return LightSettings.unconfigured();
+        }
+        if (!nbt.contains("rangeWest") || !nbt.contains("rangeEast") || !nbt.contains("rangeDown") || !nbt.contains("rangeUp")
+                || !nbt.contains("rangeNorth") || !nbt.contains("rangeSouth")) {
             return LightSettings.unconfigured();
         }
         //? if >=1.21.11 {
         /*return LightSettings.configured(
                 nbt.getBoolean("enabled").orElse(true),
-                nbt.getInt("radiusX").orElse(0),
-                nbt.getInt("radiusY").orElse(0),
-                nbt.getInt("radiusZ").orElse(0));
+                nbt.getInt("rangeWest").orElse(0),
+                nbt.getInt("rangeEast").orElse(0),
+                nbt.getInt("rangeDown").orElse(0),
+                nbt.getInt("rangeUp").orElse(0),
+                nbt.getInt("rangeNorth").orElse(0),
+                nbt.getInt("rangeSouth").orElse(0));
         *///?} else {
-        return LightSettings.configured(nbt.getBoolean("enabled"), nbt.getInt("radiusX"), nbt.getInt("radiusY"), nbt.getInt("radiusZ"));
+        return LightSettings.configured(nbt.getBoolean("enabled"), nbt.getInt("rangeWest"), nbt.getInt("rangeEast"),
+                nbt.getInt("rangeDown"), nbt.getInt("rangeUp"), nbt.getInt("rangeNorth"), nbt.getInt("rangeSouth"));
         //?}
     }
 

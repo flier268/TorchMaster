@@ -61,21 +61,26 @@ class MegatorchSerializerTest
     void roundTripsPerLightSettings()
     {
         MegatorchBlockingLight light = new MegatorchBlockingLight(new BlockPos(1, 64, 2), true,
-                LightSettings.configured(false, 1, 2, 3));
+                LightSettings.configured(false, 1, 2, 3, 4, 5, 6));
 
         //? if >=1.16.5
         NbtCompound tag = MegatorchSerializer.INSTANCE.serializeLight(light);
         //? if <1.16.5
         //CompoundTag tag = MegatorchSerializer.INSTANCE.serializeLight(light);
+        assertTrue(tag.contains("rangeWest"));
+        assertTrue(tag.contains("rangeSouth"));
         Optional<PersistedLightEntry> loaded = MegatorchSerializer.INSTANCE.deserializeLight(tag);
 
         assertTrue(loaded.isPresent());
         MegatorchBlockingLight loadedLight = assertInstanceOf(MegatorchBlockingLight.class, loaded.get());
         assertTrue(loadedLight.settings().configured());
         assertFalse(loadedLight.settings().enabled());
-        assertEquals(1, loadedLight.settings().radiusX());
-        assertEquals(2, loadedLight.settings().radiusY());
-        assertEquals(3, loadedLight.settings().radiusZ());
+        assertEquals(1, loadedLight.settings().rangeWest());
+        assertEquals(2, loadedLight.settings().rangeEast());
+        assertEquals(3, loadedLight.settings().rangeDown());
+        assertEquals(4, loadedLight.settings().rangeUp());
+        assertEquals(5, loadedLight.settings().rangeNorth());
+        assertEquals(6, loadedLight.settings().rangeSouth());
         assertTrue(loadedLight.hasDiamondBase());
     }
 

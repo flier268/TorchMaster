@@ -27,14 +27,16 @@ class TorchmasterScreenRenderPlanTest
         assertEquals(550, plan.frameRight);
         assertEquals(359, plan.frameBottom);
         assertEquals(TorchmasterPanelRenderer.BACKGROUND_COLOR, plan.background.color);
-        assertCentered(plan.centeredLabels()[0], "screen.torchmaster.light.title", 400, 253, TorchmasterPanelRenderer.TITLE_COLOR);
-        assertCentered(plan.centeredLabels()[1], "block.torchmaster.megatorch", 400, 270, TorchmasterPanelRenderer.LABEL_COLOR);
-        assertCentered(plan.centeredLabels()[2], "screen.torchmaster.light.range", 400, 285, TorchmasterPanelRenderer.RANGE_COLOR);
-        assertEquals(64, plan.centeredLabels()[2].text.args()[0]);
-        assertEquals(0, plan.leftLabels().length);
+        assertLeft(plan.leftLabels()[0], "screen.torchmaster.light.title", 276, 251, TorchmasterPanelRenderer.TITLE_COLOR);
+        assertLeft(plan.leftLabels()[1], "block.torchmaster.megatorch", 276, 265, TorchmasterPanelRenderer.LABEL_COLOR);
+        assertEquals(0, plan.centeredLabels().length);
+        assertEquals(2, plan.leftLabels().length);
         assertEquals(2, plan.fills().length);
-        assertFill(plan.fills()[0], 517, 281, 531, 295, TorchmasterPanelRenderer.FRAME_DARK_COLOR);
-        assertFill(plan.fills()[1], 518, 282, 530, 294, TorchmasterLineBoxRenderer.rangeColor(pos));
+        assertFill(plan.fills()[0], layout.rangeSwatchLeft() - 1, layout.rangeSwatchTop() - 1,
+                layout.rangeSwatchLeft() + layout.rangeSwatchSize() + 1, layout.rangeSwatchTop() + layout.rangeSwatchSize() + 1,
+                TorchmasterPanelRenderer.FRAME_DARK_COLOR);
+        assertFill(plan.fills()[1], layout.rangeSwatchLeft(), layout.rangeSwatchTop(), layout.rangeSwatchLeft() + layout.rangeSwatchSize(),
+                layout.rangeSwatchTop() + layout.rangeSwatchSize(), TorchmasterLineBoxRenderer.rangeColor(pos));
     }
 
     @Test
@@ -59,8 +61,8 @@ class TorchmasterScreenRenderPlanTest
     @Test
     void lightPresenterKeepsAccessDetailsOutOfMainPanel()
     {
-        TorchmasterLightScreenLayout layout = new TorchmasterLightScreenLayout(800, 600, 300, 246);
-        LightSettingsView settings = LightSettingsView.present(true, true, true, 16, 12, 8, 64, new LightAccessEntry[] {
+        TorchmasterLightScreenLayout layout = new TorchmasterLightScreenLayout(800, 600, 300, 300);
+        LightSettingsView settings = LightSettingsView.present(true, true, true, 16, 16, 12, 12, 8, 8, 64, false, false, new LightAccessEntry[] {
                 new LightAccessEntry(UUID.fromString("00000000-0000-0000-0000-000000000001"), "Kuku"),
                 new LightAccessEntry(UUID.fromString("00000000-0000-0000-0000-000000000002"), "Alex"),
                 new LightAccessEntry(UUID.fromString("00000000-0000-0000-0000-000000000003"), "Steve"),
@@ -80,19 +82,22 @@ class TorchmasterScreenRenderPlanTest
     @Test
     void lightPresenterShowsChunkUnitForDiamondBaseMegaTorch()
     {
-        TorchmasterLightScreenLayout layout = new TorchmasterLightScreenLayout(800, 600, 300, 246);
-        LightSettingsView settings = LightSettingsView.present(true, true, true, 64, 64, 64, 64, true, new LightAccessEntry[0]);
+        TorchmasterLightScreenLayout layout = new TorchmasterLightScreenLayout(800, 600, 300, 300);
+        LightSettingsView settings = LightSettingsView.present(true, true, true, 64, 64, 64, 64, 64, 64, 64, true, false, new LightAccessEntry[0]);
 
         TorchmasterScreenRenderPlan plan = TorchmasterLightScreenPresenter.plan(layout, "block.torchmaster.megatorch", 64,
                 new BlockPos(10, 20, 30), settings);
 
-        assertCentered(plan.centeredLabels()[2], "screen.torchmaster.light.rangeChunks", 400, layout.rangeY(), TorchmasterPanelRenderer.RANGE_COLOR);
-        assertEquals(4, plan.centeredLabels()[2].text.args()[0]);
         assertTrue(Arrays.stream(plan.leftLabels()).anyMatch(label -> "screen.torchmaster.light.maxRadiusChunks".equals(label.text.translationKey())));
         assertTrue(Arrays.stream(plan.leftLabels()).anyMatch(label -> "screen.torchmaster.light.radiusChunkUnit".equals(label.text.translationKey())));
-        assertTrue(Arrays.stream(plan.leftLabels()).anyMatch(label -> "X".equals(label.text.literalValue()) && label.x == layout.radiusFieldX(0)));
-        assertTrue(Arrays.stream(plan.leftLabels()).anyMatch(label -> "Z".equals(label.text.literalValue()) && label.x == layout.radiusFieldX(1)));
-        assertFalse(Arrays.stream(plan.leftLabels()).anyMatch(label -> "Y".equals(label.text.literalValue())));
+        assertTrue(Arrays.stream(plan.leftLabels()).anyMatch(label -> "screen.torchmaster.light.rangeWest".equals(label.text.translationKey()) && label.x == layout.radiusDirectionLabelX(0)));
+        assertTrue(Arrays.stream(plan.leftLabels()).anyMatch(label -> "screen.torchmaster.light.rangeEast".equals(label.text.translationKey()) && label.x == layout.radiusDirectionLabelX(1)));
+        assertTrue(Arrays.stream(plan.leftLabels()).anyMatch(label -> "screen.torchmaster.light.rangeNorth".equals(label.text.translationKey()) && label.x == layout.radiusDirectionLabelX(0)));
+        assertTrue(Arrays.stream(plan.leftLabels()).anyMatch(label -> "screen.torchmaster.light.rangeSouth".equals(label.text.translationKey()) && label.x == layout.radiusDirectionLabelX(1)));
+        assertTrue(Arrays.stream(plan.centeredLabels()).anyMatch(label -> "4".equals(label.text.literalValue()) && label.x == layout.rangeValueCenterX(0)));
+        assertTrue(Arrays.stream(plan.centeredLabels()).anyMatch(label -> "4".equals(label.text.literalValue()) && label.x == layout.rangeValueCenterX(1)));
+        assertFalse(Arrays.stream(plan.leftLabels()).anyMatch(label -> "screen.torchmaster.light.rangeDown".equals(label.text.translationKey())));
+        assertFalse(Arrays.stream(plan.leftLabels()).anyMatch(label -> "screen.torchmaster.light.rangeUp".equals(label.text.translationKey())));
         TorchmasterScreenRenderPlan.LeftLabel maxRadius = Arrays.stream(plan.leftLabels())
                 .filter(label -> "screen.torchmaster.light.maxRadiusChunks".equals(label.text.translationKey()))
                 .findFirst()
@@ -102,22 +107,55 @@ class TorchmasterScreenRenderPlanTest
     }
 
     @Test
-    void lightLayoutKeepsSwatchOutsideEnabledButton()
+    void lightLayoutKeepsSwatchOutsideSwitches()
     {
-        TorchmasterLightScreenLayout layout = new TorchmasterLightScreenLayout(800, 600, 300, 246);
+        TorchmasterLightScreenLayout layout = new TorchmasterLightScreenLayout(800, 600, 300, 300);
         TorchmasterPanelRenderer.Fill[] fills = TorchmasterLightScreenPresenter.plan(layout, "block.torchmaster.megatorch", 64,
-                new BlockPos(10, 20, 30), LightSettingsView.present(true, true, true, 64, 64, 64, 64, new LightAccessEntry[0])).fills();
+                new BlockPos(10, 20, 30), LightSettingsView.present(true, true, true, 64, 64, 64, 64, 64, 64, 64, false, false,
+                        new LightAccessEntry[0])).fills();
         TorchmasterPanelRenderer.Fill swatchFrame = fills[fills.length - 2];
-        int enabledLeft = layout.enabledButtonX();
-        int enabledTop = layout.enabledY();
 
         assertFalse(intersects(swatchFrame.left, swatchFrame.top, swatchFrame.right, swatchFrame.bottom,
-                enabledLeft, enabledTop, enabledLeft + layout.enabledButtonWidth(), enabledTop + 20));
+                layout.enabledSwitchX(), layout.enabledSwitchY(), layout.enabledSwitchX() + layout.switchWidth(),
+                layout.enabledSwitchY() + layout.switchHeight()));
         assertTrue(layout.radiusFieldX(0) + 64 <= layout.radiusFieldX(1));
-        assertTrue(layout.radiusFieldX(1) + 64 <= layout.radiusFieldX(2));
-        assertFalse(intersects(layout.accessButtonX(), layout.accessButtonY(), layout.accessButtonX() + layout.accessButtonWidth(), layout.accessButtonY() + 20,
-                layout.footerButtonX(0), layout.footerY(), layout.footerButtonX(2) + layout.footerButtonWidth(), layout.footerY() + 20));
-        assertTrue(layout.accessButtonWidth() < layout.panelWidth() - 36);
+        assertEquals(layout.radiusLabelY() - 4, layout.visibilityY());
+        assertTrue(layout.visibilityLabelX() > layout.panelLeft() + 26);
+        assertTrue(layout.visibilityLabelX() < layout.rangeSwatchLeft());
+        assertEquals(layout.visibilitySwitchX() - layout.rangeSwatchSize() - 8, layout.rangeSwatchLeft());
+        assertTrue(layout.rangeSwatchLeft() + layout.rangeSwatchSize() < layout.visibilitySwitchX());
+        assertTrue(layout.footerButtonX(0) + layout.footerButtonWidth() <= layout.footerButtonX(1));
+        assertTrue(layout.footerButtonX(1) + layout.footerButtonWidth() <= layout.footerButtonX(2));
+        assertTrue(layout.footerButtonX(2) + layout.footerButtonWidth() <= layout.panelRight() - 26);
+        assertEquals(77, layout.footerButtonWidth());
+    }
+
+    @Test
+    void switchControlRendersTrackThumbAndHitBox()
+    {
+        TorchmasterPanelRenderer.Fill[] on = TorchmasterSwitchControl.fills(10, 20, true, true);
+        TorchmasterPanelRenderer.Fill[] off = TorchmasterSwitchControl.fills(10, 20, false, true);
+
+        assertEquals(4, on.length);
+        assertFill(on[0], 14, 20, 42, 34, 0xFF2D9CDB);
+        assertFill(on[2], 36, 22, 42, 32, 0xFFFFFFFF);
+        assertFill(off[0], 14, 20, 42, 34, 0xFF606060);
+        assertFill(off[2], 14, 22, 20, 32, 0xFFFFFFFF);
+        assertTrue(TorchmasterSwitchControl.contains(10, 20, 10, 20));
+        assertTrue(TorchmasterSwitchControl.contains(10, 20, 45, 33));
+        assertFalse(TorchmasterSwitchControl.contains(10, 20, 46, 33));
+    }
+
+    @Test
+    void compactLightLayoutScrollsOnlyWhenViewportIsTooShort()
+    {
+        TorchmasterLightScreenLayout normal = new TorchmasterLightScreenLayout(800, 600, 340, 246);
+        TorchmasterLightScreenLayout shortViewport = new TorchmasterLightScreenLayout(800, 160, 340, 246);
+        TorchmasterLightScreenLayout scrolled = new TorchmasterLightScreenLayout(800, 160, 340, 246, 18);
+
+        assertEquals(0, normal.maxScroll());
+        assertTrue(shortViewport.maxScroll() > 0);
+        assertEquals(shortViewport.radiusFieldY(0) - 18, scrolled.radiusFieldY(0));
     }
 
     @Test

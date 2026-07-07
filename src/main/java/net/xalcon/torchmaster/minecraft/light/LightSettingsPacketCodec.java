@@ -36,14 +36,17 @@ public final class LightSettingsPacketCodec
     public static void writeSettings(PacketByteBuf buf, LightSettings settings)
     {
         buf.writeBoolean(settings.enabled());
-        buf.writeInt(settings.radiusX());
-        buf.writeInt(settings.radiusY());
-        buf.writeInt(settings.radiusZ());
+        buf.writeInt(settings.rangeWest());
+        buf.writeInt(settings.rangeEast());
+        buf.writeInt(settings.rangeDown());
+        buf.writeInt(settings.rangeUp());
+        buf.writeInt(settings.rangeNorth());
+        buf.writeInt(settings.rangeSouth());
     }
 
     public static LightSettings readSettings(PacketByteBuf buf)
     {
-        return LightSettings.configured(buf.readBoolean(), buf.readInt(), buf.readInt(), buf.readInt());
+        return LightSettings.configured(buf.readBoolean(), buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt());
     }
 
     public static void writeSnapshot(PacketByteBuf buf, LightSettingsView snapshot)
@@ -52,9 +55,12 @@ public final class LightSettingsPacketCodec
         buf.writeBoolean(snapshot.editable());
         buf.writeBoolean(snapshot.accessManageable());
         buf.writeBoolean(snapshot.enabled());
-        buf.writeInt(snapshot.radiusX());
-        buf.writeInt(snapshot.radiusY());
-        buf.writeInt(snapshot.radiusZ());
+        buf.writeInt(snapshot.rangeWest());
+        buf.writeInt(snapshot.rangeEast());
+        buf.writeInt(snapshot.rangeDown());
+        buf.writeInt(snapshot.rangeUp());
+        buf.writeInt(snapshot.rangeNorth());
+        buf.writeInt(snapshot.rangeSouth());
         buf.writeInt(snapshot.globalMax());
         buf.writeBoolean(snapshot.chunkAligned());
         buf.writeBoolean(snapshot.rangeVisible());
@@ -75,9 +81,12 @@ public final class LightSettingsPacketCodec
         boolean editable = buf.readBoolean();
         boolean accessManageable = buf.readBoolean();
         boolean enabled = buf.readBoolean();
-        int radiusX = buf.readInt();
-        int radiusY = buf.readInt();
-        int radiusZ = buf.readInt();
+        int rangeWest = buf.readInt();
+        int rangeEast = buf.readInt();
+        int rangeDown = buf.readInt();
+        int rangeUp = buf.readInt();
+        int rangeNorth = buf.readInt();
+        int rangeSouth = buf.readInt();
         int globalMax = buf.readInt();
         boolean chunkAligned = buf.readBoolean();
         boolean rangeVisible = buf.readBoolean();
@@ -96,7 +105,8 @@ public final class LightSettingsPacketCodec
             }
         }
         if (found) {
-            return LightSettingsView.present(editable, accessManageable, enabled, radiusX, radiusY, radiusZ, globalMax, chunkAligned, rangeVisible, accessEntries);
+            return LightSettingsView.present(editable, accessManageable, enabled, rangeWest, rangeEast, rangeDown, rangeUp, rangeNorth, rangeSouth,
+                    globalMax, chunkAligned, rangeVisible, accessEntries);
         }
         if (previewSyncStart) {
             return LightSettingsView.previewSyncStartMarker();

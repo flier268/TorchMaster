@@ -10,9 +10,12 @@ public final class LightSettingsView
     private final boolean editable;
     private final boolean accessManageable;
     private final boolean enabled;
-    private final int radiusX;
-    private final int radiusY;
-    private final int radiusZ;
+    private final int rangeWest;
+    private final int rangeEast;
+    private final int rangeDown;
+    private final int rangeUp;
+    private final int rangeNorth;
+    private final int rangeSouth;
     private final int globalMax;
     private final boolean chunkAligned;
     private final boolean rangeVisible;
@@ -21,17 +24,21 @@ public final class LightSettingsView
     private final boolean previewSyncEnd;
     private final LightAccessEntry[] accessEntries;
 
-    private LightSettingsView(boolean found, boolean editable, boolean accessManageable, boolean enabled, int radiusX, int radiusY, int radiusZ,
-            int globalMax, boolean chunkAligned, boolean rangeVisible, boolean appliesToSettings, boolean previewSyncStart, boolean previewSyncEnd,
+    private LightSettingsView(boolean found, boolean editable, boolean accessManageable, boolean enabled, int rangeWest, int rangeEast,
+            int rangeDown, int rangeUp, int rangeNorth, int rangeSouth, int globalMax, boolean chunkAligned, boolean rangeVisible,
+            boolean appliesToSettings, boolean previewSyncStart, boolean previewSyncEnd,
             LightAccessEntry[] accessEntries)
     {
         this.found = found;
         this.editable = editable;
         this.accessManageable = accessManageable;
         this.enabled = enabled;
-        this.radiusX = radiusX;
-        this.radiusY = radiusY;
-        this.radiusZ = radiusZ;
+        this.rangeWest = rangeWest;
+        this.rangeEast = rangeEast;
+        this.rangeDown = rangeDown;
+        this.rangeUp = rangeUp;
+        this.rangeNorth = rangeNorth;
+        this.rangeSouth = rangeSouth;
         this.globalMax = globalMax;
         this.chunkAligned = chunkAligned;
         this.rangeVisible = rangeVisible;
@@ -43,46 +50,39 @@ public final class LightSettingsView
 
     public static LightSettingsView missing(int globalMax)
     {
-        return new LightSettingsView(false, false, false, true, globalMax, globalMax, globalMax, globalMax, false, false, true, false, false, EMPTY_ACCESS);
+        return new LightSettingsView(false, false, false, true, globalMax, globalMax, globalMax, globalMax, globalMax, globalMax, globalMax,
+                false, false, true, false, false, EMPTY_ACCESS);
     }
 
     public static LightSettingsView previewRemoved(int globalMax)
     {
-        return new LightSettingsView(false, false, false, true, globalMax, globalMax, globalMax, globalMax, false, false, false, false, false, EMPTY_ACCESS);
+        return new LightSettingsView(false, false, false, true, globalMax, globalMax, globalMax, globalMax, globalMax, globalMax, globalMax,
+                false, false, false, false, false, EMPTY_ACCESS);
     }
 
     public static LightSettingsView previewSyncStartMarker()
     {
-        return new LightSettingsView(false, false, false, true, 0, 0, 0, 0, false, false, false, true, false, EMPTY_ACCESS);
+        return new LightSettingsView(false, false, false, true, 0, 0, 0, 0, 0, 0, 0, false, false, false, true, false, EMPTY_ACCESS);
     }
 
     public static LightSettingsView previewSyncEndMarker()
     {
-        return new LightSettingsView(false, false, false, true, 0, 0, 0, 0, false, false, false, false, true, EMPTY_ACCESS);
+        return new LightSettingsView(false, false, false, true, 0, 0, 0, 0, 0, 0, 0, false, false, false, false, true, EMPTY_ACCESS);
     }
 
-    public static LightSettingsView present(boolean editable, boolean enabled, int radiusX, int radiusY, int radiusZ, int globalMax)
+    public static LightSettingsView present(boolean editable, boolean enabled, int rangeWest, int rangeEast, int rangeDown, int rangeUp,
+            int rangeNorth, int rangeSouth, int globalMax)
     {
-        return present(editable, false, enabled, radiusX, radiusY, radiusZ, globalMax, false, false, EMPTY_ACCESS);
+        return present(editable, false, enabled, rangeWest, rangeEast, rangeDown, rangeUp, rangeNorth, rangeSouth, globalMax, false, false,
+                EMPTY_ACCESS);
     }
 
-    public static LightSettingsView present(boolean editable, boolean accessManageable, boolean enabled, int radiusX, int radiusY, int radiusZ,
-            int globalMax, LightAccessEntry[] accessEntries)
+    public static LightSettingsView present(boolean editable, boolean accessManageable, boolean enabled, int rangeWest, int rangeEast,
+            int rangeDown, int rangeUp, int rangeNorth, int rangeSouth, int globalMax, boolean chunkAligned, boolean rangeVisible,
+            LightAccessEntry[] accessEntries)
     {
-        return present(editable, accessManageable, enabled, radiusX, radiusY, radiusZ, globalMax, false, false, accessEntries);
-    }
-
-    public static LightSettingsView present(boolean editable, boolean accessManageable, boolean enabled, int radiusX, int radiusY, int radiusZ,
-            int globalMax, boolean chunkAligned, LightAccessEntry[] accessEntries)
-    {
-        return present(editable, accessManageable, enabled, radiusX, radiusY, radiusZ, globalMax, chunkAligned, false, accessEntries);
-    }
-
-    public static LightSettingsView present(boolean editable, boolean accessManageable, boolean enabled, int radiusX, int radiusY, int radiusZ,
-            int globalMax, boolean chunkAligned, boolean rangeVisible, LightAccessEntry[] accessEntries)
-    {
-        return new LightSettingsView(true, editable, accessManageable, enabled, radiusX, radiusY, radiusZ, globalMax, chunkAligned, rangeVisible, true,
-                false, false, accessEntries);
+        return new LightSettingsView(true, editable, accessManageable, enabled, rangeWest, rangeEast, rangeDown, rangeUp, rangeNorth, rangeSouth,
+                globalMax, chunkAligned, rangeVisible, true, false, false, accessEntries);
     }
 
     public boolean found()
@@ -105,19 +105,34 @@ public final class LightSettingsView
         return enabled;
     }
 
-    public int radiusX()
+    public int rangeWest()
     {
-        return radiusX;
+        return rangeWest;
     }
 
-    public int radiusY()
+    public int rangeEast()
     {
-        return radiusY;
+        return rangeEast;
     }
 
-    public int radiusZ()
+    public int rangeDown()
     {
-        return radiusZ;
+        return rangeDown;
+    }
+
+    public int rangeUp()
+    {
+        return rangeUp;
+    }
+
+    public int rangeNorth()
+    {
+        return rangeNorth;
+    }
+
+    public int rangeSouth()
+    {
+        return rangeSouth;
     }
 
     public int globalMax()

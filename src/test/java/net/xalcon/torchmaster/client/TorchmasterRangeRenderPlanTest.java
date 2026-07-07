@@ -99,15 +99,15 @@ class TorchmasterRangeRenderPlanTest
         BlockPos manual = new BlockPos(3, 64, 3);
         TorchmasterLightRangeDisplay.clear();
         try {
-            TorchmasterLightRangeDisplay.setVisible(dimension, stale, null, true, 8, 8, 8, true);
-            TorchmasterLightRangeDisplay.setVisible(dimension, confirmed, null, true, 8, 8, 8, true);
-            assertTrue(TorchmasterLightRangeDisplay.toggle(dimension, manual, null, 4, 4, 4));
+            TorchmasterLightRangeDisplay.setVisible(dimension, stale, null, true, 8, 8, 8, 8, 8, 8, true);
+            TorchmasterLightRangeDisplay.setVisible(dimension, confirmed, null, true, 8, 8, 8, 8, 8, 8, true);
+            assertTrue(TorchmasterLightRangeDisplay.toggle(dimension, manual, null, 4, 4, 4, 4, 4, 4));
 
             TorchmasterLightRangeDisplay.beginServerSync(dimension);
             assertTrue(TorchmasterLightRangeDisplay.isVisible(dimension, stale));
             assertTrue(TorchmasterLightRangeDisplay.isVisible(dimension, confirmed));
 
-            TorchmasterLightRangeDisplay.setVisible(dimension, confirmed, null, true, 12, 12, 12, true);
+            TorchmasterLightRangeDisplay.setVisible(dimension, confirmed, null, true, 12, 12, 12, 12, 12, 12, true);
             TorchmasterLightRangeDisplay.endServerSync(dimension);
 
             assertFalse(TorchmasterLightRangeDisplay.isVisible(dimension, stale));
@@ -128,8 +128,8 @@ class TorchmasterRangeRenderPlanTest
         BlockPos manual = new BlockPos(5, 64, 5);
         TorchmasterLightRangeDisplay.clear();
         try {
-            TorchmasterLightRangeDisplay.setVisible(dimension, serverOwned, null, true, 8, 8, 8, true);
-            assertTrue(TorchmasterLightRangeDisplay.toggle(dimension, manual, null, 4, 4, 4));
+            TorchmasterLightRangeDisplay.setVisible(dimension, serverOwned, null, true, 8, 8, 8, 8, 8, 8, true);
+            assertTrue(TorchmasterLightRangeDisplay.toggle(dimension, manual, null, 4, 4, 4, 4, 4, 4));
 
             TorchmasterLightRangeDisplay.removeServerSynced(dimension, serverOwned);
             TorchmasterLightRangeDisplay.removeServerSynced(dimension, manual);

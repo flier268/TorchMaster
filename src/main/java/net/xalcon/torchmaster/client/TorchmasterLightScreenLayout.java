@@ -6,13 +6,20 @@ final class TorchmasterLightScreenLayout
     private final int height;
     private final int panelWidth;
     private final int panelHeight;
+    private final int scrollOffset;
 
     TorchmasterLightScreenLayout(int width, int height, int panelWidth, int panelHeight)
+    {
+        this(width, height, panelWidth, panelHeight, 0);
+    }
+
+    TorchmasterLightScreenLayout(int width, int height, int panelWidth, int panelHeight, int scrollOffset)
     {
         this.width = width;
         this.height = height;
         this.panelWidth = Math.min(panelWidth, Math.max(160, width - 16));
         this.panelHeight = Math.min(panelHeight, Math.max(120, height - 8));
+        this.scrollOffset = Math.max(0, scrollOffset);
     }
 
     int centerX()
@@ -47,12 +54,12 @@ final class TorchmasterLightScreenLayout
 
     int rangeSwatchLeft()
     {
-        return panelRight() - 32;
+        return visibilitySwitchX() - rangeSwatchSize() - 8;
     }
 
     int rangeSwatchTop()
     {
-        return rangeY() - 3;
+        return visibilityY() + 1;
     }
 
     int rangeSwatchSize()
@@ -72,67 +79,122 @@ final class TorchmasterLightScreenLayout
 
     int titleY()
     {
-        return panelTop() + 12;
+        return panelTop() + 10;
     }
 
     int blockY()
     {
-        return panelTop() + 29;
-    }
-
-    int rangeY()
-    {
-        return panelTop() + 44;
+        return panelTop() + 24;
     }
 
     int visibilityY()
     {
-        return panelTop() + 64;
+        return radiusLabelY() - 4;
+    }
+
+    int visibilityLabelX()
+    {
+        return panelRight() - 142;
+    }
+
+    int visibilitySwitchX()
+    {
+        return panelRight() - 58;
+    }
+
+    int switchWidth()
+    {
+        return TorchmasterSwitchControl.WIDTH;
+    }
+
+    int switchHeight()
+    {
+        return TorchmasterSwitchControl.HEIGHT;
+    }
+
+    int enabledLabelX()
+    {
+        return panelLeft() + 26;
     }
 
     int enabledY()
     {
-        return panelTop() + 96;
+        return contentY(64);
     }
 
-    int enabledButtonX()
+    int enabledSwitchX()
     {
-        return panelRight() - 130;
+        return panelLeft() + 92;
     }
 
-    int enabledButtonWidth()
+    int enabledSwitchY()
     {
-        return 104;
+        return enabledY() + 2;
     }
 
     int radiusLabelY()
     {
-        return panelTop() + 124;
+        return contentY(84);
     }
 
     int radiusAxisLabelY()
     {
-        return panelTop() + 141;
+        return radiusFieldY(0) + 6;
     }
 
     int radiusFieldY()
     {
-        return panelTop() + 153;
+        return radiusFieldY(0);
+    }
+
+    int radiusFieldY(int row)
+    {
+        return contentY(104 + row * 24);
     }
 
     int radiusFieldX(int index)
     {
+        return rangeMinusX(index);
+    }
+
+    int radiusDirectionLabelX(int index)
+    {
         return panelLeft() + 26 + index * radiusSlotWidth();
+    }
+
+    int rangeMinusX(int index)
+    {
+        return radiusDirectionLabelX(index) + 44;
+    }
+
+    int rangeValueX(int index)
+    {
+        return rangeMinusX(index) + 25;
+    }
+
+    int rangeValueCenterX(int index)
+    {
+        return rangeValueX(index) + 10;
+    }
+
+    int rangePlusX(int index)
+    {
+        return rangeValueX(index) + 30;
+    }
+
+    int rangeButtonWidth()
+    {
+        return 20;
     }
 
     int limitY()
     {
-        return panelTop() + 180;
+        return contentY(176);
     }
 
     int editableY()
     {
-        return panelTop() + 180;
+        return limitY();
     }
 
     int lockX()
@@ -142,22 +204,22 @@ final class TorchmasterLightScreenLayout
 
     int accessButtonY()
     {
-        return footerY() - 26;
+        return settingsButtonY();
     }
 
     int accessButtonX()
     {
-        return panelLeft() + 26;
+        return panelRight() - 92;
     }
 
     int accessButtonWidth()
     {
-        return Math.max(104, panelWidth - 52);
+        return 56;
     }
 
     int footerButtonWidth()
     {
-        return Math.max(40, (panelWidth - 68) / 3);
+        return Math.max(60, (panelWidth - 68) / 3);
     }
 
     int footerButtonX(int index)
@@ -170,9 +232,49 @@ final class TorchmasterLightScreenLayout
         return panelBottom() - 28;
     }
 
+    int scrollOffset()
+    {
+        return scrollOffset;
+    }
+
+    int maxScroll()
+    {
+        return Math.max(0, contentBaseBottom() - contentViewportBottom());
+    }
+
+    int contentViewportTop()
+    {
+        return panelTop() + 54;
+    }
+
+    int contentViewportBottom()
+    {
+        return footerY() - 8;
+    }
+
+    int scrollbarTop()
+    {
+        return contentViewportTop();
+    }
+
+    int scrollbarBottom()
+    {
+        return contentViewportBottom();
+    }
+
     private int radiusSlotWidth()
     {
-        return Math.max(76, (panelWidth - 52) / 3);
+        return Math.max(120, (panelWidth - 52) / 2);
+    }
+
+    private int contentY(int baseOffset)
+    {
+        return panelTop() + baseOffset - scrollOffset;
+    }
+
+    private int contentBaseBottom()
+    {
+        return panelTop() + 187;
     }
 
     int visibleAccessRows(int requestedRows)

@@ -30,8 +30,9 @@ public final class LightSettingsService
             return LightSettingsView.missing(globalMax);
         }
         LightSettings settings = light.get().settings().effective(globalMax);
-        return LightSettingsView.present(editable, false, settings.enabled(), settings.radiusX(), settings.radiusY(), settings.radiusZ(),
-                globalMax, light.get().blocksNaturalSpawnsOnly(), light.get().controlState().rangeVisible(), new LightAccessEntry[0]);
+        return LightSettingsView.present(editable, false, settings.enabled(), settings.rangeWest(), settings.rangeEast(), settings.rangeDown(),
+                settings.rangeUp(), settings.rangeNorth(), settings.rangeSouth(), globalMax, light.get().blocksNaturalSpawnsOnly(),
+                light.get().controlState().rangeVisible(), new LightAccessEntry[0]);
     }
 
     public static LightSettingsView snapshot(World level, BlockPos pos, LightType lightType, ServerPlayerEntity player)
