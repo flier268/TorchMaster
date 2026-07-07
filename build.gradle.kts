@@ -229,9 +229,6 @@ extensions.configure<LoomGradleExtensionAPI>("loom") {
                 runDirectory.set(file("runs/server"))
             }
         }
-        mixin {
-            defaultRefmapName.set("$modId.refmap.json")
-        }
     } else if (isForge) {
         forge {
             convertAccessWideners.set(true)
