@@ -17,6 +17,11 @@ final class SavedLightStoreStateBridge
         return new SavedLightStore();
     }
 
+    static SavedLightStore create(String storageId)
+    {
+        return new SavedLightStore(storageId);
+    }
+
     //? if >=1.16.5
     static SavedLightStore load(NbtCompound tag)
     //? if <1.16.5

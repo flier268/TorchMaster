@@ -48,7 +48,7 @@ public final class TorchmasterLightScreenController
 
     void queryRemoteIfNeeded()
     {
-        if (remoteServer()) {
+        if (needsRemoteQuery()) {
             LightSettingsClientNetworking.query(pos, lightType);
         }
     }
@@ -172,10 +172,10 @@ public final class TorchmasterLightScreenController
         return LightSettingsService.snapshot(level, pos, lightType, player);
     }
 
-    private boolean remoteServer()
+    private boolean needsRemoteQuery()
     {
         MinecraftClient minecraft = MinecraftClient.getInstance();
-        return minecraft.world != null && minecraft.getServer() == null;
+        return minecraft.world != null && (minecraft.getServer() == null || serverWorld() == null || serverPlayer() == null);
     }
 
     private ServerWorld serverWorld()
@@ -185,10 +185,15 @@ public final class TorchmasterLightScreenController
             return null;
         }
         //? if >=1.16.5 {
-        return minecraft.getServer().getWorld(dimension);
+        ServerWorld level = minecraft.getServer().getWorld(dimension);
         //?} else {
-        /*return minecraft.getServer().getWorld((DimensionType)dimension);
+        /*ServerWorld level = minecraft.getServer().getWorld((DimensionType)dimension);
         *///?}
+        if (level != null) {
+            return level;
+        }
+        ServerPlayerEntity player = serverPlayer();
+        return player == null ? null : (ServerWorld)player.getEntityWorld();
     }
 
     private ServerPlayerEntity serverPlayer()

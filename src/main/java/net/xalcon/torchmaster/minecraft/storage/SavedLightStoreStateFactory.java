@@ -30,7 +30,7 @@ final class SavedLightStoreStateFactory
         //?} elif >=1.17 {
         /*return serverLevel.getPersistentStateManager().getOrCreate(SavedLightStoreStateFactory::load, SavedLightStoreStateBridge::create, storageId);
         *///?} else {
-        /*return serverLevel.getPersistentStateManager().getOrCreate(SavedLightStoreStateBridge::create, storageId);
+        /*return serverLevel.getPersistentStateManager().getOrCreate(() -> SavedLightStoreStateBridge.create(storageId), storageId);
         *///?}
     }
 

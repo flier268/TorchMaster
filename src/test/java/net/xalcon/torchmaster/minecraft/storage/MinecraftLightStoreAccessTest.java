@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class MinecraftLightStoreAccessTest {
     @Test
-    void storageIdKeepsLegacyPrefix() {
-        assertEquals("torchmaster_lights_minecraft_overworld", MinecraftLightStoreAccess.storageId("minecraft_overworld"));
+    void storageIdStaysStableAcrossMinecraftVersions() {
+        assertEquals("torchmaster_lights", MinecraftLightStoreAccess.storageId());
     }
 }

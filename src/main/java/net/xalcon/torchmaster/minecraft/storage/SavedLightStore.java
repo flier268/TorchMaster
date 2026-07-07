@@ -23,13 +23,23 @@ public class SavedLightStore extends PersistentState implements LightStoreBridge
 
     public SavedLightStore()
     {
-        this(new LightStoreRuntime());
+        this(new LightStoreRuntime(), "torchmaster_lights");
     }
 
     SavedLightStore(LightStoreRuntime runtime)
     {
+        this(runtime, "torchmaster_lights");
+    }
+
+    SavedLightStore(String storageId)
+    {
+        this(new LightStoreRuntime(), storageId);
+    }
+
+    SavedLightStore(LightStoreRuntime runtime, String storageId)
+    {
         //? if <1.17 {
-        /*super("torchmaster_lights");
+        /*super(storageId);
         *///?}
         this.runtime = runtime;
     }
