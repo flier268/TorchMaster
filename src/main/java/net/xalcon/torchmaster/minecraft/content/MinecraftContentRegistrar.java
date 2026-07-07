@@ -101,6 +101,8 @@ public class MinecraftContentRegistrar implements ContentRegistrar
     {
         //? if >=1.20
         CREATIVE_MODE_TABS.register(Constants.MOD_ID, () -> Services.PLATFORM.createCreativeModeTab(Constants.MOD_ID, creativeTabItems));
+        //? if fabric && >=1.19.3 <1.20
+        //Services.PLATFORM.createCreativeModeTab(Constants.MOD_ID, creativeTabItems);
         //? if forge && >=1.19.3 <1.20
         //Services.PLATFORM.registerCreativeModeTab(Constants.MOD_ID, creativeTabItems);
     }

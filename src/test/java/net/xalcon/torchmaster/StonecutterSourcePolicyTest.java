@@ -36,6 +36,7 @@ class StonecutterSourcePolicyTest
     private static final Pattern CONFIG_SCREEN_DIRECT_WIDGET_STATE = Pattern.compile("setWidget[XY]\\s*\\(|\\.visible\\s*=|\\.active\\s*=");
     private static final Pattern RANGE_RENDERER_DIRECT_SESSION_DETAIL = Pattern.compile("TorchmasterLightRangeDisplay\\.snapshots\\s*\\(|RenderLayer\\.getLines\\s*\\(|WorldRenderer\\.drawBox\\s*\\(|\\.lineWidth\\s*\\(");
     private static final Pattern FABRIC_RANGE_RENDER_AFTER_TRANSLUCENT = Pattern.compile("WorldRenderEvents\\.AFTER_TRANSLUCENT\\.register");
+    private static final Pattern FABRIC_RANGE_RENDER_LAST = Pattern.compile("WorldRenderEvents\\.LAST\\.register");
     private static final Pattern FORGE_RANGE_RENDER_POSITION_MATRIX_COPY = Pattern.compile("multiplyPositionMatrix\\s*\\(\\s*event\\.getPoseStack\\s*\\(\\s*\\)");
     private static final Pattern STORAGE_SERIALIZER_RUNTIME_LOGGER = Pattern.compile("TorchmasterRuntime\\.LOG");
     private static final Pattern SCREEN_DIRECT_TEXT_DRAW = Pattern.compile("drawCenteredText|drawCenteredString|drawText\\s*\\(|drawString\\s*\\(");
@@ -281,7 +282,15 @@ class StonecutterSourcePolicyTest
     {
         Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterClientEventAdapter.java");
 
-        assertTrue(!hasFabricRangeRenderAfterTranslucent(path), () -> "Use WorldRenderEvents.LAST for immediate Fabric range rendering so the render state includes camera transformation: " + path);
+        assertTrue(!hasFabricRangeRenderAfterTranslucent(path), () -> "Use WorldRenderEvents.BEFORE_DEBUG_RENDER for immediate Fabric range debug lines: " + path);
+    }
+
+    @Test
+    void fabricImmediateRangeRenderUsesDebugRenderEvent() throws IOException
+    {
+        Path path = sourcePath("src/main/java/net/xalcon/torchmaster/client/TorchmasterClientEventAdapter.java");
+
+        assertTrue(!hasFabricRangeRenderLast(path), () -> "Use WorldRenderEvents.BEFORE_DEBUG_RENDER for Fabric range debug lines instead of the later LAST hook: " + path);
     }
 
     @Test
@@ -863,6 +872,15 @@ class StonecutterSourcePolicyTest
     {
         try {
             return Files.lines(path).anyMatch(line -> FABRIC_RANGE_RENDER_AFTER_TRANSLUCENT.matcher(line).find());
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read " + path, exception);
+        }
+    }
+
+    private static boolean hasFabricRangeRenderLast(Path path)
+    {
+        try {
+            return Files.lines(path).anyMatch(line -> FABRIC_RANGE_RENDER_LAST.matcher(line).find());
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to read " + path, exception);
         }

@@ -717,8 +717,8 @@ public class TorchmasterLightScreen extends TorchmasterScreenCompat
         /*
         super.renderBackground(graphics, mouseX, mouseY, partialTick);
         *///?} else {
-        /*
-        super.renderBackground(graphics);
+        
+        /*super.renderBackground(graphics);
         *///?}
         TorchmasterScreenRenderAdapter.background(graphics, renderPlan());
     }

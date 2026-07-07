@@ -455,8 +455,8 @@ final class TorchmasterLightAccessScreen extends TorchmasterScreenCompat
         /*
         super.renderBackground(graphics, mouseX, mouseY, partialTick);
         *///?} else {
-        /*
-        super.renderBackground(graphics);
+        
+        /*super.renderBackground(graphics);
         *///?}
         TorchmasterScreenRenderAdapter.background(graphics, renderPlan());
     }

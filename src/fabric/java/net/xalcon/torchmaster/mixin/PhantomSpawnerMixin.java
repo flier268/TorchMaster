@@ -42,19 +42,19 @@ public abstract class PhantomSpawnerMixin {
                     //value = "NEW",
                     //? if <1.16.5
                     //target = "net/minecraft/util/math/BlockPos"
-                    //? if >=1.16.5 <1.20.6
+                    //? if >=1.16.5 <1.20.1
                     //value = "INVOKE",
-                    //? if >=1.16.5 <1.20.6
+                    //? if >=1.16.5 <1.20.1
                     //target = "Lnet/minecraft/entity/player/PlayerEntity;getBlockPos()Lnet/minecraft/util/math/BlockPos;"
-                    //? if >=1.20.6
+                    //? if >=1.20.1
                     value = "INVOKE",
-                    //? if >=1.20.6
+                    //? if >=1.20.1
                     target = "Lnet/minecraft/server/network/ServerPlayerEntity;getBlockPos()Lnet/minecraft/util/math/BlockPos;"
             )
     )
-    //? if >=1.20.6
+    //? if >=1.20.1
     private BlockPos torchmaster_tick_playerBlockPosition(ServerPlayerEntity player)
-    //? if >=1.16.5 <1.20.6
+    //? if >=1.16.5 <1.20.1
     //private BlockPos torchmaster_tick_playerBlockPosition(PlayerEntity player)
     //? if <1.16.5
     //private BlockPos torchmaster_tick_playerBlockPosition(Entity player)

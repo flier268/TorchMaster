@@ -2,7 +2,6 @@ import java.util.Properties
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
 import net.fabricmc.loom.task.RemapJarTask
 import org.gradle.api.file.DuplicatesStrategy
-import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
@@ -14,8 +13,8 @@ plugins {
     `java-library`
     `maven-publish`
     id("dev.kikugie.stonecutter")
-    id("dev.architectury.loom") version "1.17.487"
-    id("architectury-plugin") version "3.5.169"
+    id("dev.architectury.loom") version "1.17-SNAPSHOT"
+    id("architectury-plugin") version "3.5-SNAPSHOT"
 }
 
 val activeProject = stonecutter.current.project
@@ -150,10 +149,6 @@ base {
     archivesName.set("$modId-${project.version}-mc$minecraftVersion-$activeLoader")
 }
 
-tasks.withType<AbstractArchiveTask>().configureEach {
-    archiveVersion.set("")
-}
-
 architectury {
     platformSetupLoomIde()
     when {
@@ -167,20 +162,6 @@ architectury {
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(javaVersion))
     withSourcesJar()
-}
-
-val javaToolchainLauncher = javaToolchains.launcherFor {
-    languageVersion.set(JavaLanguageVersion.of(javaVersion))
-}
-
-tasks.withType<JavaExec>().configureEach {
-    javaLauncher.set(javaToolchainLauncher)
-    if (isForge) {
-        doFirst {
-            file("out/production/classes").mkdirs()
-            file("out/production/resources").mkdirs()
-        }
-    }
 }
 
 repositories {
@@ -238,15 +219,14 @@ extensions.configure<LoomGradleExtensionAPI>("loom") {
         runs {
             maybeCreate("client").apply {
                 client()
-                programArg("--username")
-                programArg("Xalcon")
-                name("Fabric Client")
-                runDir("runs/client")
+                programArguments.addAll("--username", "Xalcon")
+                displayName.set("Fabric Client")
+                runDirectory.set(file("runs/client"))
             }
             maybeCreate("server").apply {
                 server()
-                name("Fabric Server")
-                runDir("runs/server")
+                displayName.set("Fabric Server")
+                runDirectory.set(file("runs/server"))
             }
         }
         mixin {

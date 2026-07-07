@@ -3,9 +3,9 @@ package net.xalcon.torchmaster.mixin;
 //? if fabric && <1.16.5 {
 /*import net.minecraft.entity.SpawnType;
 import net.minecraft.entity.EntityCategory;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorld;
-import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
 *///?}
 //? if fabric && >=1.16.5 {
@@ -34,13 +34,13 @@ public abstract class NaturalSpawnerMixin
 {
     //? if fabric && <1.16.5 {
     /*@Inject(
-            method = "spawnEntitiesInChunk(Lnet/minecraft/entity/EntityCategory;Lnet/minecraft/world/World;Lnet/minecraft/world/chunk/WorldChunk;Lnet/minecraft/util/math/BlockPos;)V",
+            method = "spawnEntitiesInChunk(Lnet/minecraft/entity/EntityCategory;Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/world/chunk/WorldChunk;Lnet/minecraft/util/math/BlockPos;)V",
             at = @At("HEAD"),
             cancellable = true
     )
     private static void torchmaster_spawnEntitiesInChunk_skipDiamondBaseBlockedNaturalSpawnChunk(
             EntityCategory category,
-            World level,
+            ServerWorld level,
             WorldChunk chunk,
             BlockPos pos,
             CallbackInfo ci)
