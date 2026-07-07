@@ -178,6 +178,28 @@ class LightRulesTest {
     }
 
     @Test
+    void naturalSpawnChunkRequiresDiamondBaseMegaTorch() {
+        BlockPosView lightPos = new BlockPosView(0, 64, 0);
+
+        assertFalse(LightRules.blocksNaturalSpawnChunk(
+                LightKind.MEGA_TORCH,
+                false,
+                0,
+                0,
+                lightPos,
+                64
+        ));
+        assertFalse(LightRules.blocksNaturalSpawnChunk(
+                LightKind.DREAD_LAMP,
+                true,
+                0,
+                0,
+                lightPos,
+                64
+        ));
+    }
+
+    @Test
     void naturalSpawnChunkZeroRadiusIsCurrentChunkOnly() {
         LightSettings settings = LightSettings.configured(true, 0, 1, 0);
 

@@ -366,6 +366,9 @@ tasks.named<ProcessResources>("processResources") {
     if (!isNeoForge) {
         exclude("$modId.neoforge.mixins.json")
     }
+    if (!isForge) {
+        exclude("$modId.forge.mixins.json")
+    }
 
     doLast {
         val servicesDir = destinationDir.resolve("META-INF/services")

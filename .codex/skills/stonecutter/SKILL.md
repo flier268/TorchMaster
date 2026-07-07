@@ -5,33 +5,20 @@ description: Use when working on Stonecutter multi-version Minecraft mod project
 
 # Stonecutter
 
-## Purpose
+Use this skill for Stonecutter multi-version Minecraft mod projects. Focus on three risks: wrong active version, malformed comment syntax, and putting version-specific logic in the wrong layer.
 
-Use this skill for Stonecutter Gradle projects. It helps agents avoid the two common mistakes: editing the wrong generated/version state, and writing malformed Stonecutter comment syntax.
+## Core Rules
 
-Primary docs checked:
-- https://stonecutter.kikugie.dev/stonecutter/wiki/start/comments
-- https://stonecutter.kikugie.dev/stonecutter/wiki/config/controller
-- https://stonecutter.kikugie.dev/stonecutter/wiki/config/params
-- https://stonecutter.kikugie.dev/stonecutter/wiki/start/settings
+- Read registered nodes and `vcsVersion` from `settings.gradle(.kts)`.
+- Read the active version from `stonecutter.gradle(.kts)`; it controls root `src/` state and classpath.
+- Switch active version before editing APIs that differ by Minecraft version or loader.
+- Use Stonecutter tasks/actions, not manual edits to `stonecutter active "..." /* [SC] DO NOT EDIT */`.
+- Prefer root shared sources; do not make lasting edits under `versions/.../build/generated/`.
+- Keep loader entrypoints under `src/[fabric|forge|neoforge]/java` unless they need Stonecutter-transformed branches.
+- Keep version branches in Minecraft adapter/content/lifecycle code, not `domain`, `port`, or shared content definitions.
+- Keep shared ids and metadata in content definitions; do not duplicate them per loader.
 
-## Workflow
-
-1. Inspect `settings.gradle(.kts)` for registered versions and `vcsVersion`.
-2. Inspect `stonecutter.gradle(.kts)` for the active version. The active version controls the root `src/` state and classpath.
-3. Switch active version before editing APIs that differ by Minecraft version or loader.
-4. Edit root shared sources unless the task explicitly concerns generated files under `versions/.../build/generated/`.
-5. Refresh or switch Stonecutter after editing conditional comments to ensure comment states are valid.
-6. Before committing, reset to the configured VCS version to avoid committing comment-toggle noise.
-
-For this repo:
-- Active version is declared in `stonecutter.gradle.kts` as `stonecutter active "..." /* [SC] DO NOT EDIT */`; prefer Stonecutter tasks/actions over hand-editing it.
-- Registered project nodes and `vcsVersion` must be read from `settings.gradle(.kts)` instead of copied into this skill.
-- CLI examples: `./gradlew "Set active project to PROJECT_NODE"`, `./gradlew "Refresh active project"`, `./gradlew "Reset active project"`.
-- Tasks named `stonecutterSwitchTo...` are lifecycle/internal tasks; prefer the human-readable root tasks or the IDE Stonecutter actions.
-- `src/main` should not contain loader entrypoints unless they require Stonecutter-transformed version branches. Put Fabric, Forge, and NeoForge initialization classes under `src/[loader]/java` only when they do not depend on raw Stonecutter lookup/version branch processing.
-- Version conditionals introduced by content-registration refactors should live in `net.xalcon.torchmaster.minecraft.adapter`, `net.xalcon.torchmaster.minecraft.content`, or narrowly scoped loader lifecycle adapters. Do not put version branches in `domain`, `port`, or shared content definition classes.
-- Shared item/block ids and metadata belong in content definitions; do not use Stonecutter to maintain three loader-specific copies of content details.
+Useful root tasks: `./gradlew "Set active project to PROJECT_NODE"`, `./gradlew "Refresh active project"`, `./gradlew "Reset active project"`. Prefer these over `stonecutterSwitchTo...` lifecycle/internal tasks.
 
 ## Comment Syntax
 
@@ -72,15 +59,37 @@ newApi();
 //?}
 ```
 
-Lookup scope comments a range up to whitespace by default, or up to a marker after `>>`. Use it for small inline API differences:
+For multi-version chains, order predicates oldest to newest; reserve `else` for the newest supported path:
+
+```java
+//? if <1.14 {
+oldApi();
+//?} elif <=1.16 {
+api116();
+//?} elif <1.21.1 {
+api121();
+//?} else {
+latestApi();
+//?}
+```
+
+For import blocks, prefer separate closed scopes over `if { ... } else { ... }` when one branch is currently commented out. Import branches are easy to leave in an invalid active/comment state such as an active `else` branch ending with `*///?}`.
+
+Prefer:
+
+```java
+//? if <1.16.5 {
+/*import old.Api;
+*///?}
+//? if >=1.16.5 {
+import new.Api;
+//?}
+```
+
+Lookup scope comments a range up to whitespace, or up to a marker after `>>`; `>>+` includes the marker:
 
 ```java
 call(/*? if <NEW_API_VERSION >> ');'*/oldArg);
-```
-
-Use `>>+` when the located marker should be included in the affected range:
-
-```java
 //? if >=NEW_API_VERSION >>+ '.'
 SomeClass.staticMethod();
 ```
@@ -106,7 +115,7 @@ Logical operators:
 
 The implicit version target is the node's logical Minecraft version, not necessarily the project directory name. In this repo, project names include loader suffixes, while the logical version omits the loader suffix.
 
-Constants and dependencies can be configured in Gradle and referenced from comments. Loader constants are common in multi-loader projects:
+Loader constants are available in comments:
 
 ```java
 //? if fabric {
@@ -118,9 +127,7 @@ neoForgeOnly();
 
 ## Build Script Checks
 
-In `build.gradle.kts`, the shared build script is evaluated for every Stonecutter node.
-
-Use:
+`build.gradle.kts` is evaluated for every node. Follow the repo style: `stonecutter.eval(...)` plus `mod.isFabric`, `mod.isForge`, `mod.isNeoforge`.
 
 ```kotlin
 stonecutter.current.project // project node, often version plus loader
@@ -128,22 +135,9 @@ stonecutter.current.version // logical Minecraft version
 stonecutter.eval(stonecutter.current.version, ">=VERSION")
 ```
 
-Or the `sc` alias when the project uses it:
-
-```kotlin
-if (sc.current.parsed >= "VERSION") {
-    // version-specific Gradle logic
-}
-```
-
-For this repo, existing build logic uses `stonecutter.eval(...)` and `mod.isFabric`, `mod.isForge`, `mod.isNeoforge`; follow that local style.
-
 ## Review Checklist
 
-Before finishing Stonecutter work:
 - Check `git diff` for accidental broad comment toggles.
-- Verify the active version is the intended one for development, and reset to `vcsVersion` before commit-ready work.
-- Ensure branch chains use closed scopes except possibly the final branch.
-- Prefer narrow predicates and include loader constants when APIs differ by loader.
-- Do not manually edit generated source under `versions/.../build/generated/` for lasting changes.
-- Confirm any phase refactor updates the next-phase plan under `docs/refactor/`, including remaining Stonecutter-heavy areas and the next verification matrix.
+- Refresh or switch Stonecutter after editing conditional comments.
+- Before committing, reset active version to `vcsVersion`.
+- For staged refactor phases, update the next-phase plan under `docs/refactor/`.

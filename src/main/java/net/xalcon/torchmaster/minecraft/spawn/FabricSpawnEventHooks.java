@@ -68,7 +68,7 @@ public final class FabricSpawnEventHooks
 
     public static boolean shouldSkipNaturalSpawnChunk(World level, ChunkPos chunkPos)
     {
-        return MinecraftSpawnBlocker.shouldBlockNaturalSpawnChunk(level, chunkPos);
+        return MinecraftNaturalSpawnHooks.shouldSkipNaturalSpawnChunk(level, chunkPos);
     }
     //?}
 }

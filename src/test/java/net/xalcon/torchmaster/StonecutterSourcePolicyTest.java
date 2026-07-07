@@ -1223,6 +1223,7 @@ class StonecutterSourcePolicyTest
                 || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/AbstractTorchmasterForge.java")
                 || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/TorchmasterForgeClient.java")
                 || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/ForgeEventHandler.java")
+                || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/mixin/ForgeNaturalSpawnerMixin.java")
                 || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/ForgeSpawnEventResults.java")
                 || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/ForgeVillageEventHandler.java")
                 || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/TorchmasterForgeLifecycleAdapter.java")
@@ -1230,6 +1231,7 @@ class StonecutterSourcePolicyTest
                 || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/platform/ForgePlatformHelper.java")
                 || normalized.endsWith("src/forge/java/net/xalcon/torchmaster/platform/ForgeRegistrationFactory.java")
                 || normalized.endsWith("src/neoforge/java/net/xalcon/torchmaster/TorchmasterNeoforgeClient.java")
+                || normalized.endsWith("src/neoforge/java/net/xalcon/torchmaster/mixin/NeoforgeNaturalSpawnerMixin.java")
                 || normalized.endsWith("src/neoforge/java/net/xalcon/torchmaster/platform/NeoForgePlatformHelper.java");
     }
 
