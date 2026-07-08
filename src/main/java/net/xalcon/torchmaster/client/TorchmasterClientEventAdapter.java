@@ -114,7 +114,9 @@ public final class TorchmasterClientEventAdapter
         });
         *///?} else if >=1.16 {
         WorldRenderEvents.BEFORE_DEBUG_RENDER.register(context -> {
-            TorchmasterClientLifecycle.renderCurrentRange(context.matrixStack());
+            if (context.consumers() != null) {
+                TorchmasterClientLifecycle.renderCurrentRange(context.matrixStack(), context.consumers());
+            }
         });
         //?}
     }
