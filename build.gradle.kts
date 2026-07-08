@@ -13,6 +13,7 @@ plugins {
     `java-library`
     `maven-publish`
     id("dev.kikugie.stonecutter")
+    id("dev.kikugie.fletching-table") version "0.1.0-alpha.23"
     id("dev.architectury.loom") version "1.17-SNAPSHOT"
     id("architectury-plugin") version "3.5-SNAPSHOT"
 }
@@ -239,6 +240,21 @@ extensions.configure<LoomGradleExtensionAPI>("loom") {
             if (accessTransformerFile.exists()) {
                 accessTransformer(accessTransformerFile)
             }
+        }
+    }
+}
+
+fletchingTable {
+    j52j.register("main") {
+        if (stonecutter.eval(minecraftVersion, ">=1.21")) {
+            extension(
+                "json",
+                "data/minecraft/tags/blocks/mineable/*.json5 -> /data/minecraft/tags/block/mineable",
+                "data/torchmaster/loot_tables/blocks/*.json5 -> /data/torchmaster/loot_table/blocks",
+                "data/torchmaster/recipes/**/*.json5 -> /data/torchmaster/recipe",
+            )
+        } else {
+            extension("json", "data/**/*.json5")
         }
     }
 }

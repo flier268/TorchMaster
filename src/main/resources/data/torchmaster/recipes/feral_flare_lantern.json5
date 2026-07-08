@@ -1,0 +1,25 @@
+{
+    type: "minecraft:crafting_shaped",
+    pattern: [
+        " I ",
+        "GgG",
+        " I ",
+    ],
+    key: {
+        //? if >=1.21.2 {
+        /*I: "minecraft:gold_ingot",
+        g: "minecraft:glowstone_dust",
+        G: "minecraft:glass",
+        *///?} else {
+        I: { item: "minecraft:gold_ingot" },
+        g: { item: "minecraft:glowstone_dust" },
+        G: { item: "minecraft:glass" },
+        //?}
+    },
+    result: {
+        //? if <1.20.5
+        //item: "torchmaster:feral_flare_lantern",
+        //? if >=1.20.5
+        id: "torchmaster:feral_flare_lantern",
+    },
+}

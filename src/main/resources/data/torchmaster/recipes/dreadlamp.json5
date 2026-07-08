@@ -1,0 +1,27 @@
+{
+    type: "minecraft:crafting_shaped",
+    pattern: [
+        "OOO",
+        "PGP",
+        "OBO",
+    ],
+    key: {
+        //? if >=1.21.2 {
+        /*O: "minecraft:obsidian",
+        P: "minecraft:glass_pane",
+        G: "minecraft:glowstone",
+        B: "minecraft:black_dye",
+        *///?} else {
+        O: { item: "minecraft:obsidian" },
+        P: { item: "minecraft:glass_pane" },
+        G: { item: "minecraft:glowstone" },
+        B: { item: "minecraft:black_dye" },
+        //?}
+    },
+    result: {
+        //? if <1.20.5
+        //item: "torchmaster:dreadlamp",
+        //? if >=1.20.5
+        id: "torchmaster:dreadlamp",
+    },
+}

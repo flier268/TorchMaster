@@ -1,0 +1,27 @@
+{
+    type: "minecraft:crafting_shaped",
+    pattern: [
+        "TTT",
+        "DLD",
+        "GLG",
+    ],
+    key: {
+        //? if >=1.21.2 {
+        /*T: "minecraft:torch",
+        D: "minecraft:diamond",
+        G: "minecraft:gold_block",
+        L: "#minecraft:logs",
+        *///?} else {
+        T: { item: "minecraft:torch" },
+        D: { item: "minecraft:diamond" },
+        G: { item: "minecraft:gold_block" },
+        L: { tag: "minecraft:logs" },
+        //?}
+    },
+    result: {
+        //? if <1.20.5
+        //item: "torchmaster:megatorch",
+        //? if >=1.20.5
+        id: "torchmaster:megatorch",
+    },
+}
